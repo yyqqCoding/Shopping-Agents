@@ -1,0 +1,210 @@
+/*
+ * Copyright 2026 Anthropic PBC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@import "tailwindcss";
+@source "../../../web-shared";
+@import "../../../web-shared/base.css";
+
+/*
+ * ACME Assistant design system: a warm paper ground with warm-white cards, near-black
+ * warm ink, and a clay accent for the assistant's marks and primary actions. Display
+ * type is a serif (Fraunces); motion is quiet — expo-out reveals, press feedback on
+ * controls, a staggered rise on the home blocks.
+ */
+
+:root {
+  --ground: #f5f3ee; /* page */
+  --surface: #fffdfa; /* text on ink */
+  --card: #fffdfa; /* cards, panel, app bar */
+  --chrome: #faf8f3; /* app bar */
+  --well: #ede9e0; /* chips, thumbs, hover ground */
+  --ink: #26221c; /* warm near-black: text and structure */
+  --ink-2: #4e463c; /* secondary text that still reads as content */
+  --ink-soft: #7c7266; /* labels and metadata */
+  --ink-faint: #aba191; /* hints and placeholders */
+  --line: rgba(38, 34, 28, 0.1);
+  --line-strong: rgba(38, 34, 28, 0.18); /* control borders */
+  --accent: #b95529; /* clay: the assistant's mark, primary actions, focus */
+  --accent-strong: #a64a20; /* filled buttons */
+  --accent-soft: #f6e7db;
+  --accent-ink: #8a3a17; /* text on accent-soft */
+  --on-accent: #fffdf9;
+  --ok: #2e7d57; /* delivery promises, delivered */
+  --ok-soft: #e2f0e7;
+  --warn: #96620a; /* low stock, delays, results held by a safety gate */
+  --warn-soft: #f7eed7;
+  --danger: #bf3427; /* sale tags and errors */
+  --danger-soft: #f9e9e6;
+  --info: #35707f; /* shipped */
+  --info-soft: #e3edf0;
+  --violet: #6f5aa8; /* returns in progress */
+  --violet-soft: #ebe7f4;
+  --star: #d9930d; /* rating stars */
+  --shadow-sm: 0 1px 2px rgba(38, 34, 28, 0.05), 0 1px 1px rgba(38, 34, 28, 0.03);
+  --shadow: 0 1px 2px rgba(38, 34, 28, 0.05), 0 6px 18px -8px rgba(38, 34, 28, 0.16);
+  --shadow-lg: 0 16px 44px -14px rgba(38, 34, 28, 0.3), 0 2px 6px rgba(38, 34, 28, 0.07);
+  --radius: 14px;
+}
+
+body {
+  font-family:
+    var(--font-body), "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  /* Unhinted web fonts otherwise get their advances rounded by FreeType, which eats spaces. */
+  text-rendering: geometricPrecision;
+  /* A breath of warmth falling from the top of the page. */
+  background:
+    radial-gradient(1100px 460px at 50% -8%, rgba(185, 85, 41, 0.055), transparent 70%),
+    var(--ground);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, "Times New Roman", serif;
+}
+
+/* --- Motion: the base sheet's reveal is re-cut slower and expo-out. --- */
+
+@keyframes ac-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ac-reveal {
+  animation: ac-reveal 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The home starters rise one after another. */
+button.ac-reveal:nth-child(2) {
+  animation-delay: 70ms;
+}
+button.ac-reveal:nth-child(3) {
+  animation-delay: 140ms;
+}
+button.ac-reveal:nth-child(4) {
+  animation-delay: 210ms;
+}
+
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Conversation chrome the shared components render. */
+.user-bubble {
+  border-radius: 18px 18px 6px 18px;
+  background: var(--ink);
+  color: var(--surface);
+  box-shadow: var(--shadow-sm);
+  animation: bubble-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.streaming-caret::after {
+  color: var(--accent);
+}
+
+.chip {
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--card);
+  padding: 6px 13px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  transition:
+    border-color 180ms,
+    background-color 180ms,
+    color 180ms,
+    transform 120ms;
+}
+.chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+.chip:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.chip:disabled {
+  opacity: 0.5;
+}
+
+.btn-primary {
+  border-radius: var(--radius);
+  background: var(--accent-strong);
+  padding: 10px 16px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--on-accent);
+  transition:
+    filter 180ms,
+    transform 120ms,
+    box-shadow 200ms;
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: var(--shadow);
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.btn-primary:disabled {
+  background: var(--well);
+  color: var(--ink-soft);
+}
+
+/* The composer's focus ring wraps the dock. */
+form:has(> button[aria-label="Send"]) {
+  transition:
+    border-color 180ms,
+    box-shadow 220ms;
+}
+form:has(> button[aria-label="Send"]):focus-within {
+  box-shadow:
+    var(--shadow),
+    0 0 0 4px var(--accent-soft);
+}
+
+/* Plan budget segments, warm and muted. */
+.plan-seg-0 {
+  background: #c2602f;
+}
+.plan-seg-1 {
+  background: #8a8a52;
+}
+.plan-seg-2 {
+  background: #4f7a72;
+}
+.plan-seg-3 {
+  background: #c99a3c;
+}
+.plan-seg-4 {
+  background: #a05c7a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-bubble {
+    animation: none;
+  }
+}

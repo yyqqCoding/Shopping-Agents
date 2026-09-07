@@ -13,8 +13,8 @@
   --well: #edf0e9;
   --ink: #193c31;
   --ink-2: #40594d;
-  --ink-soft: #617264;
-  --ink-faint: #78887b;
+  --ink-soft: #536757;
+  --ink-faint: #617264;
   --line: #193c3120;
   --line-strong: #193c3140;
   --accent: #315c42;
@@ -98,7 +98,7 @@ button:disabled {
   margin-bottom: 48px;
 }
 .section-heading p {
-  font-size: 16px;
+  font-size: 1.25rem;
   line-height: 1.9;
   color: var(--ink-2);
 }
@@ -107,7 +107,7 @@ button:disabled {
   align-items: center;
   gap: 20px;
   min-height: 44px;
-  font-size: 15px;
+  font-size: 1.25rem;
   font-weight: 600;
   border-bottom: 1px solid var(--line-strong);
   padding-block: 8px;
@@ -128,7 +128,7 @@ button:disabled {
   color: #fff;
   padding: 16px 24px;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 1.25rem;
   font-weight: 600;
   transition:
     background 0.2s,
@@ -164,13 +164,13 @@ button:disabled {
   border-bottom: 1px solid var(--line);
 }
 .site-header .outdoor-wordmark {
-  font-size: 17px;
+  font-size: 1.375rem;
 }
 .site-header nav {
   display: flex;
   align-items: center;
   gap: 36px;
-  font-size: 14px;
+  font-size: 1.125rem;
   font-weight: 500;
 }
 .site-header nav > a {
@@ -206,6 +206,16 @@ button:disabled {
 .site-header-overlay .outdoor-wordmark {
   color: inherit;
 }
+.site-header-overlay:not(.is-scrolled) .outdoor-mark {
+  --mark-ground: #d5ed87;
+  --mark-ink: #193c31;
+  --mark-accent: #315c42;
+}
+.outdoor-mark > * {
+  transition:
+    fill 240ms,
+    stroke 240ms;
+}
 .site-header-overlay .nav-assistant {
   background: #d5ed87;
   color: #17382b;
@@ -220,7 +230,7 @@ button:disabled {
   position: relative;
   min-height: 740px;
   height: 100svh;
-  max-height: 1120px;
+  max-height: none;
   background: #193b31;
   color: white;
   overflow: hidden;
@@ -232,6 +242,8 @@ button:disabled {
   width: 100%;
   object-fit: cover;
   object-position: 60% 50%;
+  translate: 0 calc(var(--hero-drift, 0px) * 0.4);
+  scale: 1.09;
   animation: hero-settle 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .field-hero-shade {
@@ -257,7 +269,7 @@ button:disabled {
 }
 .field-hero-copy p {
   margin: 30px 0 32px;
-  font-size: 17px;
+  font-size: 1.375rem;
   line-height: 1.9;
   color: #e9eee5;
 }
@@ -271,7 +283,7 @@ button:disabled {
   justify-content: space-between;
   border-top: 1px solid #ffffff40;
   padding-top: 22px;
-  font-size: 13px;
+  font-size: 1rem;
   color: #e7ede4;
 }
 .field-hero-bottom a {
@@ -305,7 +317,25 @@ button:disabled {
   }
 }
 .journeys-section {
-  padding-block: 112px 120px;
+  width: 100%;
+  padding-inline: max(56px, calc((100vw - 1392px) / 2));
+  background: #173c30;
+  color: #fafbf7;
+  padding-block: 64px 100px;
+}
+.journeys-section .section-heading p {
+  color: #d9e5d3;
+}
+.field-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 100px;
+  background: linear-gradient(transparent, #173c30);
+  pointer-events: none;
+}
+.field-hero-bottom {
+  z-index: 1;
 }
 .journey-grid {
   display: grid;
@@ -351,7 +381,7 @@ button:disabled {
   z-index: 1;
 }
 .journey-caption > span:first-child {
-  font-size: 12px;
+  font-size: 1rem;
   color: #e8eee1;
 }
 .journey-caption h3 {
@@ -362,7 +392,7 @@ button:disabled {
   letter-spacing: -0.02em;
 }
 .journey-caption p {
-  font-size: 13px;
+  font-size: 1rem;
   color: #ebeee6;
   margin-top: 9px;
   line-height: 1.8;
@@ -403,7 +433,7 @@ button:disabled {
 .packing-chapter p {
   max-width: 29em;
   color: #cddbc9;
-  font-size: 16px;
+  font-size: 1.25rem;
   line-height: 1.95;
   margin-top: 26px;
 }
@@ -414,7 +444,7 @@ button:disabled {
   margin-top: 28px;
 }
 .packing-tags span {
-  font-size: 12px;
+  font-size: 1rem;
   border: 1px solid #78927d;
   border-radius: 5px;
   padding: 6px 10px;
@@ -446,10 +476,10 @@ button:disabled {
   gap: 12px;
   border-bottom: 1px solid var(--line);
   padding-bottom: 18px;
-  font-size: 13px;
+  font-size: 1rem;
 }
 .packing-board > header > span:last-child {
-  font-size: 11px;
+  font-size: 0.9375rem;
   color: var(--ink-soft);
 }
 .packing-board-products {
@@ -475,7 +505,7 @@ button:disabled {
   left: 0;
   right: 0;
   bottom: -4px;
-  font-size: 11px;
+  font-size: 0.9375rem;
   text-align: center;
   color: var(--ink-2);
 }
@@ -521,7 +551,7 @@ button:disabled {
   border-top: 1px solid var(--line);
   padding-top: 18px;
   margin-top: 20px;
-  font-size: 12px;
+  font-size: 1rem;
   line-height: 1.6;
 }
 .status-dot {
@@ -594,19 +624,19 @@ button:disabled {
   background: #d5ed87;
 }
 .equipment-card-category {
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-soft);
   margin-top: 20px;
 }
 .equipment-card h3 {
-  font-size: 17px;
+  font-size: 1.375rem;
   line-height: 1.6;
   font-weight: 600;
   margin-top: 5px;
   text-wrap: balance;
 }
 .equipment-card > p {
-  font-size: 13px;
+  font-size: 1rem;
   color: var(--ink-soft);
   line-height: 1.7;
   margin-top: 6px;
@@ -617,12 +647,12 @@ button:disabled {
   align-items: center;
   gap: 6px;
   margin-top: 15px;
-  font-size: 19px;
+  font-size: 1.5rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .equipment-card-price small {
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-soft);
   font-weight: 400;
 }
@@ -631,7 +661,7 @@ button:disabled {
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 11px;
+  font-size: 0.9375rem;
   font-weight: 400;
   color: var(--ink-soft);
 }
@@ -646,7 +676,7 @@ button:disabled {
   padding: 5px 9px;
   border-radius: 5px;
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 1rem;
 }
 .product-photograph {
   background: #f0f1eb;
@@ -661,7 +691,7 @@ button:disabled {
   align-items: center;
 }
 .comparison-intro p {
-  font-size: 15px;
+  font-size: 1.25rem;
   color: var(--ink-2);
   line-height: 1.9;
   margin-top: 24px;
@@ -678,19 +708,19 @@ button:disabled {
 .comparison-preview-head {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 1rem;
   gap: 12px;
   margin-bottom: 26px;
 }
 .comparison-preview-head > span:last-child {
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 0.9375rem;
 }
 .comparison-preview table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: 13px;
+  font-size: 1rem;
   line-height: 1.8;
 }
 .comparison-preview th,
@@ -707,11 +737,11 @@ button:disabled {
 .comparison-preview tr > :first-child {
   width: 21%;
   padding-left: 0;
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-soft);
 }
 .comparison-preview thead th {
-  font-size: 15px;
+  font-size: 1.25rem;
   font-weight: 600;
 }
 .comparison-preview tbody tr:last-child > * {
@@ -731,13 +761,13 @@ button:disabled {
 }
 .departure-section > div > p {
   margin-top: 24px;
-  font-size: 14px;
+  font-size: 1.125rem;
   line-height: 1.9;
   color: var(--ink-2);
 }
 .trip-entry label {
   display: block;
-  font-size: 20px;
+  font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 20px;
 }
@@ -753,7 +783,7 @@ button:disabled {
   min-width: 0;
   background: transparent;
   outline: none;
-  font-size: 15px;
+  font-size: 1.25rem;
   padding-block: 12px;
 }
 .trip-entry input::placeholder {
@@ -774,7 +804,7 @@ button:disabled {
   transform: rotate(-35deg);
 }
 .trip-entry > p {
-  font-size: 12px;
+  font-size: 1rem;
   color: #526647;
   margin-top: 16px;
 }
@@ -785,7 +815,7 @@ button:disabled {
 }
 .site-footer .outdoor-wordmark {
   color: inherit;
-  font-size: 17px;
+  font-size: 1.375rem;
 }
 .footer-top {
   display: flex;
@@ -794,7 +824,7 @@ button:disabled {
   padding-bottom: 34px;
 }
 .footer-top > p {
-  font-size: 13px;
+  font-size: 1rem;
   color: #b9cbb8;
 }
 .footer-top > a:last-child {
@@ -802,7 +832,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 20px;
-  font-size: 14px;
+  font-size: 1.125rem;
 }
 .footer-bottom {
   display: flex;
@@ -810,7 +840,7 @@ button:disabled {
   gap: 20px;
   border-top: 1px solid #ffffff24;
   padding-top: 25px;
-  font-size: 11px;
+  font-size: 0.9375rem;
   color: #bdcdbd;
   line-height: 1.7;
 }
@@ -831,7 +861,7 @@ button:disabled {
   line-height: 1.45;
 }
 .catalog-heading > p {
-  font-size: 15px;
+  font-size: 1.25rem;
   color: var(--ink-2);
   line-height: 1.9;
   padding-bottom: 9px;
@@ -858,7 +888,7 @@ button:disabled {
   width: 100%;
   background: transparent;
   border: 0;
-  font-size: 16px;
+  font-size: 1.25rem;
   min-height: 44px;
 }
 .catalog-search input::placeholder {
@@ -868,7 +898,7 @@ button:disabled {
   display: flex;
   gap: 14px;
   align-items: center;
-  font-size: 13px;
+  font-size: 1rem;
   white-space: nowrap;
   color: var(--ink-soft);
 }
@@ -891,7 +921,7 @@ button:disabled {
   white-space: nowrap;
   padding: 11px 17px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 1rem;
   transition:
     background 0.2s,
     color 0.2s;
@@ -908,7 +938,7 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 28px;
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-soft);
 }
 .catalog-results-line label {
@@ -923,7 +953,7 @@ button:disabled {
   height: 16px;
 }
 .catalog-notice {
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-soft);
   margin-bottom: 22px;
   line-height: 1.7;
@@ -961,7 +991,7 @@ button:disabled {
 .catalog-more span {
   font-weight: 400;
   color: var(--ink-soft);
-  font-size: 12px;
+  font-size: 1rem;
 }
 .detail-page {
   padding-top: 25px;
@@ -970,7 +1000,7 @@ button:disabled {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-soft);
   padding-block: 15px 30px;
   line-height: 1.8;
@@ -1001,14 +1031,14 @@ button:disabled {
   position: absolute;
   left: 22px;
   bottom: 20px;
-  font-size: 11px;
+  font-size: 0.9375rem;
   color: var(--ink-soft);
 }
 .detail-copy {
   padding-block: 10px;
 }
 .detail-category {
-  font-size: 13px;
+  font-size: 1rem;
   color: var(--ink-soft);
 }
 .detail-copy h1 {
@@ -1019,7 +1049,7 @@ button:disabled {
   margin-top: 12px;
 }
 .detail-description {
-  font-size: 15px;
+  font-size: 1.25rem;
   line-height: 1.9;
   color: var(--ink-2);
   margin-top: 16px;
@@ -1031,7 +1061,7 @@ button:disabled {
   font-variant-numeric: tabular-nums;
 }
 .detail-price > span {
-  font-size: 12px;
+  font-size: 1rem;
   font-weight: 400;
   margin-left: 10px;
   color: var(--ink-soft);
@@ -1045,17 +1075,17 @@ button:disabled {
   margin-block: 26px;
 }
 .detail-highlights dt {
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-soft);
   margin-bottom: 8px;
 }
 .detail-highlights dd {
-  font-size: 14px;
+  font-size: 1.125rem;
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
 .detail-options legend {
-  font-size: 13px;
+  font-size: 1rem;
   font-weight: 600;
   margin-bottom: 12px;
 }
@@ -1070,7 +1100,7 @@ button:disabled {
   padding: 10px 13px;
   border: 1px solid var(--line-strong);
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 1rem;
 }
 .detail-options button[aria-pressed="true"] {
   background: var(--ink);
@@ -1086,12 +1116,12 @@ button:disabled {
 }
 .detail-stock {
   margin-top: 16px;
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-2);
   line-height: 1.7;
 }
 .detail-disclaimer {
-  font-size: 11px;
+  font-size: 0.9375rem;
   color: var(--ink-soft);
   line-height: 1.8;
   margin-top: 16px;
@@ -1104,7 +1134,7 @@ button:disabled {
   padding-block: 70px;
 }
 .detail-information > div > p {
-  font-size: 15px;
+  font-size: 1.25rem;
   color: var(--ink-soft);
   margin-top: 18px;
 }
@@ -1115,12 +1145,12 @@ button:disabled {
   border-radius: 10px;
 }
 .detail-caution h3 {
-  font-size: 14px;
+  font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 10px;
 }
 .detail-caution p {
-  font-size: 13px;
+  font-size: 1rem;
   line-height: 1.9;
   color: var(--ink-2);
 }
@@ -1130,7 +1160,7 @@ button:disabled {
   gap: 22px;
   padding: 16px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  font-size: 1.125rem;
   line-height: 1.8;
 }
 .specification-list dt {
@@ -1163,7 +1193,7 @@ button:disabled {
   color: #25462f;
 }
 .conversation-group > button {
-  font-size: 14px;
+  font-size: 1.125rem;
   border-radius: 7px;
 }
 .conversation-group > button[aria-current="page"] {
@@ -1176,16 +1206,16 @@ button:disabled {
 }
 .workspace-heading > h1 {
   max-width: 45vw;
-  font-size: 16px;
+  font-size: 1.25rem;
 }
 .workspace-heading > span {
-  font-size: 11px;
+  font-size: 0.9375rem;
 }
 .workspace-catalog-link {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 12px;
+  font-size: 1rem;
   padding: 10px 13px;
   border: 1px solid var(--line-strong);
   border-radius: 6px;
@@ -1225,7 +1255,7 @@ button:disabled {
   line-height: 1.5;
 }
 .assistant-welcome-heading p {
-  font-size: 15px;
+  font-size: 1.25rem;
   line-height: 1.9;
   color: var(--ink-2);
   margin-top: 20px;
@@ -1273,13 +1303,13 @@ button:disabled {
 }
 .assistant-scenario-copy strong {
   display: block;
-  font-size: 16px;
+  font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.6;
 }
 .assistant-scenario-copy > span {
   display: block;
-  font-size: 11px;
+  font-size: 0.9375rem;
   line-height: 1.8;
   margin-top: 6px;
   color: #e3ebda;
@@ -1301,11 +1331,11 @@ button:disabled {
   border-bottom: 1px solid var(--line);
 }
 .assistant-explore strong {
-  font-size: 14px;
+  font-size: 1.125rem;
   font-weight: 600;
 }
 .assistant-explore p {
-  font-size: 12px;
+  font-size: 1rem;
   color: var(--ink-soft);
   margin-top: 5px;
 }
@@ -1313,7 +1343,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 12px;
+  font-size: 1rem;
   white-space: nowrap;
 }
 .chat-product-tile {
@@ -1347,6 +1377,96 @@ button:disabled {
 .store-workspace .markdown {
   max-width: 72ch;
 }
+.store-workspace .conversation-column,
+.store-workspace .user-bubble,
+.store-workspace .markdown,
+.store-workspace .composer-dock textarea {
+  font-size: 1.25rem;
+  line-height: 1.85;
+}
+/* Shared chat components use Tailwind sizes; keep the outdoor reading scale local. */
+.store-workspace
+  :is(
+    .text-xs,
+    .text-sm,
+    .text-\[11px\],
+    .text-\[12px\],
+    .text-\[13px\],
+    .text-\[14px\]
+  ) {
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.store-workspace :is(.text-\[15px\], .text-\[16px\], .text-\[17px\]) {
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+.store-workspace .user-bubble {
+  font-size: 1.25rem;
+}
+.comparison-preview-head {
+  flex-wrap: wrap;
+  line-height: 1.7;
+}
+.comparison-preview-head > span:last-child {
+  font-size: 1rem;
+}
+.assistant-scenarios > button {
+  min-height: 270px;
+}
+.assistant-explore {
+  flex-wrap: wrap;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .field-hero-copy p {
+    animation: copy-settle 750ms 80ms backwards cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .field-hero-copy > .field-button {
+    animation: copy-settle 750ms 160ms backwards cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .assistant-scenarios > button {
+    animation: scene-arrive 550ms backwards cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .assistant-scenarios > button:nth-child(2) {
+    animation-delay: 70ms;
+  }
+  .assistant-scenarios > button:nth-child(3) {
+    animation-delay: 140ms;
+  }
+  .store-workspace .user-bubble,
+  .store-workspace [data-component] {
+    animation: scene-arrive 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .field-button svg,
+  .journey-arrow,
+  .assistant-scenarios > button > svg {
+    transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .field-button:hover svg,
+  .assistant-scenarios > button:hover:not(:disabled) > svg {
+    transform: translate(3px, -3px);
+  }
+  .journey:hover .journey-arrow {
+    transform: rotate(-35deg);
+  }
+  .trip-entry > div {
+    transition: border-color 200ms;
+  }
+  .trip-entry:focus-within > div {
+    border-color: #193c31;
+  }
+  .store-workspace .btn-primary:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+@keyframes scene-arrive {
+  from {
+    translate: 0 12px;
+  }
+  to {
+    translate: 0 0;
+  }
+}
 .store-workspace .font-display {
   font-family: var(--font-body), sans-serif;
   font-weight: 600;
@@ -1375,6 +1495,10 @@ button:disabled {
   }
 }
 @media (max-width: 1100px) {
+  .journeys-section.section-wrap {
+    width: 100%;
+    padding-inline: 32px;
+  }
   .section-wrap {
     width: calc(100% - 64px);
   }
@@ -1446,7 +1570,7 @@ button:disabled {
     gap: 50px;
   }
   .assistant-scenario-copy strong {
-    font-size: 14px;
+    font-size: 1.125rem;
   }
   .assistant-scenarios {
     gap: 10px;
@@ -1457,6 +1581,15 @@ button:disabled {
   }
 }
 @media (max-width: 760px) {
+  .journeys-section.section-wrap {
+    padding-inline: 20px;
+  }
+  .store-workspace .conversation-column,
+  .store-workspace .user-bubble,
+  .store-workspace .markdown,
+  .store-workspace .composer-dock textarea {
+    font-size: 1.125rem;
+  }
   .section-wrap {
     width: calc(100% - 40px);
   }
@@ -1466,7 +1599,7 @@ button:disabled {
     gap: 12px;
   }
   .site-header .outdoor-wordmark {
-    font-size: 14px;
+    font-size: 1rem;
     gap: 7px;
   }
   .site-header .outdoor-mark {
@@ -1475,7 +1608,7 @@ button:disabled {
   }
   .site-header nav {
     gap: 18px;
-    font-size: 12px;
+    font-size: 1rem;
   }
   .site-header nav > a:first-child {
     display: none;
@@ -1489,7 +1622,7 @@ button:disabled {
   }
   .field-hero {
     min-height: 660px;
-    max-height: 940px;
+    max-height: none;
     height: 94svh;
   }
   .field-hero-copy {
@@ -1500,7 +1633,7 @@ button:disabled {
     line-height: 1.35;
   }
   .field-hero-copy p {
-    font-size: 14px;
+    font-size: 1.125rem;
     line-height: 1.9;
     margin-block: 25px 28px;
   }
@@ -1516,18 +1649,18 @@ button:disabled {
     left: 24px;
     right: 24px;
     bottom: 24px;
-    font-size: 11px;
+    font-size: 0.9375rem;
   }
   .field-hero-bottom > span {
     display: none;
   }
   .field-button {
-    font-size: 14px;
+    font-size: 1.125rem;
     min-height: 52px;
     padding: 14px 20px;
   }
   .journeys-section {
-    padding-block: 70px;
+    padding-block: 40px 64px;
   }
   .section-heading {
     align-items: flex-start;
@@ -1536,7 +1669,7 @@ button:disabled {
     margin-bottom: 30px;
   }
   .section-heading p {
-    font-size: 14px;
+    font-size: 1.125rem;
   }
   .journey-grid {
     grid-template-columns: 1fr 1fr;
@@ -1560,11 +1693,11 @@ button:disabled {
     bottom: 20px;
   }
   .journey-caption h3 {
-    font-size: 19px;
+    font-size: 1.5rem;
     max-width: 6em;
   }
   .journey-caption p {
-    font-size: 12px;
+    font-size: 1rem;
     padding-right: 0;
     max-width: 10em;
   }
@@ -1572,7 +1705,7 @@ button:disabled {
     display: none;
   }
   .journey-caption > span:first-child {
-    font-size: 11px;
+    font-size: 0.9375rem;
   }
   .packing-story {
     grid-template-columns: 1fr;
@@ -1593,14 +1726,14 @@ button:disabled {
   }
   .packing-chapter p {
     margin-top: 14px;
-    font-size: 14px;
+    font-size: 1.125rem;
   }
   .packing-tags {
     margin-top: 17px;
     gap: 7px;
   }
   .packing-tags span {
-    font-size: 11px;
+    font-size: 0.9375rem;
   }
   .packing-chapter .text-link {
     margin-top: 18px;
@@ -1626,17 +1759,17 @@ button:disabled {
     gap: 28px 16px;
   }
   .equipment-card h3 {
-    font-size: 15px;
+    font-size: 1.25rem;
   }
   .equipment-card-category {
-    font-size: 11px;
+    font-size: 0.9375rem;
     margin-top: 14px;
   }
   .equipment-card > p {
-    font-size: 11px;
+    font-size: 0.9375rem;
   }
   .equipment-card-price {
-    font-size: 17px;
+    font-size: 1.375rem;
     margin-top: 10px;
   }
   .equipment-card-photo {
@@ -1657,7 +1790,7 @@ button:disabled {
     gap: 32px;
   }
   .comparison-intro p {
-    font-size: 14px;
+    font-size: 1.125rem;
     margin-top: 18px;
   }
   .comparison-preview {
@@ -1666,17 +1799,17 @@ button:disabled {
   .comparison-preview th,
   .comparison-preview td {
     padding: 13px 7px;
-    font-size: 12px;
+    font-size: 1rem;
   }
   .comparison-preview thead th {
-    font-size: 13px;
+    font-size: 1rem;
   }
   .comparison-preview tr > :first-child {
-    width: 20%;
-    font-size: 11px;
+    width: 23%;
+    font-size: 0.9375rem;
   }
   .comparison-preview .table-price {
-    font-size: 20px;
+    font-size: 1.5rem;
   }
   .departure-section {
     grid-template-columns: 1fr;
@@ -1684,14 +1817,14 @@ button:disabled {
     gap: 42px;
   }
   .departure-section > div > p {
-    font-size: 13px;
+    font-size: 1rem;
     margin-top: 18px;
   }
   .trip-entry label {
-    font-size: 18px;
+    font-size: 1.375rem;
   }
   .trip-entry input {
-    font-size: 16px;
+    font-size: 1.25rem;
   }
   .site-footer {
     padding: 40px 24px 25px;
@@ -1703,14 +1836,14 @@ button:disabled {
   .footer-top > p {
     width: 100%;
     order: 3;
-    font-size: 12px;
+    font-size: 1rem;
   }
   .footer-top > a:last-child {
-    font-size: 12px;
+    font-size: 1rem;
     gap: 8px;
   }
   .site-footer .outdoor-wordmark {
-    font-size: 14px;
+    font-size: 1.125rem;
     gap: 7px;
   }
   .site-footer .outdoor-mark {
@@ -1720,7 +1853,7 @@ button:disabled {
   .footer-bottom {
     flex-direction: column;
     gap: 12px;
-    font-size: 10px;
+    font-size: 0.875rem;
   }
   .catalog-page {
     padding-block: 42px 65px;
@@ -1735,7 +1868,7 @@ button:disabled {
     font-size: 36px;
   }
   .catalog-heading > p {
-    font-size: 13px;
+    font-size: 1rem;
   }
   .catalog-toolbar {
     flex-wrap: wrap;
@@ -1759,7 +1892,7 @@ button:disabled {
     gap: 5px;
   }
   .catalog-categories button {
-    font-size: 12px;
+    font-size: 1rem;
     padding: 10px 13px;
   }
   .catalog-results-line {
@@ -1789,7 +1922,7 @@ button:disabled {
     font-size: 30px;
   }
   .detail-information > div > p {
-    font-size: 14px;
+    font-size: 1.125rem;
   }
   .detail-caution {
     margin-top: 25px;
@@ -1797,7 +1930,7 @@ button:disabled {
   .specification-list > div {
     grid-template-columns: 90px 1fr;
     gap: 15px;
-    font-size: 13px;
+    font-size: 1rem;
   }
   .related-equipment {
     padding-block: 20px 55px;
@@ -1806,14 +1939,14 @@ button:disabled {
     font-size: 24px;
   }
   .breadcrumbs {
-    font-size: 11px;
+    font-size: 0.9375rem;
     padding-bottom: 22px;
   }
   .detail-highlights {
     gap: 12px;
   }
   .detail-highlights dd {
-    font-size: 13px;
+    font-size: 1rem;
   }
   .assistant-welcome {
     padding-top: 6px;
@@ -1825,7 +1958,7 @@ button:disabled {
     font-size: 32px;
   }
   .assistant-welcome-heading p {
-    font-size: 14px;
+    font-size: 1.125rem;
     margin-top: 15px;
   }
   .assistant-scenarios {
@@ -1833,7 +1966,7 @@ button:disabled {
     gap: 10px;
   }
   .assistant-scenarios > button {
-    min-height: 110px;
+    min-height: 140px;
     border-radius: 9px;
   }
   .assistant-scenarios img {
@@ -1851,10 +1984,10 @@ button:disabled {
     right: 40px;
   }
   .assistant-scenario-copy strong {
-    font-size: 16px;
+    font-size: 1.25rem;
   }
   .assistant-scenario-copy > span {
-    font-size: 12px;
+    font-size: 1rem;
     max-width: 20em;
   }
   .assistant-explore {
@@ -1862,10 +1995,10 @@ button:disabled {
     align-items: flex-start;
   }
   .assistant-explore p {
-    font-size: 11px;
+    font-size: 0.9375rem;
   }
   .assistant-explore a {
-    font-size: 11px;
+    font-size: 0.9375rem;
     gap: 5px;
     padding-top: 4px;
   }
@@ -1878,10 +2011,10 @@ button:disabled {
   }
   .workspace-heading > h1 {
     max-width: 45vw;
-    font-size: 14px;
+    font-size: 1.125rem;
   }
   .workspace-catalog-link {
-    font-size: 11px;
+    font-size: 0.9375rem;
     gap: 7px;
     padding: 8px;
   }
@@ -1914,10 +2047,10 @@ button:disabled {
     font-size: 46px;
   }
   .journey-caption h3 {
-    font-size: 17px;
+    font-size: 1.375rem;
   }
   .journey-caption p {
-    font-size: 11px;
+    font-size: 0.9375rem;
   }
   .assistant-explore {
     flex-direction: column;
@@ -1944,6 +2077,8 @@ button:disabled {
   }
   .field-hero-image {
     transform: none;
+    translate: none;
+    scale: none;
   }
 }
 

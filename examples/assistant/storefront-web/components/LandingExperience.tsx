@@ -142,11 +142,64 @@ export function PackingStory({ products }: { products: ProductDetails[] }) {
 export function LandingMotion() {
   useEffect(() => {
     const header = document.querySelector<HTMLElement>(".site-header-overlay");
-    const onScroll = () =>
+    const hero = document.querySelector<HTMLElement>(".field-hero");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const animations = new Set<Animation>();
+    let frame = 0;
+    const update = () => {
+      frame = 0;
       header?.classList.toggle("is-scrolled", window.scrollY > 70);
+      if (hero) {
+        const progress = Math.min(
+          1,
+          Math.max(0, window.scrollY / hero.offsetHeight),
+        );
+        hero.style.setProperty(
+          "--hero-drift",
+          reduced.matches ? "0px" : `${progress * 90}px`,
+        );
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          observer.unobserve(entry.target);
+          if (reduced.matches) continue;
+          const animation = entry.target.animate(
+            [{ clipPath: "inset(0 0 10% 0)" }, { clipPath: "inset(0 0 0% 0)" }],
+            { duration: 750, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+          );
+          animations.add(animation);
+          animation.onfinish = () => animations.delete(animation);
+        }
+      },
+      { threshold: 0.15 },
+    );
+    document
+      .querySelectorAll(".journey")
+      .forEach((element) => observer.observe(element));
+    const onPreference = () => {
+      if (reduced.matches)
+        animations.forEach((animation) => animation.cancel());
+      onScroll();
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    reduced.addEventListener("change", onPreference);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      reduced.removeEventListener("change", onPreference);
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      animations.forEach((animation) => animation.cancel());
+      hero?.style.removeProperty("--hero-drift");
+    };
   }, []);
   return null;
 }

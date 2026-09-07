@@ -49,8 +49,8 @@ cart, order, and policy systems.
 | [`shopping-agent/skills/`](shopping-agent/skills/) | The flows, one `SKILL.md` each | — |
 | [`examples/`](examples/) | The demo (`assistant/`), shared host code (`demo_common/`), shared web code (`web-shared/`) | — |
 | [`docs/`](docs/) | Safety rules, backend integration, deployment, [experience design](docs/agent-experience-design.md) and [verification](docs/agent-experience-verification.md) | — |
-| [`scripts/`](scripts/) | Install, run and verify commands; `outdoor_catalog.py` authors equipment and `prepare_catalog.py` freezes the catalog and evidence | — |
-| [`deploy/`](deploy/) | API and Web containers, Caddy HTTPS/SSE proxy | — |
+| [`scripts/`](scripts/) | Install, run, deploy and verify commands; `outdoor_catalog.py` authors equipment and `prepare_catalog.py` freezes the catalog and evidence | — |
+| [`deploy/`](deploy/) | API and Web containers, Caddy HTTPS/SSE proxy, read-only database preflight | — |
 | [`supabase/`](supabase/) | Conversation, ordered memory and quota storage; cart currency migration | — |
 
 ## Running the agent
@@ -105,9 +105,12 @@ outdoor experience.
 
 ## Deploying elsewhere
 
-[`deploy/`](deploy/) hosts the Chinese experience under one HTTPS domain. Clone `main`
-for the first deployment, then pull updates and rebuild the containers;
-[`GitHub deployment`](docs/deployment.md#github-首次部署) covers the server setup and update commands.
+[`deploy/`](deploy/) hosts the Chinese experience under one HTTPS domain. Clone `main`,
+copy the existing `.env` and apply the required Supabase migrations once. Deploy from
+the repository root with `bash scripts/deploy.sh`; for later updates, run
+`git pull --ff-only origin main && bash scripts/deploy.sh`.
+The script builds sequentially, checks cart schema readiness and replaces the containers.
+[`GitHub deployment`](docs/deployment.md#github-首次部署) covers server setup and migration steps.
 The runtime takes any `anthropic` client as `client=`;
 [`docs/deployment.md`](docs/deployment.md) covers GCP Vertex AI, AWS Bedrock, Microsoft
 Foundry, and gateways.

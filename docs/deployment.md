@@ -75,30 +75,40 @@ Caddy 管理 HTTPS，将 `/api/*` 直接转发给 API 并立即刷新 SSE 输出
 
 手动部署也必须运行一个 API worker，使用 Web 生产构建；代理关闭 SSE 缓冲和缓存，保留 Authorization、X-Session-Id 与 Host，流式读取超时需覆盖完整回合。`DEMO_ALLOWED_HOSTS` 设置域名。不要同时启动连接同一数据库的第二个 API 实例；工具锁与启动恢复依赖单实例边界。
 
+### 一条命令部署
+
+完成 `.env`、DNS 和首次数据库迁移后，在服务器仓库根目录运行：
+
+```bash
+bash scripts/deploy.sh
+```
+
+脚本沿用根目录 `.env`，不要求服务器另装 Python、Node.js 或数据库工具。它依次完成：
+
+1. 检查 Docker、Compose 与配置；`config --quiet` 不输出环境中的密钥。同一工作副本不能同时运行两次部署脚本。
+2. 顺序构建 API、Web 镜像，Web 构建使用 768 MiB 的 Node.js 堆上限。
+3. 在临时容器中只读检查 Supabase 连接和购物车币种列，不返回用户行，不调用模型或启动第二个 API；本地没有 Caddy 镜像时先下载。
+4. 停止旧 API，重建 API、Web、Caddy 容器并保持一个 API 实例。重新创建代理会加载最新的 `Caddyfile`，保留已有证书卷。
+5. 等待 API 与 Web 健康检查通过，输出容器状态。切换期间聊天短暂不可用。
+
+构建或部署前检查失败时，脚本不会停止旧服务。切换开始后失败会返回非零退出码并给出排查命令，不自动回滚。查看状态和日志：
+
+```bash
+docker compose --env-file .env -f deploy/compose.yaml ps -a
+docker compose --env-file .env -f deploy/compose.yaml logs --tail=80 api web proxy
+```
+
+现有 Supabase API 密钥不能执行任意迁移 SQL，因此脚本只检查迁移，不自动执行。缺少 `002` 时按下文“户外版本升级”处理一次；以后普通代码更新直接运行脚本即可。
+
+DNS 生效并开放端口后，Caddy 自动申请 HTTPS 证书。脚本的健康检查确认容器内 API 与页面可用；部署后访问 `https://jobb.lol/` 和 `https://jobb.lol/api/health`，再完成下文的聊天、记忆和恢复验收。
+
 ### 小内存服务器
 
-Ubuntu x86_64 可使用现有 Docker Compose 配置。先用 `ss -lntp` 确认 80/443 可用，并用 `free -h`、`df -h /` 检查可用内存、交换空间和磁盘。构建阶段比日常运行更占内存；磁盘需能容纳镜像、依赖和构建缓存，首次部署建议至少预留 5 GiB 空间。
+Ubuntu x86_64 可使用现有 Docker Compose 配置。首次部署先用 `ss -lntp` 确认 80/443 可用，并用 `free -h`、`df -h /` 检查可用内存、交换空间和磁盘。构建阶段比日常运行更占内存；磁盘需能容纳镜像、依赖和构建缓存，首次部署建议至少预留 5 GiB 空间。
 
-在项目根目录先检查配置，再分别构建两个镜像。`config --quiet` 只校验配置，不输出环境中的密钥。
+部署脚本已经采用顺序构建和 Web 构建堆限制。`BUILD_NODE_OPTIONS` 只限制构建时每个 Node.js 进程的 V8 老生代堆，不是整个构建的内存上限，也不改变运行容器的参数。已有交换空间可以缓冲峰值，构建可能较慢；若出现内存不足、进程被杀或严重交换，应转到内存更充足的 Linux 构建环境生成镜像，再通过 `docker save`、SSH 和 `docker load` 导入服务器，不重复挤占现有服务的内存。
 
-```bash
-docker compose --env-file .env -f deploy/compose.yaml config --quiet
-docker compose --env-file .env -f deploy/compose.yaml build api
-docker compose --env-file .env -f deploy/compose.yaml build --build-arg BUILD_NODE_OPTIONS=--max-old-space-size=768 web
-```
-
-两个镜像都构建成功，且已完成该版本迁移后，执行以下命令。更新时先停止旧 API，再启动新版本，保持单实例边界；切换期间聊天短暂不可用。首次从旧商品版本升级时，使用下文“户外版本升级”的迁移步骤。
-
-```bash
-docker compose --env-file .env -f deploy/compose.yaml stop api
-docker compose --env-file .env -f deploy/compose.yaml up -d --no-build --wait --wait-timeout 120
-docker compose --env-file .env -f deploy/compose.yaml ps
-docker compose --env-file .env -f deploy/compose.yaml logs --tail=80 api proxy
-```
-
-`BUILD_NODE_OPTIONS` 只限制构建时每个 Node.js 进程的 V8 老生代堆，不是整个构建的内存上限。已有交换空间可以缓冲峰值，构建可能较慢；若出现内存不足、进程被杀或严重交换，应转到内存更充足的 Linux 构建环境生成镜像，再通过 `docker save`、SSH 和 `docker load` 导入服务器，不重复挤占现有服务的内存。普通配置不设置这个构建参数。
-
-DNS 生效并开放端口后，Caddy 自动申请 HTTPS 证书。先检查 `https://jobb.lol/api/health`，再完成下文的聊天、记忆和恢复验收。`docker stats --no-stream` 可以查看运行时的容器占用。
+`docker stats --no-stream` 可以查看运行时的容器占用。
 
 ### 更新部署
 
@@ -107,10 +117,10 @@ DNS 生效并开放端口后，Caddy 自动申请 HTTPS 证书。先检查 `http
 ```bash
 cd /opt/shopping-agents
 git status --short
-git pull --ff-only origin main
+git pull --ff-only origin main && bash scripts/deploy.sh
 ```
 
-服务器的代码改动应先处理清楚，再拉取更新；环境值保存在被 Git 忽略的 `.env` 中。拉取成功后，执行上面的配置校验、顺序构建和启动命令。有新增数据库迁移时按对应版本步骤执行。构建完成前旧容器继续服务；构建失败时先修复构建，不执行后续停止和启动步骤。
+服务器的代码改动应先处理清楚，再拉取更新；环境值保存在被 Git 忽略的 `.env` 中。`&&` 保证拉取失败时不会部署。脚本部署当前工作副本，不自行拉取或切换分支；已完成拉取时直接运行 `bash scripts/deploy.sh`。有新增数据库迁移时按对应版本步骤执行。
 
 仅代码更新不会自动执行数据库迁移、删除对话或清空记忆。不重复执行已经完成的迁移。证书卷也保留，不使用 `down -v` 或数据库重置作为更新步骤。
 
@@ -118,22 +128,23 @@ git pull --ff-only origin main
 
 本版本自带 96 个户外主商品和 120 个尺码变体。商品、库存、模拟评价和政策从 Git 中的 JSON 加载，不需要在 Supabase 建商品表或再次生成数据。沿用现有模型、Supabase、域名及匿名访问配置。
 
-从旧商品版本升级，在服务器拉取代码后先构建镜像：
+从旧商品版本升级，在服务器拉取代码后运行部署脚本：
 
 ```bash
 cd /opt/shopping-agents
-docker compose --env-file .env -f deploy/compose.yaml config --quiet
-docker compose --env-file .env -f deploy/compose.yaml build api
-docker compose --env-file .env -f deploy/compose.yaml build --build-arg BUILD_NODE_OPTIONS=--max-old-space-size=768 web
+bash scripts/deploy.sh
+```
+
+如果 `002` 已完成，脚本直接部署，无需额外操作。如果提示缺少购物车币种列，此时镜像已构建、旧服务仍在运行，先停止旧 API：
+
+```bash
 docker compose --env-file .env -f deploy/compose.yaml stop api
 ```
 
-停止 API 后，在同一个 Supabase 项目的 SQL Editor 中打开并完整执行 [002_outdoor_cart_currency.sql](../supabase/migrations/002_outdoor_cart_currency.sql)，只执行一次。不要重新执行 `001`。SQL 成功后再回到服务器启动新版本：
+停止 API 后，在同一个 Supabase 项目的 SQL Editor 中打开并完整执行 [002_outdoor_cart_currency.sql](../supabase/migrations/002_outdoor_cart_currency.sql)，只执行一次。不要重新执行 `001`。SQL 成功后再回到服务器运行同一命令，构建可复用缓存：
 
 ```bash
-docker compose --env-file .env -f deploy/compose.yaml up -d --no-build --wait --wait-timeout 120
-docker compose --env-file .env -f deploy/compose.yaml ps
-docker compose --env-file .env -f deploy/compose.yaml logs --tail=80 api proxy
+bash scripts/deploy.sh
 ```
 
 `002` 给已有购物车保留 USD 币种和原金额，新建购物车默认 CNY。非空购物车拒绝混合币种；移除全部旧商品后可添加人民币装备。旧商品不参与搜索，当前详情标记下架，购物车仍可查看与移除。完整历史、匿名用户、长期记忆和浏览器身份键保留；首次进入户外聊天会新建空对话，旧对话仍在左侧列表中。

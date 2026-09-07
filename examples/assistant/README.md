@@ -20,7 +20,7 @@ python scripts/run_demo.py --no-install     # API :8004，页面 :3004
 - `shopping-agent/skills/outdoor-equipment/SKILL.md` 指导人数、气温、背负、睡眠系统、分层穿衣、照明与装备搭配；不声称提供实时天气或路线服务。
 - `storefront-web/app/page.tsx` 是独立山野动画首页；`app/chat/page.tsx` 使用左侧对话导航、宽聊天区和右下角圆形购物车入口。`web-shared/storefront/Shell.tsx` 管理桌面折叠与移动端弹窗。
 - `storefront-web/components/OutdoorMark.tsx` 与 `EquipmentIllustration.tsx` 提供原创 SVG 标识和八类装备插画；不展示记忆面板或读写进度。
-- `storefront-web/components/VisitorProfile.tsx` 提供侧栏头像、昵称、个人资料与使用说明。展示资料按匿名身份保存在当前浏览器，桌面、移动端与同源标签页共享；不修改对话身份或长期偏好。
+- `storefront-web/components/VisitorProfile.tsx` 提供侧栏头像、昵称及个人资料、使用说明、关于体验三个菜单入口。展示资料按匿名身份保存在当前浏览器，桌面、移动端与同源标签页共享；不修改对话身份或长期偏好。
 - `storefront-web/public/products/` 保留旧商品照片供历史查看，来源见目录中的 `IMAGE-CREDITS.md`。户外商品图片暂缓生成，`data/image-prompts.json` 记录待生成要求，缺图不产生失效 URL。
 - `data/legacy/` 保存原始目录、中文内容源与价格评价；不参与新商品搜索。旧商品详情和旧购物车标记下架，可查看与移除，不能增购或结算。已保存的历史消息和卡片保持原样。
 
@@ -36,6 +36,12 @@ python scripts/prepare_catalog.py --check
 新安装顺序执行 `001_agent_experience.sql`、`002_outdoor_cart_currency.sql`。已有安装先构建新镜像，停止 API 后仅执行 `002`，再启动新版本。迁移保留所有旧购物车的 USD 金额；新购物车使用 CNY，非空购物车拒绝混合币种，清空后可加入人民币商品。具体命令见 [户外版本升级](../../docs/deployment.md#户外版本升级)。
 
 首次进入户外聊天创建空对话；原身份、长期偏好与左侧全部历史保留。之后恢复当前选中的对话。订单工具在户外部署中关闭，`data/users.json`、`orders.json` 仅保留本地夹具用途。
+
+## 个人设置
+
+点击侧栏底部的头像或昵称，打开个人菜单。“个人资料”支持修改昵称和选择内置户外头像；“使用说明”介绍装备挑选、比较与清单整理；“关于体验”介绍 Agent 及演示数据范围。
+
+资料在当前浏览器中保存和恢复，不上传到 Supabase，也不作为模型偏好。该功能无需新增配置或数据库迁移。默认值、保存范围和交互约定见 [侧栏个人入口](../../docs/agent-experience-design.md#侧栏个人入口)。
 
 ## 体验场景
 

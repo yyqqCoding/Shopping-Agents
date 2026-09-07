@@ -13,6 +13,7 @@ Messages API runtime, the skills, and a runnable demo.
 - `examples/demo_common/` and `examples/web-shared/`: what the demo's API and web app share; `examples/` is the npm workspace.
 - `demo_common/experience.py`, `persistence.py`, `supabase.py`: anonymous identity, owned conversations, durable turns, carts and memory jobs. `web-shared/identity.ts` and `Conversations.tsx` handle browser identity and conversation history.
 - `examples/assistant/`: the outdoor equipment agent over a fictional CNY catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004. `/` is the welcome page; `/chat` hosts conversations. `data/legacy/` preserves retired catalog records for old conversations.
+- `storefront-web/components/VisitorProfile.tsx` owns the sidebar profile menu and browser-local display preferences, scoped to the existing anonymous identity.
 - `supabase/migrations/`: service-only tables and transactional RPCs. `deploy/`: single-worker containers and HTTPS/SSE proxy; `check_database.py` checks cart migration readiness without starting the API.
 - `docs/`: `safety.md`, `backends.md`, `deployment.md`, `agent-experience-design.md`. `scripts/`: install, demo, smoke, verify; `deploy.sh` builds and replaces the deployment from the current checkout; `outdoor_catalog.py` defines outdoor equipment and `prepare_catalog.py` freezes the catalog, evidence and image requests.
 - Tests live in each package's `tests/` plus `examples/demo_common/tests/` and `examples/assistant/api/tests/`.

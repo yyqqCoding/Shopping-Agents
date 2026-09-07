@@ -20,6 +20,7 @@ python scripts/run_demo.py --no-install     # API :8004，页面 :3004
 - `shopping-agent/skills/outdoor-equipment/SKILL.md` 指导人数、气温、背负、睡眠系统、分层穿衣、照明与装备搭配；不声称提供实时天气或路线服务。
 - `storefront-web/app/page.tsx` 是独立山野动画首页；`app/chat/page.tsx` 使用左侧对话导航、宽聊天区和右下角圆形购物车入口。`web-shared/storefront/Shell.tsx` 管理桌面折叠与移动端弹窗。
 - `storefront-web/components/OutdoorMark.tsx` 与 `EquipmentIllustration.tsx` 提供原创 SVG 标识和八类装备插画；不展示记忆面板或读写进度。
+- `storefront-web/components/VisitorProfile.tsx` 提供侧栏头像、昵称、个人资料与使用说明。展示资料按匿名身份保存在当前浏览器，桌面、移动端与同源标签页共享；不修改对话身份或长期偏好。
 - `storefront-web/public/products/` 保留旧商品照片供历史查看，来源见目录中的 `IMAGE-CREDITS.md`。户外商品图片暂缓生成，`data/image-prompts.json` 记录待生成要求，缺图不产生失效 URL。
 - `data/legacy/` 保存原始目录、中文内容源与价格评价；不参与新商品搜索。旧商品详情和旧购物车标记下架，可查看与移除，不能增购或结算。已保存的历史消息和卡片保持原样。
 

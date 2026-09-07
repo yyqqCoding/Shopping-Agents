@@ -10,6 +10,7 @@ import CartPanel from "@/components/CartPanel";
 import Chat from "@/components/Chat";
 import HomeView from "@/components/HomeView";
 import OutdoorMark from "@/components/OutdoorMark";
+import VisitorProfile, { useVisitorProfile } from "@/components/VisitorProfile";
 import { api, UNREACHABLE } from "@/lib/api";
 import type { CartPayload, CheckoutPayload } from "@/lib/types";
 
@@ -25,6 +26,7 @@ function Wordmark() {
 
 export default function AssistantPage() {
   const session = useSession(api);
+  const visitor = useVisitorProfile(Boolean(session.sessionId));
   const [view, setView] = useState<View>("assistant");
   const [cart, setCart] = useState<CartPayload | null>(null);
   const [cartError, setCartError] = useState(false);
@@ -79,7 +81,7 @@ export default function AssistantPage() {
       assistantName={ASSISTANT}
       sidebar={(onNavigate) => <Conversations session={session} busy={chat.busy} onNavigate={onNavigate} />}
       conversationTitle={session.conversations.find((item) => item.id === session.sessionId)?.title || "新的户外计划"}
-      sidebarFooter={<Link href="/" className="sidebar-home-link"><span aria-hidden>↖</span> 返回首页</Link>}
+      sidebarFooter={<VisitorProfile {...visitor} />}
       bag={{ label: "购物车", count, noun: "件商品", figure: count ? formatMoney(cart?.subtotal ?? 0, cart?.currency) : null }}
       panel={<CartPanel cart={cart} checkoutStaged={checkoutStaged} />}
       panelOpen={panelOpen}

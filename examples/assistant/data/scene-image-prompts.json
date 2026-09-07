@@ -1,0 +1,30 @@
+[
+  {
+    "name": "hero",
+    "prompt": "Use case: photorealistic-natural. Create one premium outdoor website hero photograph, wide landscape 1536x1024. Original fictional alpine landscape, no identifiable real location or people: immense layered dark green forest mountains and a mist-filled valley at early morning, a small unbranded muted ochre two-person tent on a safe grassy plateau in the lower right, far from any cliff edge. Left half and upper left are quiet dark forest slopes with atmospheric depth, suitable for white Chinese headline overlay added in HTML later. Beautiful analog editorial photography, tactile grass, natural pale light, restrained emerald and slate palette, delicate warm sunlight on tent fabric. Wide cinematic composition, realistic materials, sophisticated art direction, sharp foreground and soft distant ridges. No typography, no labels, no logos, no watermark. This is a shipping website background photograph, not a UI mockup.",
+    "source_image": "exec-a926df5c-5fd7-4029-aa76-ab12dea25798.png",
+    "output": "/images/hero.webp",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "hiking",
+    "prompt": "Tall 1024x1536 editorial outdoor photograph. A winding empty hiking trail through silver granite, deep moss-green pines and distant soft mountains under clear morning light, mid-altitude safe rolling terrain, no cliffs, a sense of quiet movement and space. No people, buildings or identifiable real location. Original fictional landscape. Natural sophisticated film photography, authentic earth textures and pine shadows. No text, labels, logos or watermark.",
+    "source_image": "exec-f460ca5b-1ac5-45be-885c-401e5ae0ac82.png",
+    "output": "/images/hiking.webp",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "camping",
+    "prompt": "Tall 1024x1536 premium outdoor editorial photograph of one original unbranded dark moss-green dome tent in a spacious flat forest clearing beside a calm distant lake. Tall pine trees, warm late afternoon shafts of light, soft mist and tactile grass. No campfire, no people, no branded accessories, safe established-style ground far from water edge. A quiet immersive fictional camping scene, real photographic materials, no illustrations, no text or watermark.",
+    "source_image": "exec-0f5ff715-cf96-45d3-bc7d-988db1c15ce7.png",
+    "output": "/images/camping.webp",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "lightweight",
+    "prompt": "Tall 1024x1536 premium outdoor still-life photograph of one simple unbranded olive day hiking backpack standing on a smooth broad sunlit stone, a matte metal water bottle beside it, against a soft-focus open meadow and dark distant mountain ridge. Natural pale morning light, realistic woven fabric and seams, understated forest green and charcoal palette. No person, no text, no logo, no watermark. Fictional original gear, natural editorial photography.",
+    "source_image": "exec-b80fd7a6-2a3e-4bc5-81f9-ecea37eaca35.png",
+    "output": "/images/lightweight.webp",
+    "generator": "built-in image_gen"
+  }
+]

@@ -6,13 +6,19 @@ import ProductTile from "../ProductTile";
 
 export default function GuideCard({ payload }: { payload: GuidePayload }) {
   return (
-    <section className="rounded-2xl border border-(--line) bg-(--card) p-4 shadow-(--shadow-sm)">
-      <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">{payload.title}</h3>
-      <div className="mt-2 space-y-3">
+    <section className="guide-card rounded-xl border border-(--line) bg-(--card) p-5">
+      <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">
+        {payload.title}
+      </h3>
+      <div className="mt-5 space-y-5">
         {(payload.sections ?? []).map((section, index) => (
           <div key={index}>
-            <div className="text-[14px] font-bold uppercase tracking-[0.08em] text-(--accent-ink)">{section.heading}</div>
-            <p className="mt-0.5 text-[17px] leading-relaxed text-(--ink)">{section.body}</p>
+            <h4 className="text-[15px] font-semibold text-(--accent-ink)">
+              {section.heading}
+            </h4>
+            <p className="mt-2 text-[16px] leading-relaxed text-(--ink-2)">
+              {section.body}
+            </p>
           </div>
         ))}
       </div>
@@ -24,7 +30,9 @@ export default function GuideCard({ payload }: { payload: GuidePayload }) {
         </div>
       ) : null}
       {payload.sources?.length ? (
-        <p className="mt-3 break-all text-[13px] text-(--ink-soft)/80">参考来源： {payload.sources.join(" · ")}</p>
+        <p className="mt-3 break-all text-[13px] text-(--ink-soft)/80">
+          参考来源： {payload.sources.join(" · ")}
+        </p>
       ) : null}
     </section>
   );

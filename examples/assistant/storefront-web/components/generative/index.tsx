@@ -30,11 +30,28 @@ export default function GenerativeBlock({
   const partial = status !== "final";
   switch (block.component) {
     case "products":
-      return <ProductCarousel payload={block.payload as ProductsPayload} onAdd={onAdd} partial={partial} />;
+      return (
+        <ProductCarousel
+          payload={block.payload as ProductsPayload}
+          onAdd={onAdd}
+          partial={partial}
+        />
+      );
     case "comparison":
-      return <ComparisonGrid payload={block.payload as ComparisonPayload} partial={partial} />;
+      return (
+        <ComparisonGrid
+          payload={block.payload as ComparisonPayload}
+          partial={partial}
+        />
+      );
     case "plan":
-      return <PlanChecklist payload={block.payload as PlanPayload} onAdd={onAdd} partial={partial} />;
+      return (
+        <PlanChecklist
+          payload={block.payload as PlanPayload}
+          onAdd={onAdd}
+          partial={partial}
+        />
+      );
     case "guide":
       return <GuideCard payload={block.payload as GuidePayload} />;
     case "order_status":

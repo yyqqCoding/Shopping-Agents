@@ -12,8 +12,10 @@ Messages API runtime, the skills, and a runnable demo.
 - `shopping-agent/skills/`: the flows, one `SKILL.md` each.
 - `examples/demo_common/` and `examples/web-shared/`: what the demo's API and web app share; `examples/` is the npm workspace.
 - `demo_common/experience.py`, `persistence.py`, `supabase.py`: anonymous identity, owned conversations, durable turns, carts and memory jobs. `web-shared/identity.ts` and `Conversations.tsx` handle browser identity and conversation history.
-- `examples/assistant/`: the outdoor equipment agent over a fictional CNY catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004. `/` is the welcome page; `/chat` hosts conversations. `data/legacy/` preserves retired catalog records for old conversations.
+- `examples/assistant/`: the outdoor equipment agent over a fictional CNY catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004. `/` is the scrolling welcome page; `/equipment` and `/equipment/[id]` provide public browsing; `/chat` hosts conversations. `data/legacy/` preserves retired catalog records for old conversations.
 - `storefront-web/components/VisitorProfile.tsx` owns the sidebar profile menu and browser-local display preferences, scoped to the existing anonymous identity.
+- `storefront-web/components/SiteChrome.tsx`, `LandingExperience.tsx` and `app/design.css` define the public site and scrolling trip narrative. `lib/catalog.ts` reads the authored public catalog; `lib/navigation.ts` creates draft-only chat links. `EquipmentBrowser.tsx`, `EquipmentCard.tsx` and `EquipmentDetail.tsx` serve `/equipment` and `/equipment/[id]`.
+- `storefront-web/public/images/` contains generated scene photography; `public/products/generated/` contains product photography. Image prompts and provenance live in `examples/assistant/data/*image*.json`. Self-hosted headline typography and its license live in `public/fonts/`.
 - `supabase/migrations/`: service-only tables and transactional RPCs. `deploy/`: single-worker containers and HTTPS/SSE proxy; `check_database.py` checks cart migration readiness without starting the API.
 - `docs/`: `safety.md`, `backends.md`, `deployment.md`, `agent-experience-design.md`. `scripts/`: install, demo, smoke, verify; `deploy.sh` builds and replaces the deployment from the current checkout; `outdoor_catalog.py` defines outdoor equipment and `prepare_catalog.py` freezes the catalog, evidence and image requests.
 - Tests live in each package's `tests/` plus `examples/demo_common/tests/` and `examples/assistant/api/tests/`.
@@ -48,6 +50,8 @@ than rename.
 - A new module updates this file and its README.
 
 ## Verify
+
+Frontend-only visual work does not run tests unless requested. The repository has no GitHub Actions workflow. The commands below are optional local verification for other changes.
 
 ```bash
 ruff check . && ruff format --check . && pytest

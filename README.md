@@ -90,10 +90,9 @@ python scripts/verify_all.py          # adds catalog validation, Node tests and 
 python scripts/smoke_chat.py          # legacy shopping scenarios; needs the API, model and Supabase
 ```
 
-`requirements-dev.txt` adds pytest and ruff. CI installs from it on two Python versions,
-builds the web app, and checks that the package names stay unregistered on the public
-index (the pin files install them from their directories, never from the index). To
-confirm caching, read `cache_read_input_tokens` from `turn_complete`, or the line each
+`requirements-dev.txt` adds pytest and ruff for optional local verification. There is
+no GitHub Actions workflow. The pin files install packages from their directories.
+To confirm caching, read `cache_read_input_tokens` from `turn_complete`, or the line each
 model call logs on the runtime's logger: zero on a second turn means the prefix changed.
 
 [Examples verification](examples/README.md#验证) covers browser and optional database

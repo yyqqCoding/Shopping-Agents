@@ -4,10 +4,28 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { formatMoney, optionValuesLabel, priceLabel, useStoreFrame } from "web-shared";
+import Link from "next/link";
+import {
+  formatMoney,
+  optionValuesLabel,
+  priceLabel,
+  useStoreFrame,
+} from "web-shared";
 import { fetchProduct } from "@/lib/api";
-import type { PriceIntelligence, Product, ProductDetails, ProductsPayload, ReviewAspects } from "@/lib/types";
-import ProductTile, { AddButton, DeliveryPromise, OptionLine, ProductImage, Rating } from "../ProductTile";
+import type {
+  PriceIntelligence,
+  Product,
+  ProductDetails,
+  ProductsPayload,
+  ReviewAspects,
+} from "@/lib/types";
+import ProductTile, {
+  AddButton,
+  DeliveryPromise,
+  OptionLine,
+  ProductImage,
+  Rating,
+} from "../ProductTile";
 
 function PriceIntelligenceRow({ intel }: { intel: PriceIntelligence }) {
   const { series, low, high } = intel;
@@ -39,17 +57,26 @@ function PriceIntelligenceRow({ intel }: { intel: PriceIntelligence }) {
           strokeOpacity="0.45"
           strokeWidth="1.5"
         />
-        <circle cx={lastX} cy={lastY} r="2.5" fill="var(--accent)" stroke="var(--ink)" strokeWidth="0.8" />
+        <circle
+          cx={lastX}
+          cy={lastY}
+          r="2.5"
+          fill="var(--accent)"
+          stroke="var(--ink)"
+          strokeWidth="0.8"
+        />
       </svg>
       <div className="min-w-0">
-        <div className="text-[15px] font-semibold text-(--ink)">{intel.verdict}</div>
+        <div className="text-[15px] font-semibold text-(--ink)">
+          {intel.verdict}
+        </div>
         <div className="text-[13px] text-(--ink-soft)">
           {intel.position === "low"
             ? "接近模拟区间低位"
             : intel.position === "high"
               ? "接近模拟区间高位"
-              : "位于模拟常规区间"}
-          {" "}· 模拟 {intel.days} 天走势
+              : "位于模拟常规区间"}{" "}
+          · 模拟 {intel.days} 天走势
         </div>
       </div>
     </div>
@@ -98,9 +125,17 @@ function ReviewAspectsRow({ synthesis }: { synthesis: ReviewAspects }) {
 }
 
 /** The variants of a product with options; picking one hands the add to the assistant. */
-function VariantList({ family, variants }: { family: Product; variants: Product[] }) {
+function VariantList({
+  family,
+  variants,
+}: {
+  family: Product;
+  variants: Product[];
+}) {
   const { ask, chat } = useStoreFrame();
-  const pricesDiffer = variants.some((variant) => variant.price !== variants[0]?.price);
+  const pricesDiffer = variants.some(
+    (variant) => variant.price !== variants[0]?.price,
+  );
   return (
     <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="可选规格">
       {variants.map((variant) => {
@@ -110,12 +145,21 @@ function VariantList({ family, variants }: { family: Product; variants: Product[
           <li key={variant.product_id}>
             <button
               type="button"
-              disabled={!available || !!chat && (!chat.ready || chat.busy)}
-              onClick={() => ask(`把${family.title}的${label}规格（${variant.product_id}）加入购物车。`)}
+              disabled={!available || (!!chat && (!chat.ready || chat.busy))}
+              onClick={() =>
+                ask(
+                  `把${family.title}的${label}规格（${variant.product_id}）加入购物车。`,
+                )
+              }
               className="rounded-full border border-(--line) bg-(--card) px-2.5 py-1 text-[14px] text-(--ink) transition-colors hover:border-(--ink) disabled:cursor-not-allowed disabled:text-(--ink-soft)/70 disabled:line-through"
             >
               {label}
-              {pricesDiffer ? <span className="text-(--ink-soft)"> · {formatMoney(variant.price, variant.currency)}</span> : null}
+              {pricesDiffer ? (
+                <span className="text-(--ink-soft)">
+                  {" "}
+                  · {formatMoney(variant.price, variant.currency)}
+                </span>
+              ) : null}
             </button>
           </li>
         );
@@ -143,7 +187,10 @@ function ProductDetail({
     setDetails(null);
     setFailed(false);
     void fetchProduct(product.product_id).then((value) => {
-      if (mounted) { setDetails(value); setFailed(value === null); }
+      if (mounted) {
+        setDetails(value);
+        setFailed(value === null);
+      }
     });
     return () => {
       mounted = false;
@@ -154,10 +201,12 @@ function ProductDetail({
   const specs = details?.specs ?? {};
   return (
     <div className="ac-reveal mb-1 mt-3 rounded-xl border border-(--line) bg-(--well)/40 p-3">
-      <div className="flex items-start gap-3">
+      <div className="flex flex-col items-start gap-5 sm:flex-row">
         <div className="relative shrink-0">
-          <ProductImage product={full} className="h-24 w-28 rounded-lg" />
-          {onAdd && full.in_stock !== false ? <AddButton product={full} onAdd={onAdd} /> : null}
+          <ProductImage product={full} className="h-36 w-36 rounded-lg" />
+          {onAdd && full.in_stock !== false ? (
+            <AddButton product={full} onAdd={onAdd} />
+          ) : null}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
@@ -165,10 +214,14 @@ function ProductDetail({
               <div className="text-[13px] uppercase tracking-wide text-(--ink-soft)/80">
                 {full.brand}
               </div>
-              <div className="text-[16px] font-semibold leading-snug">{full.title}</div>
+              <div className="text-[16px] font-semibold leading-snug">
+                {full.title}
+              </div>
               <OptionLine product={full} />
               <div className="mt-0.5 flex items-center gap-2">
-                <span className="text-[16px] font-bold">{priceLabel(full)}</span>
+                <span className="text-[16px] font-bold">
+                  {priceLabel(full)}
+                </span>
                 <Rating rating={full.rating} count={full.review_count} />
                 {full.in_stock === false ? (
                   <span className="rounded-full bg-(--ink)/85 px-2 py-0.5 text-[13px] font-medium text-(--surface)">
@@ -189,13 +242,32 @@ function ProductDetail({
         </div>
       </div>
 
+      {product.product_id.startsWith("OD-") ? (
+        <Link
+          className="text-link mt-3"
+          href={`/equipment/${product.variant_of ?? product.product_id}`}
+        >
+          打开完整商品页
+        </Link>
+      ) : null}
       {reason ? (
         <p className="mt-2 text-[15px] leading-snug text-(--ink)">{reason}</p>
       ) : null}
       {failed ? (
-        <p role="status" className="mt-2 text-[15px] text-(--warn)">详情暂时无法读取。<button type="button" className="ml-2 underline" onClick={() => setRetry((n) => n + 1)}>重试</button></p>
+        <p role="status" className="mt-2 text-[15px] text-(--warn)">
+          详情暂时无法读取。
+          <button
+            type="button"
+            className="ml-2 underline"
+            onClick={() => setRetry((n) => n + 1)}
+          >
+            重试
+          </button>
+        </p>
       ) : details === null ? (
-        <p className="mt-2 animate-pulse text-[15px] text-(--ink-soft)">正在加载详情…</p>
+        <p className="mt-2 animate-pulse text-[15px] text-(--ink-soft)">
+          正在加载详情…
+        </p>
       ) : (
         <div className="ac-reveal">
           {details.price_intelligence ? (
@@ -209,9 +281,11 @@ function ProductDetail({
               {details.long_description}
             </p>
           ) : null}
-          {details.variants?.length ? <VariantList family={details} variants={details.variants} /> : null}
+          {details.variants?.length ? (
+            <VariantList family={details} variants={details.variants} />
+          ) : null}
           {Object.keys(specs).length ? (
-            <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+            <dl className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
               {Object.entries(specs).map(([key, value]) => (
                 <div key={key} className="text-[15px]">
                   <dt className="font-semibold capitalize text-(--ink-soft)">
@@ -225,7 +299,10 @@ function ProductDetail({
           {details.review_highlights?.length ? (
             <div className="mt-2 space-y-1">
               {details.review_highlights.slice(0, 3).map((highlight) => (
-                <p key={highlight} className="text-[15px] italic leading-snug text-(--ink-soft)">
+                <p
+                  key={highlight}
+                  className="text-[15px] italic leading-snug text-(--ink-soft)"
+                >
                   “{highlight}”
                 </p>
               ))}
@@ -273,7 +350,12 @@ export default function ProductCarousel({
   }, [syncOverflow, items.length, partial]);
   const nudge = (direction: 1 | -1) => {
     const node = scrollerRef.current;
-    node?.scrollBy({ left: direction * (node.clientWidth - 80), behavior: "smooth" });
+    node?.scrollBy({
+      left: direction * (node.clientWidth - 80),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+    });
   };
 
   useEffect(() => {
@@ -281,23 +363,36 @@ export default function ProductCarousel({
       setRenderedId(expandedId);
       // Bring the unfolding panel into view once it has height.
       const timer = window.setTimeout(
-        () => collapseRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+        () =>
+          collapseRef.current?.scrollIntoView({
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+              .matches
+              ? "auto"
+              : "smooth",
+            block: "nearest",
+          }),
         180,
       );
       return () => window.clearTimeout(timer);
     }
   }, [expandedId]);
 
-  const rendered = items.find(({ product }) => product.product_id === renderedId);
+  const rendered = items.find(
+    ({ product }) => product.product_id === renderedId,
+  );
   const open = expandedId != null && expandedId === renderedId;
 
   const toggle = (product: Product) =>
-    setExpandedId((current) => (current === product.product_id ? null : product.product_id));
+    setExpandedId((current) =>
+      current === product.product_id ? null : product.product_id,
+    );
 
   return (
-    <section className="rounded-2xl border border-(--line) bg-(--card) p-3 shadow-(--shadow-sm)">
+    <section className="product-carousel rounded-xl border border-(--line) bg-(--card) p-4">
       {payload.title ? (
-        <h3 className="font-display mb-3 text-[18px] font-medium tracking-[-0.01em] text-(--ink)">{payload.title}</h3>
+        <h3 className="font-display mb-3 text-[18px] font-medium tracking-[-0.01em] text-(--ink)">
+          {payload.title}
+        </h3>
       ) : null}
       <div className="relative">
         <div
@@ -312,16 +407,19 @@ export default function ProductCarousel({
           }
         >
           {items.map(({ product }) => (
-            <div key={product.product_id} className="ac-reveal shrink-0">
+            <div key={product.product_id} className="min-w-0 shrink-0">
               <ProductTile
                 product={product}
+                fluid={layout !== "carousel"}
                 onAdd={onAdd}
                 onOpen={toggle}
                 selected={product.product_id === expandedId}
               />
             </div>
           ))}
-          {partial ? <div className="ac-skeleton h-[150px] w-48 shrink-0 rounded-xl" /> : null}
+          {partial ? (
+            <div className="ac-skeleton h-[150px] w-48 shrink-0 rounded-xl" />
+          ) : null}
         </div>
         {overflow.left ? (
           <>
@@ -358,7 +456,8 @@ export default function ProductCarousel({
         ref={collapseRef}
         className={`ac-collapse ${open ? "ac-collapse-open" : ""}`}
         onTransitionEnd={(event) => {
-          if (event.propertyName === "grid-template-rows" && !expandedId) setRenderedId(null);
+          if (event.propertyName === "grid-template-rows" && !expandedId)
+            setRenderedId(null);
         }}
         aria-hidden={!open}
       >

@@ -1,0 +1,386 @@
+[
+  {
+    "id": "OD-1001",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双人三季徒步帐篷。规格：{\"重量\": \"1850 g\", \"材质\": \"20D 硅涂尼龙、铝合金杆\", \"人数\": \"2 人\", \"季节\": \"三季\", \"内帐尺寸\": \"210 × 125 × 105 cm\", \"收纳尺寸\": \"45 × 15 cm\", \"外帐防水\": \"3000 mm\", \"帐底防水\": \"5000 mm\", \"适合场景\": \"两人春秋徒步露营，优先控制背负\", \"选购限制\": \"空间紧凑，不适合冬季积雪或强风暴露营地\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1002",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双人宽居营地帐篷。规格：{\"重量\": \"3200 g\", \"材质\": \"68D 聚酯纤维、铝合金杆\", \"人数\": \"2 人\", \"季节\": \"三季\", \"内帐尺寸\": \"220 × 160 × 120 cm\", \"收纳尺寸\": \"52 × 18 cm\", \"外帐防水\": \"2500 mm\", \"帐底防水\": \"4000 mm\", \"适合场景\": \"两人自驾露营，优先睡眠空间\", \"选购限制\": \"自重较高，不适合长距离背负\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1003",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：单人轻量徒步帐篷。规格：{\"重量\": \"1180 g\", \"材质\": \"15D 尼龙、铝合金杆\", \"人数\": \"1 人\", \"季节\": \"三季\", \"内帐尺寸\": \"215 × 85 × 100 cm\", \"收纳尺寸\": \"38 × 13 cm\", \"外帐防水\": \"3000 mm\", \"帐底防水\": \"5000 mm\", \"适合场景\": \"单人轻装过夜徒步\", \"选购限制\": \"只有一个出入口，无法容纳两名成人\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1004",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：三人双门露营帐篷。规格：{\"重量\": \"2900 g\", \"材质\": \"40D 尼龙、铝合金杆\", \"人数\": \"3 人\", \"季节\": \"三季\", \"内帐尺寸\": \"220 × 180 × 125 cm\", \"收纳尺寸\": \"49 × 18 cm\", \"外帐防水\": \"3000 mm\", \"帐底防水\": \"5000 mm\", \"适合场景\": \"三人周末露营或两人带较多装备\", \"选购限制\": \"三人使用时大件背包需要放在门厅\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1005",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：四人家庭营地帐篷。规格：{\"重量\": \"6500 g\", \"材质\": \"150D 聚酯纤维、铝合金杆\", \"人数\": \"4 人\", \"季节\": \"三季\", \"内帐尺寸\": \"250 × 240 × 175 cm\", \"收纳尺寸\": \"65 × 26 cm\", \"外帐防水\": \"3000 mm\", \"帐底防水\": \"5000 mm\", \"适合场景\": \"家庭自驾露营，需要较高的室内空间\", \"选购限制\": \"收纳体积大，需要平整且宽敞的营位\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1006",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双人快速搭建帐篷。规格：{\"重量\": \"4100 g\", \"材质\": \"聚酯纤维、预连接玻璃纤维杆\", \"人数\": \"2 人\", \"季节\": \"春夏秋营地\", \"内帐尺寸\": \"215 × 155 × 130 cm\", \"收纳尺寸\": \"78 × 17 cm\", \"外帐防水\": \"2000 mm\", \"帐底防水\": \"3000 mm\", \"适合场景\": \"短途自驾与初次体验露营\", \"选购限制\": \"预连接结构偏重，抗风余量有限\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1007",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双人轻量双门帐篷。规格：{\"重量\": \"1480 g\", \"材质\": \"15D 双面硅涂尼龙、铝合金杆\", \"人数\": \"2 人\", \"季节\": \"三季\", \"内帐尺寸\": \"215 × 130 × 110 cm\", \"收纳尺寸\": \"42 × 14 cm\", \"外帐防水\": \"3000 mm\", \"帐底防水\": \"5000 mm\", \"适合场景\": \"两人多日徒步，重视减重与双侧进出\", \"选购限制\": \"面料较薄，需要避开尖锐地面\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1008",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：三人通风营地帐篷。规格：{\"重量\": \"3600 g\", \"材质\": \"聚酯纤维、大面积网布\", \"人数\": \"3 人\", \"季节\": \"春夏\", \"内帐尺寸\": \"220 × 190 × 130 cm\", \"收纳尺寸\": \"55 × 18 cm\", \"外帐防水\": \"2000 mm\", \"帐底防水\": \"4000 mm\", \"适合场景\": \"温暖季节的三人营地活动\", \"选购限制\": \"网布占比高，不适合低温和风口\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1009",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量方形天幕 3 米。规格：{\"重量\": \"760 g\", \"材质\": \"20D 涂层尼龙\", \"展开尺寸\": \"300 × 300 cm\", \"收纳尺寸\": \"28 × 12 cm\", \"防水\": \"3000 mm\", \"配件\": \"含风绳与地钉，不含撑杆\", \"适合场景\": \"两至三人的遮阳与临时防雨空间\", \"选购限制\": \"不含撑杆，不能代替封闭帐篷\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1010",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：家庭六角天幕。规格：{\"重量\": \"1800 g\", \"材质\": \"150D 聚酯纤维\", \"展开尺寸\": \"440 × 420 cm\", \"收纳尺寸\": \"45 × 17 cm\", \"防水\": \"2500 mm\", \"配件\": \"含风绳与地钉，不含撑杆\", \"适合场景\": \"四至六人自驾野餐和公共活动区\", \"选购限制\": \"迎风面积较大，不用于恶劣天气\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1011",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双杆便携遮阳天幕。规格：{\"重量\": \"2450 g\", \"材质\": \"聚酯纤维、钢制撑杆\", \"展开尺寸\": \"300 × 350 cm\", \"收纳尺寸\": \"58 × 16 cm\", \"防水\": \"2000 mm\", \"配件\": \"含两根撑杆、风绳与地钉\", \"适合场景\": \"两至四人的公园野餐与营地遮阳\", \"选购限制\": \"整套较重，适合车辆附近使用\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-1012",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：单人极简防雨天幕。规格：{\"重量\": \"420 g\", \"材质\": \"15D 涂层尼龙\", \"展开尺寸\": \"280 × 220 cm\", \"收纳尺寸\": \"24 × 10 cm\", \"防水\": \"3000 mm\", \"配件\": \"含风绳，不含撑杆与防虫网\", \"适合场景\": \"有经验的轻量徒步者搭配独立防虫系统\", \"选购限制\": \"没有地板和防虫网，不适合作为新手唯一庇护\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2001",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻便夏季信封睡袋。规格：{\"重量\": \"780 g\", \"材质\": \"聚酯纤维面料、合成纤维填充\", \"舒适温度\": \"15°C\", \"极限温度\": \"5°C，仅用于边界参考\", \"尺寸\": \"190 × 75 cm\", \"收纳尺寸\": \"28 × 15 cm\", \"适合场景\": \"夏季温暖营地，可展开作薄被\", \"选购限制\": \"舒适温度为 15°C，不适合春秋冷夜\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2002",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：三季合成纤维睡袋。规格：{\"重量\": \"1350 g\", \"材质\": \"防泼水聚酯面料、合成纤维填充\", \"舒适温度\": \"5°C\", \"极限温度\": \"-5°C，仅用于边界参考\", \"尺寸\": \"210 × 80 cm\", \"收纳尺寸\": \"35 × 22 cm\", \"适合场景\": \"春秋营地，重视耐潮和预算\", \"选购限制\": \"比同等保暖的羽绒款重，仍需防潮睡垫\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2003",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量鸭绒木乃伊睡袋。规格：{\"重量\": \"850 g\", \"材质\": \"20D 尼龙、650 蓬鸭绒\", \"舒适温度\": \"5°C\", \"极限温度\": \"-7°C，仅用于边界参考\", \"填充量\": \"400 g\", \"尺寸\": \"210 × 80 cm\", \"收纳尺寸\": \"28 × 16 cm\", \"适合场景\": \"春秋徒步，重视保暖重量比\", \"选购限制\": \"受潮后保暖表现下降，需要防水收纳\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2004",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：低温加厚合成睡袋。规格：{\"重量\": \"2100 g\", \"材质\": \"聚酯面料、多层合成纤维\", \"舒适温度\": \"-5°C\", \"极限温度\": \"-18°C，仅用于边界参考\", \"尺寸\": \"215 × 85 cm\", \"收纳尺寸\": \"42 × 28 cm\", \"适合场景\": \"低温自驾营地，有充足携带空间\", \"选购限制\": \"体积较大，不能仅凭极限温度判断是否够暖\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2005",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：宽肩舒适羽绒睡袋。规格：{\"重量\": \"1150 g\", \"材质\": \"20D 尼龙、700 蓬鸭绒\", \"舒适温度\": \"0°C\", \"极限温度\": \"-12°C，仅用于边界参考\", \"填充量\": \"600 g\", \"尺寸\": \"215 × 90 cm\", \"收纳尺寸\": \"32 × 20 cm\", \"适合场景\": \"肩部较宽或重视翻身空间的春秋露营者\", \"选购限制\": \"比窄版徒步睡袋更占收纳空间\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2006",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量夏季羽绒睡袋。规格：{\"重量\": \"560 g\", \"材质\": \"15D 尼龙、700 蓬鸭绒\", \"舒适温度\": \"10°C\", \"极限温度\": \"0°C，仅用于边界参考\", \"填充量\": \"250 g\", \"尺寸\": \"205 × 78 cm\", \"收纳尺寸\": \"24 × 13 cm\", \"适合场景\": \"夏季多日徒步，优先轻量与小体积\", \"选购限制\": \"舒适温度为 10°C，不适合寒冷高海拔营地\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2007",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：折叠泡沫防潮垫。规格：{\"重量\": \"410 g\", \"材质\": \"闭孔聚乙烯泡沫\", \"R 值\": \"1.8\", \"厚度\": \"1.8 cm\", \"展开尺寸\": \"185 × 55 cm\", \"收纳尺寸\": \"55 × 14 × 13 cm\", \"适合场景\": \"入门徒步与温暖季节露营，耐磨且无需充气\", \"选购限制\": \"R 值较低、厚度有限，不适合冷地面或舒适需求较高者\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2008",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量充气睡垫。规格：{\"重量\": \"480 g\", \"材质\": \"20D 尼龙复合面料\", \"R 值\": \"2.2\", \"厚度\": \"6 cm\", \"展开尺寸\": \"190 × 58 cm\", \"收纳尺寸\": \"24 × 10 cm\", \"适合场景\": \"温暖季节背负露营，需要较小收纳体积\", \"选购限制\": \"需防刺穿，低温地面隔热能力有限\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2009",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：三季保温充气睡垫。规格：{\"重量\": \"640 g\", \"材质\": \"30D 尼龙、隔热填充层\", \"R 值\": \"4.0\", \"厚度\": \"7 cm\", \"展开尺寸\": \"193 × 64 cm\", \"收纳尺寸\": \"27 × 12 cm\", \"适合场景\": \"春秋徒步，需要较好的地面隔热\", \"选购限制\": \"需要充气，不能接触尖锐石块\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2010",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：宽幅自充气睡垫。规格：{\"重量\": \"1750 g\", \"材质\": \"弹性面料、开孔泡沫\", \"R 值\": \"3.8\", \"厚度\": \"5 cm\", \"展开尺寸\": \"198 × 76 cm\", \"收纳尺寸\": \"78 × 20 cm\", \"适合场景\": \"自驾营地，重视侧睡和支撑\", \"选购限制\": \"重量与体积较大，不适合轻量背负\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2011",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双人营地自充气垫。规格：{\"重量\": \"4300 g\", \"材质\": \"聚酯面料、高回弹泡沫\", \"R 值\": \"4.5\", \"厚度\": \"8 cm\", \"展开尺寸\": \"200 × 132 cm\", \"收纳尺寸\": \"70 × 30 cm\", \"适合场景\": \"两人自驾露营，需要连贯睡眠空间\", \"选购限制\": \"需核对帐篷内宽，搬运体积较大\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-2012",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：冬季保温充气睡垫。规格：{\"重量\": \"780 g\", \"材质\": \"30D 尼龙、多层隔热结构\", \"R 值\": \"5.8\", \"厚度\": \"8 cm\", \"展开尺寸\": \"193 × 64 cm\", \"收纳尺寸\": \"28 × 13 cm\", \"适合场景\": \"有经验的低温露营者搭配合适睡袋\", \"选购限制\": \"实际保暖受睡袋、地面与个人体感影响\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3001",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻便徒步腰包 3L。规格：{\"重量\": \"180 g\", \"材质\": \"耐磨尼龙\", \"容量\": \"3 L\", \"建议负重\": \"1.5 kg 以内\", \"背负\": \"可调腰带\", \"防雨\": \"防泼水，不含雨罩\", \"适合场景\": \"近郊短途散步，收纳手机与小水瓶\", \"选购限制\": \"容量小，不适合装整套雨具和保暖层\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3002",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：贴身轻徒步背包 8L。规格：{\"重量\": \"290 g\", \"材质\": \"轻量尼龙、网布\", \"容量\": \"8 L\", \"建议负重\": \"3 kg 以内\", \"背负\": \"网布软背板\", \"防雨\": \"防泼水，不含雨罩\", \"适合场景\": \"半日轻装徒步与短距离活动\", \"选购限制\": \"没有硬质背板，不适合较重负载\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3003",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：日间徒步背包 12L。规格：{\"重量\": \"390 g\", \"材质\": \"210D 尼龙\", \"容量\": \"12 L\", \"建议负重\": \"4 kg 以内\", \"背负\": \"泡沫背板、胸带\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"短线徒步，携带饮水、食物与薄外套\", \"选购限制\": \"厚重冬装会占满内部空间\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3004",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：通风轻徒步背包 18L。规格：{\"重量\": \"650 g\", \"材质\": \"抗撕裂尼龙\", \"容量\": \"18 L\", \"建议负重\": \"6 kg 以内\", \"背负\": \"悬空网架、腰带\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"一日近郊徒步，重视背部通风\", \"选购限制\": \"悬空背板使内部空间不完全平直\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3005",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量卷口徒步背包 20L。规格：{\"重量\": \"420 g\", \"材质\": \"210D 涂层尼龙\", \"容量\": \"20 L\", \"建议负重\": \"5 kg 以内\", \"背负\": \"可拆泡沫背板\", \"防雨\": \"建议配防水内袋\", \"适合场景\": \"轻装一日徒步，需要灵活收纳\", \"选购限制\": \"卷口面料防泼水，接缝并非全防水\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3006",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：一日徒步背包 24L。规格：{\"重量\": \"890 g\", \"材质\": \"420D 尼龙\", \"容量\": \"24 L\", \"建议负重\": \"8 kg 以内\", \"背负\": \"框架背板、加宽腰带\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"全天徒步，携带雨具、补给与保暖层\", \"选购限制\": \"相对轻量软包更重\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3007",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：通风登山背包 28L。规格：{\"重量\": \"1050 g\", \"材质\": \"210D 与 420D 尼龙\", \"容量\": \"28 L\", \"建议负重\": \"9 kg 以内\", \"背负\": \"悬空网架，背长 44–50 cm\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"较长的一日山地路线\", \"选购限制\": \"背长固定，需核对躯干长度\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3008",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：周末轻装背包 32L。规格：{\"重量\": \"980 g\", \"材质\": \"抗撕裂涂层尼龙\", \"容量\": \"32 L\", \"建议负重\": \"10 kg 以内\", \"背负\": \"铝条背板、可调肩带\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"轻量装备组成的一夜露营\", \"选购限制\": \"无法轻松容纳体积大的合成睡袋和双人帐\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3009",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：周末徒步背包 38L。规格：{\"重量\": \"1350 g\", \"材质\": \"420D 耐磨尼龙\", \"容量\": \"38 L\", \"建议负重\": \"12 kg 以内\", \"背负\": \"可调背长 42–52 cm\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"一至两晚徒步露营\", \"选购限制\": \"使用前应按实际负重调整背负\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3010",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：多日徒步背包 45L。规格：{\"重量\": \"1580 g\", \"材质\": \"420D 尼龙、铝合金框架\", \"容量\": \"45 L\", \"建议负重\": \"14 kg 以内\", \"背负\": \"可调背长 43–54 cm\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"两至三日露营徒步，需要较完整的背负系统\", \"选购限制\": \"空包重量高于轻量款\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3011",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：长线露营背包 55L。规格：{\"重量\": \"1850 g\", \"材质\": \"高密度尼龙、铝合金框架\", \"容量\": \"55 L\", \"建议负重\": \"17 kg 以内\", \"背负\": \"可调背长 43–55 cm\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"多日路线，携带较多食物与保暖装备\", \"选购限制\": \"日常轻徒步使用显得过大\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-3012",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：大容量徒步背包 65L。规格：{\"重量\": \"2240 g\", \"材质\": \"500D 尼龙、铝合金框架\", \"容量\": \"65 L\", \"建议负重\": \"20 kg 以内\", \"背负\": \"可调背长 44–56 cm\", \"防雨\": \"附独立雨罩\", \"适合场景\": \"长线自负重露营，需要更大装载空间\", \"选购限制\": \"满载要求较好的体能与装包经验\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4001",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量防雨外壳。规格：{\"重量\": \"290 g\", \"材质\": \"2.5 层复合尼龙\", \"防水参数\": \"10000 mm\", \"结构\": \"压胶接缝、可调帽檐\", \"剪裁\": \"常规版型，可叠穿薄中层\", \"颜色\": \"森林绿\", \"适合场景\": \"温暖季节徒步，携带备用雨衣\", \"选购限制\": \"高强度运动仍可能闷热，不提供保暖\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4002",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：三层耐磨防雨外壳。规格：{\"重量\": \"480 g\", \"材质\": \"3 层复合尼龙\", \"防水参数\": \"20000 mm\", \"结构\": \"压胶接缝、腋下通风\", \"剪裁\": \"常规版型，预留中层空间\", \"颜色\": \"岩灰色\", \"适合场景\": \"春秋多日徒步和频繁背包摩擦场景\", \"选购限制\": \"重量和价格高于轻量款\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：岩灰色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4003",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：弹力防风软壳。规格：{\"重量\": \"450 g\", \"材质\": \"聚酯纤维、弹性纤维\", \"防水参数\": \"仅防泼水\", \"结构\": \"透气弹力面料\", \"剪裁\": \"修身版型\", \"颜色\": \"深青色\", \"适合场景\": \"凉爽且少雨的徒步活动\", \"选购限制\": \"防泼水不能代替持续降雨时的雨衣\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：深青色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4004",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻薄网格抓绒衣。规格：{\"重量\": \"270 g\", \"材质\": \"聚酯网格抓绒\", \"面料克重\": \"160 g/m²\", \"结构\": \"半拉链、网格内侧\", \"剪裁\": \"贴合版型\", \"颜色\": \"沙色\", \"适合场景\": \"春秋运动中的轻量中层保暖\", \"选购限制\": \"单独穿着时防风能力有限\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：沙色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4005",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：厚绒全拉链保暖衣。规格：{\"重量\": \"510 g\", \"材质\": \"双面聚酯抓绒\", \"面料克重\": \"280 g/m²\", \"结构\": \"全拉链、立领\", \"剪裁\": \"宽松版型\", \"颜色\": \"岩灰色\", \"适合场景\": \"营地休息或较冷天气的中层保暖\", \"选购限制\": \"收纳体积较大，需要外壳挡风\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：岩灰色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4006",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：速干长袖打底衣。规格：{\"重量\": \"170 g\", \"材质\": \"聚酯纤维混纺\", \"面料克重\": \"130 g/m²\", \"结构\": \"平缝接缝\", \"剪裁\": \"贴合版型\", \"颜色\": \"雾蓝色\", \"适合场景\": \"徒步时贴身排汗，作为分层穿衣基础\", \"选购限制\": \"薄款不适合单独承担低温保暖\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：雾蓝色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4007",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻薄连帽防晒衣。规格：{\"重量\": \"180 g\", \"材质\": \"轻量聚酯纤维\", \"织物特性\": \"细密织法，无防晒等级认证声明\", \"结构\": \"连帽、拇指孔\", \"剪裁\": \"常规版型\", \"颜色\": \"浅沙色\", \"适合场景\": \"夏季遮蔽日晒与轻微风感\", \"选购限制\": \"没有防雨膜，不能替代雨衣\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：浅沙色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4008",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：透气速干徒步衬衫。规格：{\"重量\": \"210 g\", \"材质\": \"尼龙与弹性纤维\", \"织物特性\": \"轻薄速干\", \"结构\": \"可卷袖、背部通风\", \"剪裁\": \"宽松版型\", \"颜色\": \"橄榄绿\", \"适合场景\": \"温暖季节徒步及营地活动\", \"选购限制\": \"不是保暖层，降温时需搭配外套\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：橄榄绿. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4009",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：弹力速干徒步长裤。规格：{\"重量\": \"320 g\", \"材质\": \"尼龙、弹性纤维\", \"面料特性\": \"四向弹力、防泼水\", \"结构\": \"立体膝部、腰部调节\", \"剪裁\": \"常规直筒\", \"颜色\": \"深灰色\", \"适合场景\": \"一日徒步与春秋山地行走\", \"选购限制\": \"不具备持续防雨能力\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：深灰色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4010",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：耐磨加厚徒步长裤。规格：{\"重量\": \"490 g\", \"材质\": \"高密度尼龙混纺\", \"面料特性\": \"加厚耐磨、防泼水\", \"结构\": \"膝部与臀部补强\", \"剪裁\": \"常规直筒\", \"颜色\": \"森林绿\", \"适合场景\": \"较凉天气及灌木较多的行走路线\", \"选购限制\": \"盛夏高温时可能偏闷热\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4011",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量羽绒保暖背心。规格：{\"重量\": \"220 g\", \"材质\": \"20D 尼龙、650 蓬鸭绒\", \"填充量\": \"80 g（M 码）\", \"结构\": \"立领、独立收纳袋\", \"剪裁\": \"常规版型\", \"颜色\": \"暖橙色\", \"适合场景\": \"春秋营地与低强度活动的躯干保暖\", \"选购限制\": \"手臂没有保暖覆盖，湿冷环境需保护填充\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：暖橙色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-4012",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：合成棉连帽保暖衣。规格：{\"重量\": \"610 g\", \"材质\": \"聚酯面料、合成纤维保暖层\", \"填充克重\": \"120 g/m²\", \"结构\": \"连帽、可调下摆\", \"剪裁\": \"宽松版型\", \"颜色\": \"深青色\", \"适合场景\": \"湿冷营地休息与冬季分层搭配\", \"选购限制\": \"较重且不可替代防雨外壳\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：深青色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5001",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量低帮徒步鞋。规格：{\"重量\": \"680 g\", \"材质\": \"网布、合成革、橡胶底\", \"鞋帮\": \"低帮\", \"楦型\": \"标准楦\", \"鞋底\": \"3 mm 多向齿纹\", \"防水\": \"无防水膜\", \"适合场景\": \"干燥天气的成熟近郊步道\", \"选购限制\": \"没有防水膜，不适合持续涉水\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5002",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：防水中帮徒步鞋。规格：{\"重量\": \"960 g\", \"材质\": \"合成革、防水内衬、橡胶底\", \"鞋帮\": \"中帮\", \"楦型\": \"标准楦\", \"鞋底\": \"4 mm 多向齿纹\", \"防水\": \"防水内衬\", \"适合场景\": \"春秋潮湿步道与轻装过夜徒步\", \"选购限制\": \"防水结构散热较慢，水可从鞋口进入\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5003",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：耐磨高帮徒步靴。规格：{\"重量\": \"1280 g\", \"材质\": \"耐磨织物、合成革、橡胶底\", \"鞋帮\": \"高帮\", \"楦型\": \"标准楦\", \"鞋底\": \"5 mm 深齿纹\", \"防水\": \"防水内衬\", \"适合场景\": \"碎石较多且背负较重的徒步路线\", \"选购限制\": \"重量较高，需要提前适应脚感\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5004",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：宽楦舒适徒步鞋。规格：{\"重量\": \"780 g\", \"材质\": \"网布、耐磨合成革\", \"鞋帮\": \"低帮\", \"楦型\": \"宽楦\", \"鞋底\": \"3.5 mm 多向齿纹\", \"防水\": \"仅鞋面防泼水\", \"适合场景\": \"前掌较宽的用户进行日间徒步\", \"选购限制\": \"窄脚可能需要调整鞋带或选择其他楦型\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5005",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：夏季透气徒步鞋。规格：{\"重量\": \"590 g\", \"材质\": \"大孔网布、轻质橡胶底\", \"鞋帮\": \"低帮\", \"楦型\": \"标准楦\", \"鞋底\": \"3 mm 齿纹\", \"防水\": \"无防水膜\", \"适合场景\": \"温暖干燥环境的一日轻装路线\", \"选购限制\": \"鞋面防护较少，不适合尖锐碎石与冷雨\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5006",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻快越野行走鞋。规格：{\"重量\": \"540 g\", \"材质\": \"抗撕裂网布、缓震中底\", \"鞋帮\": \"低帮\", \"楦型\": \"标准楦\", \"鞋底\": \"4 mm 齿纹\", \"防水\": \"无防水膜\", \"适合场景\": \"轻量快速行走与成熟越野路线\", \"选购限制\": \"支撑与耐磨性不适合重装长线\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5007",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：湿地防水低帮鞋。规格：{\"重量\": \"820 g\", \"材质\": \"合成革、防水内衬\", \"鞋帮\": \"低帮\", \"楦型\": \"标准楦\", \"鞋底\": \"排泥间隔齿纹\", \"防水\": \"防水内衬\", \"适合场景\": \"潮湿草地和短距离雨后步道\", \"选购限制\": \"湿滑石面仍需谨慎，不能保证不滑倒\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5008",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：包头营地凉鞋。规格：{\"重量\": \"460 g\", \"材质\": \"织带、合成鞋头、橡胶底\", \"鞋帮\": \"凉鞋\", \"楦型\": \"宽松楦\", \"鞋底\": \"浅齿纹\", \"防水\": \"可沾水，非防水鞋\", \"适合场景\": \"温暖营地与短距离平坦步行\", \"选购限制\": \"开放结构不适合碎石长线与低温\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5009",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：保暖营地便鞋。规格：{\"重量\": \"380 g\", \"材质\": \"防泼水尼龙、合成棉\", \"鞋帮\": \"便鞋\", \"楦型\": \"宽松楦\", \"鞋底\": \"薄橡胶防滑层\", \"防水\": \"仅防泼水\", \"适合场景\": \"低温营地休息和帐篷附近活动\", \"选购限制\": \"鞋底支撑有限，不用于正式徒步\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5010",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻薄速干徒步袜。规格：{\"重量\": \"45 g\", \"材质\": \"聚酯纤维、尼龙、弹性纤维\", \"高度\": \"中筒\", \"厚度\": \"薄款\", \"缓冲\": \"脚跟与前掌局部加厚\", \"包装\": \"1 双\", \"适合场景\": \"温暖天气日间徒步\", \"选购限制\": \"缓冲较薄，不适合需要厚垫的鞋型\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5011",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：中厚羊毛混纺徒步袜。规格：{\"重量\": \"75 g\", \"材质\": \"45% 羊毛、尼龙与弹性纤维\", \"高度\": \"中筒\", \"厚度\": \"中厚\", \"缓冲\": \"足底加厚\", \"包装\": \"1 双\", \"适合场景\": \"春秋长时间行走，重视脚感\", \"选购限制\": \"需温和洗涤，不宜高温烘干\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-5012",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：冬季加厚保暖徒步袜。规格：{\"重量\": \"110 g\", \"材质\": \"60% 羊毛、聚酯与弹性纤维\", \"高度\": \"高筒\", \"厚度\": \"加厚\", \"缓冲\": \"全足底毛圈\", \"包装\": \"1 双\", \"适合场景\": \"寒冷天气徒步与营地休息\", \"选购限制\": \"厚度会占用鞋内空间，需核对鞋码余量\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6001",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：入门轻便头灯。规格：{\"重量\": \"68 g\", \"材质\": \"工程塑料、弹性头带\", \"最高亮度\": \"200 lm\", \"续航\": \"高亮 2 小时，低亮 12 小时\", \"供电\": \"3 节 AAA 电池，重量不含电池\", \"防护\": \"防泼水，不可浸水\", \"适合场景\": \"营地整理与短时夜间步行\", \"选购限制\": \"最高亮度续航有限，不作为长线唯一光源\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6002",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：充电徒步头灯。规格：{\"重量\": \"82 g\", \"材质\": \"工程塑料、弹性头带\", \"最高亮度\": \"350 lm\", \"续航\": \"高亮 3 小时，低亮 30 小时\", \"供电\": \"USB-C 充电，含内置电池\", \"防护\": \"防泼水，不可浸水\", \"适合场景\": \"日间徒步的备用照明和营地使用\", \"选购限制\": \"内置电池不可现场更换\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6003",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：长续航夜行头灯。规格：{\"重量\": \"128 g\", \"材质\": \"铝合金灯头、工程塑料\", \"最高亮度\": \"600 lm\", \"续航\": \"高亮 2 小时，中亮 8 小时\", \"供电\": \"可更换充电电池，重量含电池\", \"防护\": \"防雨，不用于潜水\", \"适合场景\": \"有夜行计划的徒步，需要较长中档续航\", \"选购限制\": \"高亮档会发热并逐步降亮\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6004",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双光源户外头灯。规格：{\"重量\": \"145 g\", \"材质\": \"铝合金、耐冲击塑料\", \"最高亮度\": \"800 lm\", \"续航\": \"高亮 1.5 小时，中亮 7 小时\", \"供电\": \"USB-C 充电，含内置电池\", \"防护\": \"防雨，不用于潜水\", \"适合场景\": \"需要远近光切换的夜间户外活动\", \"选购限制\": \"偏重，夜行仍需备用光源\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6005",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：迷你挂式营地灯。规格：{\"重量\": \"95 g\", \"材质\": \"工程塑料、挂钩\", \"最高亮度\": \"120 lm\", \"续航\": \"高亮 4 小时，低亮 18 小时\", \"供电\": \"USB-C 充电，1200 mAh\", \"光色\": \"暖白光\", \"适合场景\": \"帐篷内部和小桌面的柔和照明\", \"选购限制\": \"照射范围较小，不适合照亮整个营地\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6006",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：调光帐篷营地灯。规格：{\"重量\": \"180 g\", \"材质\": \"工程塑料、扩散灯罩\", \"最高亮度\": \"250 lm\", \"续航\": \"高亮 5 小时，低亮 30 小时\", \"供电\": \"USB-C 充电，2600 mAh\", \"光色\": \"暖白与中性白可调\", \"适合场景\": \"两至三人的营地桌面照明\", \"选购限制\": \"充电接口需要保持干燥\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6007",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：广角露营照明灯。规格：{\"重量\": \"380 g\", \"材质\": \"铝合金提手、扩散灯罩\", \"最高亮度\": \"500 lm\", \"续航\": \"高亮 6 小时，低亮 40 小时\", \"供电\": \"USB-C 充电，6000 mAh\", \"光色\": \"暖白光\", \"适合场景\": \"四人自驾露营和公共活动空间\", \"选购限制\": \"体积较大，不适合极简背负\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6008",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：可调支架营地灯。规格：{\"重量\": \"760 g\", \"材质\": \"铝合金支架、工程塑料\", \"最高亮度\": \"800 lm\", \"续航\": \"高亮 4 小时，低亮 24 小时\", \"供电\": \"USB-C 充电，8000 mAh\", \"光色\": \"三档色温\", \"适合场景\": \"固定营位的桌面与周边照明\", \"选购限制\": \"整套较重，支架需放在稳定地面\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6009",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量备用电源 10000mAh。规格：{\"重量\": \"185 g\", \"材质\": \"阻燃塑料、锂电芯\", \"电芯容量\": \"10000 mAh / 37 Wh\", \"最大输出\": \"USB-C 20 W\", \"接口\": \"1 个 USB-C、1 个 USB-A\", \"防护\": \"不防水，需干燥收纳\", \"适合场景\": \"一日徒步为手机和头灯补电\", \"选购限制\": \"有效输出容量小于电芯标称容量\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6010",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双口备用电源 20000mAh。规格：{\"重量\": \"340 g\", \"材质\": \"阻燃塑料、锂电芯\", \"电芯容量\": \"20000 mAh / 74 Wh\", \"最大输出\": \"USB-C 30 W\", \"接口\": \"2 个 USB-C\", \"防护\": \"不防水，需干燥收纳\", \"适合场景\": \"周末露营的手机与小型灯具补电\", \"选购限制\": \"更重，乘机携带需核对承运方要求\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6011",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：耐磨护套备用电源。规格：{\"重量\": \"390 g\", \"材质\": \"阻燃塑料、硅胶护套\", \"电芯容量\": \"20000 mAh / 74 Wh\", \"最大输出\": \"USB-C 22.5 W\", \"接口\": \"1 个 USB-C、1 个 USB-A\", \"防护\": \"接口关闭时防泼水\", \"适合场景\": \"需要外壳耐磨的短途露营\", \"选购限制\": \"护套不等于浸水防护\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-6012",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：折叠太阳能充电板。规格：{\"重量\": \"720 g\", \"材质\": \"复合光伏片、织物折叠外壳\", \"标称功率\": \"24 W，理想光照条件\", \"输出\": \"USB-C 5 V\", \"展开尺寸\": \"68 × 28 cm\", \"储能\": \"不含电池，需外接储能设备\", \"适合场景\": \"晴天固定营地给独立电源缓慢补电\", \"选购限制\": \"输出受日照影响明显，不作为唯一供电来源\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7001",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：单人钛合金杯 450ml。规格：{\"重量\": \"72 g\", \"材质\": \"钛合金\", \"容量\": \"450 ml\", \"尺寸\": \"直径 8 × 高 9 cm\", \"结构\": \"折叠手柄、单层杯壁\", \"配件\": \"杯盖与收纳袋\", \"适合场景\": \"单人轻量徒步饮水与简餐\", \"选购限制\": \"单层杯壁导热快，需要防烫\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7002",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：单人轻量钛锅 900ml。规格：{\"重量\": \"130 g\", \"材质\": \"钛合金\", \"容量\": \"900 ml\", \"尺寸\": \"直径 12 × 高 8 cm\", \"结构\": \"折叠手柄\", \"配件\": \"锅盖与收纳袋，不含炉具\", \"适合场景\": \"单人徒步烧水和简单烹煮\", \"选购限制\": \"锅底较薄，复杂烹饪需要控制火力\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7003",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双人铝合金炊具套装。规格：{\"重量\": \"420 g\", \"材质\": \"硬质氧化铝\", \"容量\": \"1.5 L 主锅、0.7 L 小锅\", \"人数\": \"2 人\", \"收纳尺寸\": \"直径 16 × 高 10 cm\", \"配件\": \"两口锅、折叠餐具，不含炉具\", \"适合场景\": \"两人露营制作简餐\", \"选购限制\": \"不建议使用金属利器刮擦锅面\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7004",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：家庭不锈钢营地锅。规格：{\"重量\": \"980 g\", \"材质\": \"不锈钢\", \"容量\": \"3 L\", \"人数\": \"3–4 人\", \"尺寸\": \"直径 20 × 高 11 cm\", \"配件\": \"锅盖、提手，不含炉具\", \"适合场景\": \"三至四人自驾营地烹饪\", \"选购限制\": \"偏重，不适合长距离背负\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7005",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：分体式户外炉具。规格：{\"重量\": \"290 g\", \"材质\": \"不锈钢支架、铝合金阀体\", \"标称功率\": \"2500 W\", \"支架范围\": \"锅底直径 12–22 cm\", \"燃料接口\": \"螺纹阀，须核对气罐兼容性\", \"配件\": \"不含气罐与燃料\", \"适合场景\": \"通风室外营地配合匹配锅具烹煮\", \"选购限制\": \"仅供室外使用；接口、燃料和操作必须遵循制造商说明\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7006",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：折叠轻量餐具组合。规格：{\"重量\": \"58 g\", \"材质\": \"不锈钢\", \"组成\": \"勺、叉各 1 件\", \"人数\": \"1 人\", \"收纳长度\": \"9 cm\", \"收纳\": \"附布袋\", \"适合场景\": \"单人徒步用餐\", \"选购限制\": \"折叠结构需定期检查连接处\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7007",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双人营地餐具组合。规格：{\"重量\": \"240 g\", \"材质\": \"不锈钢、聚丙烯\", \"组成\": \"碗、杯、勺各 2 件\", \"人数\": \"2 人\", \"收纳尺寸\": \"18 × 12 × 10 cm\", \"清洁\": \"温和洗涤，彻底晾干\", \"适合场景\": \"两人周末露营用餐\", \"选购限制\": \"塑料容器不可直接加热\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7008",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：宽口轻便水壶 1L。规格：{\"重量\": \"145 g\", \"材质\": \"食品接触用共聚酯\", \"容量\": \"1 L\", \"口径\": \"5.3 cm\", \"适用水温\": \"0–80°C\", \"结构\": \"宽口旋盖\", \"适合场景\": \"一日徒步，方便装水与清洗\", \"选购限制\": \"不保温，不用于明火加热\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7009",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：真空保温水壶 750ml。规格：{\"重量\": \"390 g\", \"材质\": \"双层不锈钢\", \"容量\": \"750 ml\", \"结构\": \"双层真空\", \"保温参考\": \"6 小时后不低于 55°C，室温条件\", \"口径\": \"4.5 cm\", \"适合场景\": \"凉爽天气徒步与营地热饮\", \"选购限制\": \"重量高于塑料水壶，不用于明火\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7010",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：背包饮水袋 2L。规格：{\"重量\": \"160 g\", \"材质\": \"食品接触用 TPU\", \"容量\": \"2 L\", \"管长\": \"100 cm\", \"适用水温\": \"0–40°C\", \"接口\": \"快拆饮水管\", \"适合场景\": \"使用兼容水袋仓的日间徒步\", \"选购限制\": \"需定期清洗管路，不能装热水\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7011",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：折叠营地储水袋 5L。规格：{\"重量\": \"150 g\", \"材质\": \"食品接触用聚乙烯\", \"容量\": \"5 L\", \"结构\": \"折叠软袋、提手\", \"适用水温\": \"0–40°C\", \"收纳尺寸\": \"24 × 18 cm\", \"适合场景\": \"自驾营地短时储存清洁饮用水\", \"选购限制\": \"不用于处理未知水源，也不宜长时间暴晒\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-7012",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：营地洗漱折叠水盆。规格：{\"重量\": \"190 g\", \"材质\": \"涂层织物\", \"容量\": \"8 L\", \"展开尺寸\": \"直径 28 × 高 15 cm\", \"收纳尺寸\": \"17 × 10 cm\", \"结构\": \"双提手软盆\", \"适合场景\": \"营地清洗与非饮用水收纳\", \"选购限制\": \"不作为饮用水储存容器\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8001",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：铝合金外锁登山杖一对。规格：{\"重量\": \"520 g\", \"材质\": \"7075 铝合金、泡沫手柄\", \"展开长度\": \"65–135 cm\", \"收纳长度\": \"65 cm\", \"数量\": \"2 根\", \"结构\": \"三节外锁\", \"适合场景\": \"日间徒步与周末露营路线\", \"选购限制\": \"不是攀登保护器材，锁扣需按说明检查\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8002",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：碳纤维折叠登山杖一对。规格：{\"重量\": \"390 g\", \"材质\": \"碳纤维、泡沫手柄\", \"展开长度\": \"110–130 cm\", \"收纳长度\": \"36 cm\", \"数量\": \"2 根\", \"结构\": \"折叠加顶部伸缩\", \"适合场景\": \"重视轻量与收纳长度的徒步者\", \"选购限制\": \"需避免侧向冲击，不是攀登保护器材\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8003",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量折叠营地椅。规格：{\"重量\": \"920 g\", \"材质\": \"铝合金、涤纶布\", \"展开尺寸\": \"54 × 50 × 65 cm\", \"收纳尺寸\": \"35 × 12 cm\", \"标称承重\": \"100 kg，平整地面\", \"坐高\": \"32 cm\", \"适合场景\": \"短途徒步露营和营地休息\", \"选购限制\": \"坐面较低，松软地面需留意椅脚下陷\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8004",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：高靠背舒适营地椅。规格：{\"重量\": \"2300 g\", \"材质\": \"铝合金、加厚涤纶\", \"展开尺寸\": \"60 × 65 × 95 cm\", \"收纳尺寸\": \"60 × 18 cm\", \"标称承重\": \"120 kg，平整地面\", \"坐高\": \"42 cm\", \"适合场景\": \"自驾露营长时间休息\", \"选购限制\": \"收纳较长，不适合长线背负\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8005",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：折叠铝合金营地桌。规格：{\"重量\": \"2800 g\", \"材质\": \"铝合金\", \"展开尺寸\": \"70 × 50 × 45 cm\", \"收纳尺寸\": \"72 × 16 cm\", \"标称承重\": \"20 kg，均匀载荷\", \"人数\": \"2–4 人\", \"适合场景\": \"两至四人的自驾露营餐桌\", \"选购限制\": \"桌面不作为座椅或承重平台\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8006",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：卷口防水收纳袋 20L。规格：{\"重量\": \"140 g\", \"材质\": \"涂层尼龙\", \"容量\": \"20 L\", \"结构\": \"卷口扣合\", \"收纳尺寸\": \"15 × 8 cm\", \"用途\": \"衣物与睡袋内袋\", \"适合场景\": \"背包内保护衣物和睡袋免受雨水影响\", \"选购限制\": \"卷口需正确闭合，不用于长时间浸泡\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8007",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：轻量压缩收纳袋 8L。规格：{\"重量\": \"95 g\", \"材质\": \"抗撕裂尼龙\", \"容量\": \"8 L\", \"结构\": \"四向压缩带\", \"收纳尺寸\": \"13 × 7 cm\", \"防雨\": \"防泼水\", \"适合场景\": \"压缩衣物或小型睡袋的装包体积\", \"选购限制\": \"缝线未作完全防水处理\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8008",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：低帮防沙脚套一对。规格：{\"重量\": \"85 g\", \"材质\": \"弹性尼龙\", \"高度\": \"18 cm\", \"尺码\": \"通用可调\", \"数量\": \"1 对\", \"固定方式\": \"鞋带挂钩与底部带\", \"适合场景\": \"碎石与沙土较多的轻徒步路线\", \"选购限制\": \"不是防水雪套，不能代替高帮鞋防护\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8009",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：宽檐轻便遮阳帽。规格：{\"重量\": \"80 g\", \"材质\": \"轻量聚酯纤维\", \"帽檐\": \"8 cm\", \"头围\": \"56–60 cm 可调\", \"结构\": \"可拆防风绳\", \"收纳\": \"软帽檐可折叠\", \"适合场景\": \"白天徒步和营地遮阳\", \"选购限制\": \"遮挡范围随太阳角度变化，需配合其他防晒措施\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8010",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：双人应急保温毯。规格：{\"重量\": \"70 g\", \"材质\": \"镀铝聚酯薄膜\", \"展开尺寸\": \"210 × 160 cm\", \"收纳尺寸\": \"10 × 7 cm\", \"数量\": \"1 张\", \"使用边界\": \"应急备用，非日常保暖系统\", \"适合场景\": \"作为户外应急备用，减少风与散热影响\", \"选购限制\": \"不能替代睡袋或专业救援装备，材料容易破损\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8011",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：透明底板指北针。规格：{\"重量\": \"55 g\", \"材质\": \"透明工程塑料、磁针组件\", \"尺寸\": \"11 × 6 cm\", \"结构\": \"旋转刻度盘、底板尺\", \"配件\": \"挂绳\", \"功能\": \"方向参考，无定位与通信\", \"适合场景\": \"配合纸质地图进行方向核对\", \"选购限制\": \"需掌握地图使用，附近金属与电器会干扰读数\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  },
+  {
+    "id": "OD-8012",
+    "prompt": "Use case: product-mockup. Asset: premium outdoor commerce product photograph. 原创无品牌户外商品图：帐篷面料修补组合。规格：{\"重量\": \"65 g\", \"材质\": \"修补贴、织物补片\", \"组成\": \"6 片修补贴、2 片织物补片\", \"收纳尺寸\": \"12 × 8 cm\", \"适用范围\": \"小面积面料破损\", \"使用条件\": \"表面清洁干燥，按材料说明使用\", \"适合场景\": \"营地临时处理小面积面料破损\", \"选购限制\": \"不能恢复原厂防水等级，不用于承重结构维修\"}。中性浅色背景，柔和自然光，不增加未列出的配件，无文字、商标或水印。 商品颜色：森林绿 / 岩灰配色. Photorealistic studio photography, light warm stone seamless background, soft directional daylight, subtle ground shadow, single complete product centered with generous 14% clear margins. Square composition. Precisely depict physical shape, materials and construction. No scenery, people, text, numbers, brand marks, labels, watermark, extra accessories, collage or panels."
+  }
+]

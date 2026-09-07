@@ -81,9 +81,19 @@ def prepare() -> None:
             filled = family | product
             pid = filled["product_id"]
             path = f"/products/generated/{pid}.webp"
-            # A missing photograph has no URL: the page uses the category illustration.
-            if (PUBLIC / path.lstrip("/")).is_file():
-                product["image_url"] = path
+            # Size variants share their family's photograph unless an individual image exists.
+            for image_id in dict.fromkeys((pid, family["product_id"])):
+                image_path = next(
+                    (
+                        f"/products/generated/{image_id}.{extension}"
+                        for extension in ("webp", "png")
+                        if (PUBLIC / "products" / "generated" / f"{image_id}.{extension}").is_file()
+                    ),
+                    None,
+                )
+                if image_path:
+                    product["image_url"] = image_path
+                    break
             frozen[pid] = evidence(filled)
             prompts.append(
                 {

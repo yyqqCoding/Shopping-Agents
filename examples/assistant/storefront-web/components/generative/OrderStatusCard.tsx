@@ -16,27 +16,44 @@ const RAIL_PROGRESS: Record<string, number> = {
 
 const RAIL_STAGES = ["已下单", "已打包", "已发货", "已送达"] as const;
 const STATUS_LABELS: Record<string, string> = {
-  processing: "处理中", shipped: "已发货", out_for_delivery: "派送中", delivered: "已送达",
-  delayed: "配送延迟", cancelled: "已取消", return_initiated: "已申请退货", refunded: "已退款",
+  processing: "处理中",
+  shipped: "已发货",
+  out_for_delivery: "派送中",
+  delivered: "已送达",
+  delayed: "配送延迟",
+  cancelled: "已取消",
+  return_initiated: "已申请退货",
+  refunded: "已退款",
 };
 
 function shortDay(iso: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
   if (!match) return iso;
   // Parsed by parts so the local timezone can't shift it a day.
-  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  return new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric" }).format(date);
+  const date = new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+  );
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "short",
+    day: "numeric",
+  }).format(date);
 }
 
-function DeliveryRail({ order }: { order: NonNullable<OrderStatusPayload["order"]> }) {
+function DeliveryRail({
+  order,
+}: {
+  order: NonNullable<OrderStatusPayload["order"]>;
+}) {
   const reached = RAIL_PROGRESS[order.status];
   if (reached == null) return null;
   const delayed = order.status === "delayed";
   // In the estimate string the first ISO date is the current estimate; a second one is the
   // missed original.
-  const estimateDates = [...(order.estimated_delivery ?? "").matchAll(/\d{4}-\d{2}-\d{2}/g)].map(
-    (match) => match[0],
-  );
+  const estimateDates = [
+    ...(order.estimated_delivery ?? "").matchAll(/\d{4}-\d{2}-\d{2}/g),
+  ].map((match) => match[0]);
   const estimate = estimateDates[0];
   const original = delayed ? estimateDates[1] : undefined;
   const deliveredOn = order.status === "delivered" ? estimate : undefined;
@@ -98,17 +115,25 @@ function DeliveryRail({ order }: { order: NonNullable<OrderStatusPayload["order"
             >
               <div>{stage}</div>
               {index === 0 && order.placed_at ? (
-                <div className="font-normal text-(--ink-soft)">{shortDay(order.placed_at)}</div>
+                <div className="font-normal text-(--ink-soft)">
+                  {shortDay(order.placed_at)}
+                </div>
               ) : null}
               {last && deliveredOn ? (
-                <div className="font-normal text-(--ink-soft)">{shortDay(deliveredOn)}</div>
+                <div className="font-normal text-(--ink-soft)">
+                  {shortDay(deliveredOn)}
+                </div>
               ) : null}
               {last && !deliveredOn && estimate ? (
                 <div className="font-normal">
                   {original ? (
                     <s className="text-(--ink-soft)/80">{shortDay(original)}</s>
                   ) : null}{" "}
-                  <span className={original ? "font-bold text-(--warn)" : "text-(--ink-soft)"}>
+                  <span
+                    className={
+                      original ? "font-bold text-(--warn)" : "text-(--ink-soft)"
+                    }
+                  >
                     {shortDay(estimate)}
                   </span>
                 </div>
@@ -132,21 +157,33 @@ const STATUS_STYLES: Record<string, string> = {
   refunded: "bg-(--ok-soft) text-(--ok)",
 };
 
-export default function OrderStatusCard({ payload }: { payload: OrderStatusPayload }) {
+export default function OrderStatusCard({
+  payload,
+}: {
+  payload: OrderStatusPayload;
+}) {
   const order = payload.order;
   // Adopters swap backends, so only http(s) tracking links render.
   const trackingHref =
-    order?.tracking_url && /^https?:\/\//i.test(order.tracking_url) ? order.tracking_url : null;
+    order?.tracking_url && /^https?:\/\//i.test(order.tracking_url)
+      ? order.tracking_url
+      : null;
   const status = order?.status ?? "processing";
   return (
-    <section className="rounded-2xl border border-(--line) bg-(--card) p-4 shadow-(--shadow-sm)">
+    <section className="order-status-card rounded-xl border border-(--line) bg-(--card) p-5">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">订单 {payload.order_id}</h3>
-        <span className={`rounded-full px-2.5 py-0.5 text-[15px] font-medium ${STATUS_STYLES[status] ?? STATUS_STYLES.processing}`}>
+        <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">
+          订单 {payload.order_id}
+        </h3>
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-[15px] font-medium ${STATUS_STYLES[status] ?? STATUS_STYLES.processing}`}
+        >
           {STATUS_LABELS[status] ?? "状态待确认"}
         </span>
       </div>
-      <p className="mt-2 text-[17px] leading-relaxed text-(--ink)">{payload.summary}</p>
+      <p className="mt-2 text-[17px] leading-relaxed text-(--ink)">
+        {payload.summary}
+      </p>
       {order ? <DeliveryRail order={order} /> : null}
       {order ? (
         <div className="mt-3 space-y-1 rounded-lg bg-(--well)/60 p-3 text-[16px]">
@@ -155,7 +192,9 @@ export default function OrderStatusCard({ payload }: { payload: OrderStatusPaylo
               <span className="truncate text-(--ink)">
                 {item.title} × {item.quantity}
               </span>
-              <span className="shrink-0 text-(--ink-soft)">{formatMoney(item.price * item.quantity, order.currency)}</span>
+              <span className="shrink-0 text-(--ink-soft)">
+                {formatMoney(item.price * item.quantity, order.currency)}
+              </span>
             </div>
           ))}
           <div className="flex justify-between border-t border-(--line) pt-1 font-medium text-(--ink)">
@@ -182,7 +221,9 @@ export default function OrderStatusCard({ payload }: { payload: OrderStatusPaylo
         </a>
       ) : null}
       {payload.next_step ? (
-        <p className="mt-2 text-[17px] font-medium text-(--ink)">{payload.next_step}</p>
+        <p className="mt-2 text-[17px] font-medium text-(--ink)">
+          {payload.next_step}
+        </p>
       ) : null}
     </section>
   );

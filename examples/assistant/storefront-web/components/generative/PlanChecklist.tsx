@@ -7,19 +7,38 @@ import { formatMoney } from "web-shared";
 import type { PlanPayload, Product } from "@/lib/types";
 import ProductTile, { ProductRow } from "../ProductTile";
 
-const SEGMENT_CLASSES = ["plan-seg-0", "plan-seg-1", "plan-seg-2", "plan-seg-3", "plan-seg-4"];
+const SEGMENT_CLASSES = [
+  "plan-seg-0",
+  "plan-seg-1",
+  "plan-seg-2",
+  "plan-seg-3",
+  "plan-seg-4",
+];
 
 /** Each priced step contributes its cheapest option. */
 function BudgetBar({ steps }: { steps: PlanPayload["steps"] }) {
-  const currencies = new Set(steps.flatMap((step) => step.products.map((product) => product.currency ?? "USD")));
-  if (currencies.size > 1) return <p className="mt-3 text-[16px] text-(--ink-soft)">商品币种不同，分别展示价格，不合并计算。</p>;
+  const currencies = new Set(
+    steps.flatMap((step) =>
+      step.products.map((product) => product.currency ?? "USD"),
+    ),
+  );
+  if (currencies.size > 1)
+    return (
+      <p className="mt-3 text-[16px] text-(--ink-soft)">
+        商品币种不同，分别展示价格，不合并计算。
+      </p>
+    );
   const currency = [...currencies][0];
   const priced = steps.map((step) =>
-    step.products.length ? Math.min(...step.products.map((product) => product.price)) : 0,
+    step.products.length
+      ? Math.min(...step.products.map((product) => product.price))
+      : 0,
   );
   const total = priced.reduce((sum, price) => sum + price, 0);
   // A step arrives without products when the model attached none or the server dropped them.
-  const withoutItems = steps.filter((step) => step.products.length === 0).length;
+  const withoutItems = steps.filter(
+    (step) => step.products.length === 0,
+  ).length;
   if (total <= 0 || steps.length < 2) return null;
   return (
     <div data-plan-budget className="mt-2.5">
@@ -37,14 +56,17 @@ function BudgetBar({ steps }: { steps: PlanPayload["steps"] }) {
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-(--ink-soft)">
         <span>
-          搭配参考 <span className="font-semibold text-(--ink)">{formatMoney(total, currency)}</span>
+          搭配参考{" "}
+          <span className="font-semibold text-(--ink)">
+            {formatMoney(total, currency)}
+          </span>
           （每步选一件，实际人数与数量请以购物车为准）
-          {steps.some((step) => step.products.length > 1) ? "（每步按最低价选项计算）" : ""}
+          {steps.some((step) => step.products.length > 1)
+            ? "（每步按最低价选项计算）"
+            : ""}
         </span>
         {withoutItems > 0 ? (
-          <span>
-            {withoutItems} 个步骤无需商品或尚无可用商品
-          </span>
+          <span>{withoutItems} 个步骤无需商品或尚无可用商品</span>
         ) : null}
       </div>
     </div>
@@ -62,19 +84,32 @@ export default function PlanChecklist({
 }) {
   const steps = payload.steps ?? [];
   return (
-    <section className="rounded-2xl border border-(--line) bg-(--card) p-3.5 shadow-(--shadow-sm)">
-      <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">{payload.title}</h3>
-      {payload.intro ? <p className="mt-1 text-[17px] text-(--ink-soft)">{payload.intro}</p> : null}
+    <section className="plan-checklist rounded-xl border border-(--line) bg-(--card) p-5">
+      <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">
+        {payload.title}
+      </h3>
+      {payload.intro ? (
+        <p className="mt-1 text-[17px] text-(--ink-soft)">{payload.intro}</p>
+      ) : null}
       {partial ? null : <BudgetBar steps={steps} />}
-      <ol className="mt-2.5 space-y-3">
+      <ol className="mt-5 divide-y divide-(--line)">
         {steps.map((step, index) => (
-          <li key={`${step.label}-${index}`} className="ac-reveal flex gap-3">
+          <li
+            key={`${step.label}-${index}`}
+            className="flex gap-3 py-5 first:pt-0 last:pb-0"
+          >
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--accent-soft) text-[15px] font-bold text-(--accent-ink)">
               {index + 1}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[17px] font-medium text-(--ink)">{step.label}</div>
-              {step.detail ? <div className="text-[15px] text-(--ink-soft)">{step.detail}</div> : null}
+              <div className="text-[17px] font-medium text-(--ink)">
+                {step.label}
+              </div>
+              {step.detail ? (
+                <div className="text-[15px] text-(--ink-soft)">
+                  {step.detail}
+                </div>
+              ) : null}
               {step.products.length === 1 ? (
                 <div className="mt-1.5">
                   <ProductRow product={step.products[0]} onAdd={onAdd} />
@@ -82,11 +117,18 @@ export default function PlanChecklist({
               ) : step.products.length ? (
                 <div className="panel-scroll mt-1.5 flex gap-2.5 overflow-x-auto pb-1">
                   {step.products.map((product) => (
-                    <ProductTile key={product.product_id} product={product} compact onAdd={onAdd} />
+                    <ProductTile
+                      key={product.product_id}
+                      product={product}
+                      compact
+                      onAdd={onAdd}
+                    />
                   ))}
                 </div>
               ) : partial ? null : (
-                <div className="mt-1 text-[15px] text-(--ink-soft)/80">此步骤暂未关联商品。</div>
+                <div className="mt-1 text-[15px] text-(--ink-soft)/80">
+                  此步骤暂未关联商品。
+                </div>
               )}
             </div>
           </li>

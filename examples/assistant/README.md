@@ -18,10 +18,14 @@ python scripts/run_demo.py --no-install     # API :8004，页面 :3004
 - `api/mock_retail.py` 查询虚构商品与政策；购物车通过 `demo_common.persistence.PersistentCarts` 保存。
 - `scripts/outdoor_catalog.py` 定义 8 类、96 个无品牌中文主商品及 120 个尺码变体，使用人民币独立定价；`data/catalog.json` 为固化输出。`evidence.json` 保存模拟价格和评价，`policies.json` 为前后端共享的配送、退货与选购依据。
 - `shopping-agent/skills/outdoor-equipment/SKILL.md` 指导人数、气温、背负、睡眠系统、分层穿衣、照明与装备搭配；不声称提供实时天气或路线服务。
-- `storefront-web/app/page.tsx` 是独立山野动画首页；`app/chat/page.tsx` 使用左侧对话导航、宽聊天区和右下角圆形购物车入口。`web-shared/storefront/Shell.tsx` 管理桌面折叠与移动端弹窗。
+- `storefront-web/app/page.tsx` 是滚动摄影首页，包含出行场景、行程到清单演示、精选装备与参数比较。`components/LandingExperience.tsx` 管理滚动叙事与行程入口，`SiteChrome.tsx` 提供公共导航与页脚，`app/design.css` 定义视觉与响应式布局。
+- `app/equipment/page.tsx` 与 `app/equipment/[id]/page.tsx` 提供装备目录和详情。`lib/catalog.ts` 读取公开商品固化数据；`EquipmentBrowser.tsx` 提供搜索、分类与排序，`EquipmentCard.tsx` 和 `EquipmentDetail.tsx` 展示商品。公开目录可在匿名会话建立前浏览，客户端通过现有 API 同步商品信息。
+- `app/chat/page.tsx` 使用左侧对话导航、聊天区和购物车入口。`lib/navigation.ts` 将行程或商品问题作为草稿带入聊天，用户点击发送后才请求 Agent。`web-shared/storefront/Shell.tsx` 管理桌面折叠、移动端弹窗与输入框草稿。
 - `storefront-web/components/OutdoorMark.tsx` 与 `EquipmentIllustration.tsx` 提供原创 SVG 标识和八类装备插画；不展示记忆面板或读写进度。
 - `storefront-web/components/VisitorProfile.tsx` 提供侧栏头像、昵称及个人资料、使用说明、关于体验三个菜单入口。展示资料按匿名身份保存在当前浏览器，桌面、移动端与同源标签页共享；不修改对话身份或长期偏好。
-- `storefront-web/public/products/` 保留旧商品照片供历史查看，来源见目录中的 `IMAGE-CREDITS.md`。户外商品图片暂缓生成，`data/image-prompts.json` 记录待生成要求，缺图不产生失效 URL。
+- `storefront-web/public/products/` 保留旧商品照片供历史查看，来源见目录中的 `IMAGE-CREDITS.md`。`public/products/generated/` 保存户外商品摄影，尺码变体共享主商品图片。`data/generated-image-prompts.json` 保存逐款生成提示词；`data/image-prompts.json` 保存目录要求。
+- `public/images/` 保存首页与出行场景摄影，提示词见 `data/scene-image-prompts.json`。`public/fonts/` 保存自托管中文标题字体及开放字体许可证，服务器构建无需下载字体。
+- `data/image-manifest.json` 记录 96 款商品的图片地址、480 像素小图与文件摘要；主图宽 1024 像素。全部 120 个尺码变体关联主图，图片提示词同时嵌入 WebP 元数据。
 - `data/legacy/` 保存原始目录、中文内容源与价格评价；不参与新商品搜索。旧商品详情和旧购物车标记下架，可查看与移除，不能增购或结算。已保存的历史消息和卡片保持原样。
 
 数据重新固化与校验：

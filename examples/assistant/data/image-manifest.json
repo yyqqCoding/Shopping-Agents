@@ -1,0 +1,871 @@
+{
+  "generator": "built-in image_gen",
+  "product_count": 96,
+  "size_variant_count": 120,
+  "products": [
+    {
+      "product_id": "OD-1001",
+      "image_url": "/products/generated/OD-1001.webp",
+      "thumbnail_url": "/products/generated/OD-1001-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1001",
+      "sha256": "edf39bba88c82f8be8da040af9915dc71315e8893b0055932113707ee8c4d0de",
+      "bytes": 44928,
+      "thumbnail_bytes": 11532
+    },
+    {
+      "product_id": "OD-1002",
+      "image_url": "/products/generated/OD-1002.webp",
+      "thumbnail_url": "/products/generated/OD-1002-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1002",
+      "sha256": "ebfd40008531cbc209e8321615b1d86d246596c062158057f00dd12db9e398f4",
+      "bytes": 39154,
+      "thumbnail_bytes": 11496
+    },
+    {
+      "product_id": "OD-1003",
+      "image_url": "/products/generated/OD-1003.webp",
+      "thumbnail_url": "/products/generated/OD-1003-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1003",
+      "sha256": "73d36af1972db559fd2b16e3dcc68fb133354fe3dfc9b6844aff569c8933c5b9",
+      "bytes": 40868,
+      "thumbnail_bytes": 10466
+    },
+    {
+      "product_id": "OD-1004",
+      "image_url": "/products/generated/OD-1004.webp",
+      "thumbnail_url": "/products/generated/OD-1004-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1004",
+      "sha256": "a4b436f70f51c3dcca7f1cffa937af8c671a497198effe0bc251aac7f87de143",
+      "bytes": 39800,
+      "thumbnail_bytes": 11626
+    },
+    {
+      "product_id": "OD-1005",
+      "image_url": "/products/generated/OD-1005.webp",
+      "thumbnail_url": "/products/generated/OD-1005-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1005",
+      "sha256": "9349f2d1c5edacd5231877b5ccac7ad4ea7cc1317df08c4453ac68f8f4f5c056",
+      "bytes": 41988,
+      "thumbnail_bytes": 12434
+    },
+    {
+      "product_id": "OD-1006",
+      "image_url": "/products/generated/OD-1006.webp",
+      "thumbnail_url": "/products/generated/OD-1006-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1006",
+      "sha256": "a79903a09ea10361609821a53926cd85e61c1f2e6670b1825ae889d2461c25ea",
+      "bytes": 51270,
+      "thumbnail_bytes": 13672
+    },
+    {
+      "product_id": "OD-1007",
+      "image_url": "/products/generated/OD-1007.webp",
+      "thumbnail_url": "/products/generated/OD-1007-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1007",
+      "sha256": "bb8a0f1867c989cbd877db7b664f5ad655242e2ab3e19489a0a12bc52baf84e6",
+      "bytes": 54452,
+      "thumbnail_bytes": 13096
+    },
+    {
+      "product_id": "OD-1008",
+      "image_url": "/products/generated/OD-1008.webp",
+      "thumbnail_url": "/products/generated/OD-1008-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1008",
+      "sha256": "60dcff119e07fdc0b265020e11319bdb7bd96c233c56cec6b71197587853dbfe",
+      "bytes": 62266,
+      "thumbnail_bytes": 12860
+    },
+    {
+      "product_id": "OD-1009",
+      "image_url": "/products/generated/OD-1009.webp",
+      "thumbnail_url": "/products/generated/OD-1009-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1009",
+      "sha256": "52b2dbb6e5883f77be495ed6ae474db91b9ff66c57466e5fc475276d28242a57",
+      "bytes": 24870,
+      "thumbnail_bytes": 7364
+    },
+    {
+      "product_id": "OD-1010",
+      "image_url": "/products/generated/OD-1010.webp",
+      "thumbnail_url": "/products/generated/OD-1010-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1010",
+      "sha256": "ee230c8802fe21e6b3bf1bc24ab80c7f19075d48b8f4a5fe4423b9e1ab50ce8a",
+      "bytes": 23282,
+      "thumbnail_bytes": 6698
+    },
+    {
+      "product_id": "OD-1011",
+      "image_url": "/products/generated/OD-1011.webp",
+      "thumbnail_url": "/products/generated/OD-1011-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1011",
+      "sha256": "f79327214e92dd74bf5b8dce0405a96f37aa0c7c3f2c0c8af0b8eea7727b40b8",
+      "bytes": 32236,
+      "thumbnail_bytes": 8592
+    },
+    {
+      "product_id": "OD-1012",
+      "image_url": "/products/generated/OD-1012.webp",
+      "thumbnail_url": "/products/generated/OD-1012-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-1012",
+      "sha256": "813182bac49c0bc18d4c382bae9a3375613500a7ef8ddd19f032567644b88288",
+      "bytes": 22780,
+      "thumbnail_bytes": 6578
+    },
+    {
+      "product_id": "OD-2001",
+      "image_url": "/products/generated/OD-2001.webp",
+      "thumbnail_url": "/products/generated/OD-2001-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2001",
+      "sha256": "dbc63cea99d32eebbdca06f71eda92d8234396bdc89203c1651ec0b647364d8e",
+      "bytes": 54150,
+      "thumbnail_bytes": 13142
+    },
+    {
+      "product_id": "OD-2002",
+      "image_url": "/products/generated/OD-2002.webp",
+      "thumbnail_url": "/products/generated/OD-2002-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2002",
+      "sha256": "adcb70e9c16ca682caaf71087d17f9b719e51ba22d4813c7f7e304eb35e509cc",
+      "bytes": 35382,
+      "thumbnail_bytes": 10358
+    },
+    {
+      "product_id": "OD-2003",
+      "image_url": "/products/generated/OD-2003.webp",
+      "thumbnail_url": "/products/generated/OD-2003-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2003",
+      "sha256": "3c0ed9960bbf8a6f4bc1baba6e8af5d0664faaa378433276b2ad91a7e6cb2e4c",
+      "bytes": 69876,
+      "thumbnail_bytes": 13336
+    },
+    {
+      "product_id": "OD-2004",
+      "image_url": "/products/generated/OD-2004.webp",
+      "thumbnail_url": "/products/generated/OD-2004-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2004",
+      "sha256": "efb97ccfb864afd3240d58956b3fc90fd63dbfdfc6531f7422bd1747c4b4d39b",
+      "bytes": 34146,
+      "thumbnail_bytes": 9178
+    },
+    {
+      "product_id": "OD-2005",
+      "image_url": "/products/generated/OD-2005.webp",
+      "thumbnail_url": "/products/generated/OD-2005-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2005",
+      "sha256": "1c093868352eb14018d8fe9a9bdf0aa7c05296a8c2a2bb4f72fb585e21d09996",
+      "bytes": 50572,
+      "thumbnail_bytes": 12584
+    },
+    {
+      "product_id": "OD-2006",
+      "image_url": "/products/generated/OD-2006.webp",
+      "thumbnail_url": "/products/generated/OD-2006-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2006",
+      "sha256": "92688a29f6fb395cf91eefcb3c8d2c8ce949d53bdb592b57593b1602281d79a7",
+      "bytes": 36064,
+      "thumbnail_bytes": 9336
+    },
+    {
+      "product_id": "OD-2007",
+      "image_url": "/products/generated/OD-2007.webp",
+      "thumbnail_url": "/products/generated/OD-2007-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2007",
+      "sha256": "7a66d3d4d59e37941b686283e32ca30ec325b2bd546b72d8a616e4b4bae2fa98",
+      "bytes": 139336,
+      "thumbnail_bytes": 35932
+    },
+    {
+      "product_id": "OD-2008",
+      "image_url": "/products/generated/OD-2008.webp",
+      "thumbnail_url": "/products/generated/OD-2008-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2008",
+      "sha256": "7097921bfb83718d9768eb50219446a0401105ff574b8f8a99c79d6ae046ec30",
+      "bytes": 39882,
+      "thumbnail_bytes": 8678
+    },
+    {
+      "product_id": "OD-2009",
+      "image_url": "/products/generated/OD-2009.webp",
+      "thumbnail_url": "/products/generated/OD-2009-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2009",
+      "sha256": "8fd456d0b4304d55e198d462aac195143276b1d4c542497c377e24e25624548f",
+      "bytes": 48086,
+      "thumbnail_bytes": 11088
+    },
+    {
+      "product_id": "OD-2010",
+      "image_url": "/products/generated/OD-2010.webp",
+      "thumbnail_url": "/products/generated/OD-2010-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2010",
+      "sha256": "22b7f86c3dd765d160ea713b4558c376a6456bb102814325bd0f45f4fb76c92e",
+      "bytes": 75740,
+      "thumbnail_bytes": 10146
+    },
+    {
+      "product_id": "OD-2011",
+      "image_url": "/products/generated/OD-2011.webp",
+      "thumbnail_url": "/products/generated/OD-2011-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2011",
+      "sha256": "5e16dcaf761c289458ecfe1727defc59f486ed47735701296c05672e4f398257",
+      "bytes": 52160,
+      "thumbnail_bytes": 14034
+    },
+    {
+      "product_id": "OD-2012",
+      "image_url": "/products/generated/OD-2012.webp",
+      "thumbnail_url": "/products/generated/OD-2012-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-2012",
+      "sha256": "78854b533d57d65d2bf18339fbdc670c5de0ba7ca3dc58cd074caa218f5cc24a",
+      "bytes": 35330,
+      "thumbnail_bytes": 8602
+    },
+    {
+      "product_id": "OD-3001",
+      "image_url": "/products/generated/OD-3001.webp",
+      "thumbnail_url": "/products/generated/OD-3001-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3001",
+      "sha256": "c0036b257c1809738bd2a6fc155c986480d8d47c3ba0179667391b63745a6f29",
+      "bytes": 82210,
+      "thumbnail_bytes": 11324
+    },
+    {
+      "product_id": "OD-3002",
+      "image_url": "/products/generated/OD-3002.webp",
+      "thumbnail_url": "/products/generated/OD-3002-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3002",
+      "sha256": "900110fe83d8620abc851beaade78670c083579d546dbf5908396ba6be2fb918",
+      "bytes": 100986,
+      "thumbnail_bytes": 20146
+    },
+    {
+      "product_id": "OD-3003",
+      "image_url": "/products/generated/OD-3003.webp",
+      "thumbnail_url": "/products/generated/OD-3003-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3003",
+      "sha256": "107fd9a87206069e92180c819389ac80568f776f875e610b99bbe1649fba7580",
+      "bytes": 72170,
+      "thumbnail_bytes": 16440
+    },
+    {
+      "product_id": "OD-3004",
+      "image_url": "/products/generated/OD-3004.webp",
+      "thumbnail_url": "/products/generated/OD-3004-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3004",
+      "sha256": "0161e08c42f45b235e0ea4c0898f34dc40dbced053d4e60e3aa00f9d31168e3a",
+      "bytes": 65854,
+      "thumbnail_bytes": 13426
+    },
+    {
+      "product_id": "OD-3005",
+      "image_url": "/products/generated/OD-3005.webp",
+      "thumbnail_url": "/products/generated/OD-3005-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3005",
+      "sha256": "a7f6f9dc625ee301a3174d3dc787501717521be98c2b38e43f9e48c49fa8b1a4",
+      "bytes": 57572,
+      "thumbnail_bytes": 12358
+    },
+    {
+      "product_id": "OD-3006",
+      "image_url": "/products/generated/OD-3006.webp",
+      "thumbnail_url": "/products/generated/OD-3006-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3006",
+      "sha256": "d7c3012f91eba709e805d3465ab2704cab2eb7d2542288541850597a52954b0d",
+      "bytes": 63994,
+      "thumbnail_bytes": 16474
+    },
+    {
+      "product_id": "OD-3007",
+      "image_url": "/products/generated/OD-3007.webp",
+      "thumbnail_url": "/products/generated/OD-3007-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3007",
+      "sha256": "aa7a86dfade0b78de30ff632e6271021b98392a131f0c5249053c71d94942f1d",
+      "bytes": 85860,
+      "thumbnail_bytes": 16318
+    },
+    {
+      "product_id": "OD-3008",
+      "image_url": "/products/generated/OD-3008.webp",
+      "thumbnail_url": "/products/generated/OD-3008-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3008",
+      "sha256": "00729374365b4d3adbacfc706f144b1e062bce2bc3bc0f45cd41e621d59621c5",
+      "bytes": 62980,
+      "thumbnail_bytes": 15282
+    },
+    {
+      "product_id": "OD-3009",
+      "image_url": "/products/generated/OD-3009.webp",
+      "thumbnail_url": "/products/generated/OD-3009-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3009",
+      "sha256": "5f336ca77d7004eac6a33d75e4b003690851b1087b34b79e03251fea0e8e8a82",
+      "bytes": 65822,
+      "thumbnail_bytes": 14868
+    },
+    {
+      "product_id": "OD-3010",
+      "image_url": "/products/generated/OD-3010.webp",
+      "thumbnail_url": "/products/generated/OD-3010-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3010",
+      "sha256": "74f9617739d663e6f2b18741e060279c024c22f23ca0ac35ddaf2eafe7f52658",
+      "bytes": 46696,
+      "thumbnail_bytes": 12874
+    },
+    {
+      "product_id": "OD-3011",
+      "image_url": "/products/generated/OD-3011.webp",
+      "thumbnail_url": "/products/generated/OD-3011-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3011",
+      "sha256": "79261b58f98b1f7d31e1618fb38dfb6ff902fc7a819ad303a7eab88cc46dd0e8",
+      "bytes": 60150,
+      "thumbnail_bytes": 15058
+    },
+    {
+      "product_id": "OD-3012",
+      "image_url": "/products/generated/OD-3012.webp",
+      "thumbnail_url": "/products/generated/OD-3012-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-3012",
+      "sha256": "f2ba7a80be937f8b4a73e2ade09b362e39d3116800443fe51c59752e67cb0180",
+      "bytes": 46390,
+      "thumbnail_bytes": 13354
+    },
+    {
+      "product_id": "OD-4001",
+      "image_url": "/products/generated/OD-4001.webp",
+      "thumbnail_url": "/products/generated/OD-4001-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4001",
+      "sha256": "5ee1230bd849783af0608531339407a8ac634a23d54f69929817889e39429598",
+      "bytes": 38792,
+      "thumbnail_bytes": 11418
+    },
+    {
+      "product_id": "OD-4002",
+      "image_url": "/products/generated/OD-4002.webp",
+      "thumbnail_url": "/products/generated/OD-4002-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4002",
+      "sha256": "c1fc1ae506f6a0a39c237374e64d274e3a0bb3d026525818fd9c4627d2517f03",
+      "bytes": 47030,
+      "thumbnail_bytes": 13150
+    },
+    {
+      "product_id": "OD-4003",
+      "image_url": "/products/generated/OD-4003.webp",
+      "thumbnail_url": "/products/generated/OD-4003-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4003",
+      "sha256": "a2bc54e051a5150a60f2ba449f25c5e2b447d125d34805785aa7dba1ed1f2637",
+      "bytes": 36486,
+      "thumbnail_bytes": 9862
+    },
+    {
+      "product_id": "OD-4004",
+      "image_url": "/products/generated/OD-4004.webp",
+      "thumbnail_url": "/products/generated/OD-4004-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4004",
+      "sha256": "e357835e6884e4d78fbc861a8ae3817f1fa9cda320df46254d453ee88d27080e",
+      "bytes": 100618,
+      "thumbnail_bytes": 10492
+    },
+    {
+      "product_id": "OD-4005",
+      "image_url": "/products/generated/OD-4005.webp",
+      "thumbnail_url": "/products/generated/OD-4005-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4005",
+      "sha256": "2f29ddd5da5415164f188ad26a6cb9c5ac1e32da9d57c52b112f6482be05c7a7",
+      "bytes": 145464,
+      "thumbnail_bytes": 22020
+    },
+    {
+      "product_id": "OD-4006",
+      "image_url": "/products/generated/OD-4006.webp",
+      "thumbnail_url": "/products/generated/OD-4006-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4006",
+      "sha256": "1151722c416c9644ebc72ea04953ef3a84b60f4cba89c57e3dfac8920105689a",
+      "bytes": 44606,
+      "thumbnail_bytes": 10320
+    },
+    {
+      "product_id": "OD-4007",
+      "image_url": "/products/generated/OD-4007.webp",
+      "thumbnail_url": "/products/generated/OD-4007-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4007",
+      "sha256": "490f698befdb59f2c60923c99d2ce64d73d19c73185c5fcd066e40b90034234a",
+      "bytes": 39484,
+      "thumbnail_bytes": 11176
+    },
+    {
+      "product_id": "OD-4008",
+      "image_url": "/products/generated/OD-4008.webp",
+      "thumbnail_url": "/products/generated/OD-4008-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4008",
+      "sha256": "03d47de43f119cabe496a65b40adbc7863a3c2524915bc23cc341318ea3058a9",
+      "bytes": 93938,
+      "thumbnail_bytes": 18506
+    },
+    {
+      "product_id": "OD-4009",
+      "image_url": "/products/generated/OD-4009.webp",
+      "thumbnail_url": "/products/generated/OD-4009-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4009",
+      "sha256": "c74c002c2112cd34431d05393ebcb8bae67bb3aaac381b728ba237bc9cf27d08",
+      "bytes": 26294,
+      "thumbnail_bytes": 7730
+    },
+    {
+      "product_id": "OD-4010",
+      "image_url": "/products/generated/OD-4010.webp",
+      "thumbnail_url": "/products/generated/OD-4010-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4010",
+      "sha256": "49885fd5aaa74c562ec98973eebfc6231a6f21888184263a6f5607363e2240dd",
+      "bytes": 47700,
+      "thumbnail_bytes": 9604
+    },
+    {
+      "product_id": "OD-4011",
+      "image_url": "/products/generated/OD-4011.webp",
+      "thumbnail_url": "/products/generated/OD-4011-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4011",
+      "sha256": "225f9cc63ec0b1ecb5dbd6431193c83b0fdba11716571b84675e3b78b8354549",
+      "bytes": 57268,
+      "thumbnail_bytes": 15370
+    },
+    {
+      "product_id": "OD-4012",
+      "image_url": "/products/generated/OD-4012.webp",
+      "thumbnail_url": "/products/generated/OD-4012-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-4012",
+      "sha256": "35d00228a531357e0a5257b12187f0f29ea6b874eec5e0effd177417083ad9d4",
+      "bytes": 48256,
+      "thumbnail_bytes": 13254
+    },
+    {
+      "product_id": "OD-5001",
+      "image_url": "/products/generated/OD-5001.webp",
+      "thumbnail_url": "/products/generated/OD-5001-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5001",
+      "sha256": "b095567affef48aa693868062f2857044d6f4c60ea0a8ea26359698b5b3dfdd9",
+      "bytes": 92464,
+      "thumbnail_bytes": 19060
+    },
+    {
+      "product_id": "OD-5002",
+      "image_url": "/products/generated/OD-5002.webp",
+      "thumbnail_url": "/products/generated/OD-5002-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5002",
+      "sha256": "fefba867b52895db628e6090e7a7c63cb25ce117208847672900a63e3ae19158",
+      "bytes": 100954,
+      "thumbnail_bytes": 17110
+    },
+    {
+      "product_id": "OD-5003",
+      "image_url": "/products/generated/OD-5003.webp",
+      "thumbnail_url": "/products/generated/OD-5003-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5003",
+      "sha256": "75ed7270170842dd3a530d1627de99bc9a542a4c2e754c1a0ad482128a55def3",
+      "bytes": 75828,
+      "thumbnail_bytes": 15090
+    },
+    {
+      "product_id": "OD-5004",
+      "image_url": "/products/generated/OD-5004.webp",
+      "thumbnail_url": "/products/generated/OD-5004-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5004",
+      "sha256": "22d802728c044b5d977640ba14396ff44cd8c9e52ee69cfc8ea87e191f80d5a2",
+      "bytes": 100248,
+      "thumbnail_bytes": 20438
+    },
+    {
+      "product_id": "OD-5005",
+      "image_url": "/products/generated/OD-5005.webp",
+      "thumbnail_url": "/products/generated/OD-5005-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5005",
+      "sha256": "c85be7c879d280aabdf1b50d1d4f38b913f9b5fee83bf5dead204210c0b3c02c",
+      "bytes": 88616,
+      "thumbnail_bytes": 18388
+    },
+    {
+      "product_id": "OD-5006",
+      "image_url": "/products/generated/OD-5006.webp",
+      "thumbnail_url": "/products/generated/OD-5006-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5006",
+      "sha256": "69597c6ffc47f7c04e94c36f55afcfc7282e02f8da6bbe6fd0bbdc34b4974c5a",
+      "bytes": 79344,
+      "thumbnail_bytes": 15826
+    },
+    {
+      "product_id": "OD-5007",
+      "image_url": "/products/generated/OD-5007.webp",
+      "thumbnail_url": "/products/generated/OD-5007-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5007",
+      "sha256": "26f3c96ef939ad1b2cf1bad4e77511b3b9529c52b7e2a93253da0706f76c5309",
+      "bytes": 69158,
+      "thumbnail_bytes": 15002
+    },
+    {
+      "product_id": "OD-5008",
+      "image_url": "/products/generated/OD-5008.webp",
+      "thumbnail_url": "/products/generated/OD-5008-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5008",
+      "sha256": "f824227e37da64d0dc4a5efb7688c7e028bdf4a2ce912629572ecd5545425899",
+      "bytes": 84210,
+      "thumbnail_bytes": 16612
+    },
+    {
+      "product_id": "OD-5009",
+      "image_url": "/products/generated/OD-5009.webp",
+      "thumbnail_url": "/products/generated/OD-5009-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5009",
+      "sha256": "057bfdb6b7183240f795a51bc6b529418b1fed2cec5528a130097aadda9e1c2a",
+      "bytes": 44562,
+      "thumbnail_bytes": 10230
+    },
+    {
+      "product_id": "OD-5010",
+      "image_url": "/products/generated/OD-5010.webp",
+      "thumbnail_url": "/products/generated/OD-5010-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5010",
+      "sha256": "f6c4454e484a6e5fdf85b0ef277a658d51234821e4f9462e00c5fdbbcabde1ec",
+      "bytes": 89068,
+      "thumbnail_bytes": 13748
+    },
+    {
+      "product_id": "OD-5011",
+      "image_url": "/products/generated/OD-5011.webp",
+      "thumbnail_url": "/products/generated/OD-5011-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5011",
+      "sha256": "7a2cf089e035c6c0c70a83079f290cad021dd4f4994e7a8fa8d7a2a458d800d1",
+      "bytes": 120356,
+      "thumbnail_bytes": 22350
+    },
+    {
+      "product_id": "OD-5012",
+      "image_url": "/products/generated/OD-5012.webp",
+      "thumbnail_url": "/products/generated/OD-5012-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-5012",
+      "sha256": "0bdcef162f07cfc5ffe8b686d42551cee80e7504834cfc72acebefb613ce8d4c",
+      "bytes": 83862,
+      "thumbnail_bytes": 14344
+    },
+    {
+      "product_id": "OD-6001",
+      "image_url": "/products/generated/OD-6001.webp",
+      "thumbnail_url": "/products/generated/OD-6001-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6001",
+      "sha256": "1454d12b02aff14b2747f0fcfd431227f39b1223498e4062da13e3bbff15cd01",
+      "bytes": 92432,
+      "thumbnail_bytes": 20066
+    },
+    {
+      "product_id": "OD-6002",
+      "image_url": "/products/generated/OD-6002.webp",
+      "thumbnail_url": "/products/generated/OD-6002-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6002",
+      "sha256": "05fe480791896f1905d49ddb9eb9b91d7f5a8af48debfa5dbafdf185e37dbe71",
+      "bytes": 97102,
+      "thumbnail_bytes": 20792
+    },
+    {
+      "product_id": "OD-6003",
+      "image_url": "/products/generated/OD-6003.webp",
+      "thumbnail_url": "/products/generated/OD-6003-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6003",
+      "sha256": "744e790683aeb203ce8640570ec436d15f6ad05178a9c3b932298045cbf9bf9b",
+      "bytes": 118214,
+      "thumbnail_bytes": 21194
+    },
+    {
+      "product_id": "OD-6004",
+      "image_url": "/products/generated/OD-6004.webp",
+      "thumbnail_url": "/products/generated/OD-6004-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6004",
+      "sha256": "29d7271327cbfc07ca4791373d5f4a2618e211c0791670fe4ec9aa4362203739",
+      "bytes": 95224,
+      "thumbnail_bytes": 18602
+    },
+    {
+      "product_id": "OD-6005",
+      "image_url": "/products/generated/OD-6005.webp",
+      "thumbnail_url": "/products/generated/OD-6005-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6005",
+      "sha256": "ea7f218c0cbf8525c8813a28c5ad961c0e9ef54dfdea51cd7ed3c69094f4d82e",
+      "bytes": 24336,
+      "thumbnail_bytes": 6258
+    },
+    {
+      "product_id": "OD-6006",
+      "image_url": "/products/generated/OD-6006.webp",
+      "thumbnail_url": "/products/generated/OD-6006-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6006",
+      "sha256": "d8a420d0b410065eb4c7e699f56f51a5e230706c98ba573b6ff9c6f9bc21732b",
+      "bytes": 35176,
+      "thumbnail_bytes": 8702
+    },
+    {
+      "product_id": "OD-6007",
+      "image_url": "/products/generated/OD-6007.webp",
+      "thumbnail_url": "/products/generated/OD-6007-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6007",
+      "sha256": "ec36a13f1292bcdcdb671c401df05c1677391ab4b8f6b65a3eeabfde61121b23",
+      "bytes": 34106,
+      "thumbnail_bytes": 8300
+    },
+    {
+      "product_id": "OD-6008",
+      "image_url": "/products/generated/OD-6008.webp",
+      "thumbnail_url": "/products/generated/OD-6008-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6008",
+      "sha256": "b803112cfb300551a06b53bce513c65cc8cbd06138999b240388e66c49ddf758",
+      "bytes": 27728,
+      "thumbnail_bytes": 8268
+    },
+    {
+      "product_id": "OD-6009",
+      "image_url": "/products/generated/OD-6009.webp",
+      "thumbnail_url": "/products/generated/OD-6009-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6009",
+      "sha256": "1334f0b7a9b3cb63be0d2509288f24427cac63bbd45a6b62bd51f134fa179aed",
+      "bytes": 51110,
+      "thumbnail_bytes": 11760
+    },
+    {
+      "product_id": "OD-6010",
+      "image_url": "/products/generated/OD-6010.webp",
+      "thumbnail_url": "/products/generated/OD-6010-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6010",
+      "sha256": "5806c41b51dcb4f239f24775a14c62d855af974092c7b4fa86eb7faba8396102",
+      "bytes": 51682,
+      "thumbnail_bytes": 10172
+    },
+    {
+      "product_id": "OD-6011",
+      "image_url": "/products/generated/OD-6011.webp",
+      "thumbnail_url": "/products/generated/OD-6011-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6011",
+      "sha256": "a1222a72d571af0bb11d4211a93e7bb24798241dba0c3445b24272aedabd3987",
+      "bytes": 108460,
+      "thumbnail_bytes": 14834
+    },
+    {
+      "product_id": "OD-6012",
+      "image_url": "/products/generated/OD-6012.webp",
+      "thumbnail_url": "/products/generated/OD-6012-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-6012",
+      "sha256": "aa359c62e718a151584e79834a395f969934346ec5fdf7ca1a4ef94c95312f04",
+      "bytes": 66762,
+      "thumbnail_bytes": 12548
+    },
+    {
+      "product_id": "OD-7001",
+      "image_url": "/products/generated/OD-7001.webp",
+      "thumbnail_url": "/products/generated/OD-7001-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7001",
+      "sha256": "b8791a4e20ae4d3ccff6ce28986ee48187b6ed3affd9ac009355c945da64cf00",
+      "bytes": 76518,
+      "thumbnail_bytes": 14458
+    },
+    {
+      "product_id": "OD-7002",
+      "image_url": "/products/generated/OD-7002.webp",
+      "thumbnail_url": "/products/generated/OD-7002-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7002",
+      "sha256": "169d4339bb0a56b47606fa63664f06000080ed7048b9bdbaf31a5bb2bb1eee36",
+      "bytes": 77544,
+      "thumbnail_bytes": 15348
+    },
+    {
+      "product_id": "OD-7003",
+      "image_url": "/products/generated/OD-7003.webp",
+      "thumbnail_url": "/products/generated/OD-7003-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7003",
+      "sha256": "d87c334d835000af298d6788e4f8573472b81c585a87eda921d236989f44c92a",
+      "bytes": 57102,
+      "thumbnail_bytes": 13294
+    },
+    {
+      "product_id": "OD-7004",
+      "image_url": "/products/generated/OD-7004.webp",
+      "thumbnail_url": "/products/generated/OD-7004-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7004",
+      "sha256": "0fb37875f84473813acaf68f1919d58560bbf61bbfb95735261cba7703a5e165",
+      "bytes": 63050,
+      "thumbnail_bytes": 12972
+    },
+    {
+      "product_id": "OD-7005",
+      "image_url": "/products/generated/OD-7005.webp",
+      "thumbnail_url": "/products/generated/OD-7005-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7005",
+      "sha256": "e6e0a5bf270586993173d9c3533fdb97701cc13a9a6a05e598b1970ef3f97a14",
+      "bytes": 77438,
+      "thumbnail_bytes": 16662
+    },
+    {
+      "product_id": "OD-7006",
+      "image_url": "/products/generated/OD-7006.webp",
+      "thumbnail_url": "/products/generated/OD-7006-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7006",
+      "sha256": "4dc792def9757f4fc3917bc27bc2757db0fde3cd6cc7b0747879d7c949da7f70",
+      "bytes": 52454,
+      "thumbnail_bytes": 11770
+    },
+    {
+      "product_id": "OD-7007",
+      "image_url": "/products/generated/OD-7007.webp",
+      "thumbnail_url": "/products/generated/OD-7007-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7007",
+      "sha256": "1cba54d8951dfae6c9f5030a39ba3dfe9b8f7199d4c439c22c9802b0eae38409",
+      "bytes": 62718,
+      "thumbnail_bytes": 14804
+    },
+    {
+      "product_id": "OD-7008",
+      "image_url": "/products/generated/OD-7008.webp",
+      "thumbnail_url": "/products/generated/OD-7008-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7008",
+      "sha256": "512b4ffa8cd58bb464cc84d0651d9f7e8eb82a843b9140a966fd80fbde63b147",
+      "bytes": 45714,
+      "thumbnail_bytes": 9398
+    },
+    {
+      "product_id": "OD-7009",
+      "image_url": "/products/generated/OD-7009.webp",
+      "thumbnail_url": "/products/generated/OD-7009-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7009",
+      "sha256": "5701c13cfaf0b27a1c68824491f83b145867263f157b0462c5b7e323a6eab779",
+      "bytes": 36310,
+      "thumbnail_bytes": 7604
+    },
+    {
+      "product_id": "OD-7010",
+      "image_url": "/products/generated/OD-7010.webp",
+      "thumbnail_url": "/products/generated/OD-7010-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7010",
+      "sha256": "c3e084ce44d04ef6e34460ad418aa33b47512a8ecb96709eebf6b785f527331e",
+      "bytes": 35620,
+      "thumbnail_bytes": 10520
+    },
+    {
+      "product_id": "OD-7011",
+      "image_url": "/products/generated/OD-7011.webp",
+      "thumbnail_url": "/products/generated/OD-7011-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7011",
+      "sha256": "0c0b890e4c95cc3232dc60307a586852e6f82574ec2116877095754bfd64f84d",
+      "bytes": 34718,
+      "thumbnail_bytes": 9036
+    },
+    {
+      "product_id": "OD-7012",
+      "image_url": "/products/generated/OD-7012.webp",
+      "thumbnail_url": "/products/generated/OD-7012-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-7012",
+      "sha256": "1c27bf2df1f03dd15dcc21fecdc9483d9518e44fa1610041fc1e3b32f8ca5bc1",
+      "bytes": 74286,
+      "thumbnail_bytes": 13048
+    },
+    {
+      "product_id": "OD-8001",
+      "image_url": "/products/generated/OD-8001.webp",
+      "thumbnail_url": "/products/generated/OD-8001-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8001",
+      "sha256": "295399b1f825cf157d0dd3f53ca7dbb015809830c99e5e8008a19608b5115697",
+      "bytes": 67042,
+      "thumbnail_bytes": 11390
+    },
+    {
+      "product_id": "OD-8002",
+      "image_url": "/products/generated/OD-8002.webp",
+      "thumbnail_url": "/products/generated/OD-8002-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8002",
+      "sha256": "f4f4210b7955c434f2c23478de4c1dfb11d7305c2e93d1ff2f7e483890ce7bcb",
+      "bytes": 42174,
+      "thumbnail_bytes": 9752
+    },
+    {
+      "product_id": "OD-8003",
+      "image_url": "/products/generated/OD-8003.webp",
+      "thumbnail_url": "/products/generated/OD-8003-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8003",
+      "sha256": "c9af7f95708400b14efcd5be5d00b67ff468f5f96cd301438fe807b1e3689dda",
+      "bytes": 92490,
+      "thumbnail_bytes": 14268
+    },
+    {
+      "product_id": "OD-8004",
+      "image_url": "/products/generated/OD-8004.webp",
+      "thumbnail_url": "/products/generated/OD-8004-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8004",
+      "sha256": "2cf569e84af11cecdf368485b463a0e7cdb860ca0911ad7097a3fdfd68ffbb68",
+      "bytes": 54522,
+      "thumbnail_bytes": 12724
+    },
+    {
+      "product_id": "OD-8005",
+      "image_url": "/products/generated/OD-8005.webp",
+      "thumbnail_url": "/products/generated/OD-8005-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8005",
+      "sha256": "4b058c993407be590422cbaaf1d35887440138b90d4faaa99fa3e37de3289068",
+      "bytes": 42444,
+      "thumbnail_bytes": 12512
+    },
+    {
+      "product_id": "OD-8006",
+      "image_url": "/products/generated/OD-8006.webp",
+      "thumbnail_url": "/products/generated/OD-8006-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8006",
+      "sha256": "72ddc460c9893bb80112b17f6da2de7e33e5694e5d37ab2e576aa619dd956f87",
+      "bytes": 26310,
+      "thumbnail_bytes": 6494
+    },
+    {
+      "product_id": "OD-8007",
+      "image_url": "/products/generated/OD-8007.webp",
+      "thumbnail_url": "/products/generated/OD-8007-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8007",
+      "sha256": "6624519a6174a28999de055804d62749774cd4dea07b1ad5ad3a40adeb4fd548",
+      "bytes": 63116,
+      "thumbnail_bytes": 11602
+    },
+    {
+      "product_id": "OD-8008",
+      "image_url": "/products/generated/OD-8008.webp",
+      "thumbnail_url": "/products/generated/OD-8008-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8008",
+      "sha256": "345f6ff7bd3fe186835162ed66f915d740af7cfd26e1dd19030cc94fd78bd68c",
+      "bytes": 84106,
+      "thumbnail_bytes": 15816
+    },
+    {
+      "product_id": "OD-8009",
+      "image_url": "/products/generated/OD-8009.webp",
+      "thumbnail_url": "/products/generated/OD-8009-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8009",
+      "sha256": "0819a9e1d75bb0103e6f2279cf937733ab6d4ca756f78d0588875ef18d08fbbf",
+      "bytes": 58364,
+      "thumbnail_bytes": 12634
+    },
+    {
+      "product_id": "OD-8010",
+      "image_url": "/products/generated/OD-8010.webp",
+      "thumbnail_url": "/products/generated/OD-8010-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8010",
+      "sha256": "d21d5a8dc1c14510a465f68e21ab4aeac775013b45e695ab259ab8f63e9b403b",
+      "bytes": 124222,
+      "thumbnail_bytes": 26938
+    },
+    {
+      "product_id": "OD-8011",
+      "image_url": "/products/generated/OD-8011.webp",
+      "thumbnail_url": "/products/generated/OD-8011-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8011",
+      "sha256": "dd8c1a4fead0f0336a0488b308a48f1cb7061fac68c814467f2d9a90ce727bf7",
+      "bytes": 121354,
+      "thumbnail_bytes": 21416
+    },
+    {
+      "product_id": "OD-8012",
+      "image_url": "/products/generated/OD-8012.webp",
+      "thumbnail_url": "/products/generated/OD-8012-480.webp",
+      "prompt_record": "generated-image-prompts.json#OD-8012",
+      "sha256": "6068b6cab229e14554908954e48ae93b5de967db1b0fd44c7ad9bff1ee818507",
+      "bytes": 97334,
+      "thumbnail_bytes": 9426
+    }
+  ]
+}

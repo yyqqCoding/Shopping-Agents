@@ -5,6 +5,7 @@
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Composer } from "../Composer";
+import type { Prefill } from "../Composer";
 import { Icon, type IconName } from "../icons";
 import type { AgentTurn } from "../turn";
 import { FrameContext } from "./frame";
@@ -24,7 +25,7 @@ export function StorePage({ children }: { children: ReactNode }) {
 export function StoreShell<V extends string>({
   brand, views, view, onViewChange, chat, assistantName, bag, panel, panelOpen,
   onPanelOpenChange, placeholder, banner, headerActions, sidebar, sidebarFooter,
-  conversationTitle, children,
+  conversationTitle, composerPrefill, children,
 }: {
   brand: ReactNode;
   views: StoreView<V>[];
@@ -42,6 +43,7 @@ export function StoreShell<V extends string>({
   sidebar: (onNavigate: () => void) => ReactNode;
   sidebarFooter?: ReactNode;
   conversationTitle: string;
+  composerPrefill?: Prefill | null;
   children: ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -126,7 +128,7 @@ export function StoreShell<V extends string>({
           {banner}
           <main className="min-h-0 flex-1">{children}</main>
           <div ref={dock} className="composer-dock">
-            <Composer send={ask} ready={chat.ready} busy={chat.busy} label={`向${assistantName}提问`} placeholder={placeholder} className="conversation-column" />
+            <Composer send={ask} ready={chat.ready} busy={chat.busy} prefill={composerPrefill} label={`向${assistantName}提问`} placeholder={placeholder} className="conversation-column" />
             <p className="composer-note">装备参数与商品为虚构体验数据，结算不下单或扣款。</p>
           </div>
           <button type="button" data-cart-target className="floating-cart" aria-label={`打开${bag.label}，共 ${bag.count} ${bag.noun}`} aria-haspopup="dialog" aria-expanded={panelOpen} onClick={openCart}>

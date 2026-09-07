@@ -100,7 +100,7 @@ export default function CartPanel({ cart, checkoutStaged = false }: { cart: Cart
           const product = asProduct(item, catalog, currency);
           return (
             <li key={item.product_id} className="ac-reveal flex gap-3 py-3 first:pt-0">
-              <ProductImage product={product} className="h-16 w-16 shrink-0 rounded-[10px] !text-3xl" />
+              <ProductImage product={product} className="h-20 w-20 shrink-0 rounded-[10px]" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

@@ -33,6 +33,7 @@ export default function Chat({ chat, home, onCartUpdate }: { chat: AgentTurn; ho
   return (
     <ChatShell
       chat={chat}
+      wide={new Set(["products", "comparison", "plan"])}
       home={home}
       renderPending={(item) => <Pending item={item} />}
       renderBlock={(segment) => (

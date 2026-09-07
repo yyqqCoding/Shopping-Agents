@@ -14,6 +14,10 @@ const STROKE = {
 } as const;
 
 const PATHS = {
+  sidebar: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16M5.5 8h1M5.5 12h1" /></>,
+  plus: <path d="M12 5v14M5 12h14" />,
+  cart: <><path d="M3 4h2l2.5 12h11l2-8H6" /><circle cx="9" cy="20" r="1" /><circle cx="18" cy="20" r="1" /></>,
+  mountain: <><path d="m3 20 8-15 6 10 2-4 4 9z" /><path d="m8 11 3 2 2-2" /></>,
   home: <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z" />,
   tag: (
     <>

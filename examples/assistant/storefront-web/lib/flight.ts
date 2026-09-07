@@ -3,15 +3,12 @@
 
 /** Presentation only; runs after the cart write has completed. */
 
-import { productGlyph, productTileClass } from "./format";
-import type { Product } from "./types";
-
 const CART_TARGET_ATTRIBUTE = "data-cart-target";
 
-export function flyToCart(product: Product, source: HTMLElement): void {
+export function flyToCart(source: HTMLElement): void {
   if (typeof document === "undefined") return;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  // The count that is on screen: the docked panel's, or the app bar's while the panel is a closed drawer.
+  // The floating button is visible while the cart drawer is closed.
   const target = [...document.querySelectorAll<HTMLElement>(`[${CART_TARGET_ATTRIBUTE}]`)].find((node) => {
     const rect = node.getBoundingClientRect();
     return rect.width > 0 && rect.left >= 0 && rect.right <= window.innerWidth;
@@ -21,9 +18,11 @@ export function flyToCart(product: Product, source: HTMLElement): void {
   const to = target.getBoundingClientRect();
 
   const ghost = document.createElement("div");
-  ghost.textContent = productGlyph(product);
+  const artwork = source.querySelector("img, svg");
+  if (artwork) ghost.appendChild(artwork.cloneNode(true));
+  else ghost.textContent = "+";
   ghost.setAttribute("aria-hidden", "true");
-  ghost.className = `pointer-events-none fixed z-50 flex h-10 w-10 items-center justify-center rounded-lg text-xl shadow-md ${productTileClass(product.product_id)}`;
+  ghost.className = "pointer-events-none fixed z-50 flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-(--accent-soft) text-xl text-(--accent) shadow-md [&>img]:h-full [&>img]:w-full [&>svg]:h-8 [&>svg]:w-8";
   ghost.style.left = `${from.left + from.width / 2 - 20}px`;
   ghost.style.top = `${from.top + from.height / 2 - 20}px`;
   document.body.appendChild(ghost);

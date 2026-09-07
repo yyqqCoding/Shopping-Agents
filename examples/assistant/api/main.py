@@ -58,16 +58,30 @@ def build_config() -> ShoppingAgentConfig:
     defaults = ShoppingAgentConfig()
     effort = os.environ.get("SHOPPING_THINKING_EFFORT", "").strip().lower()
     return ShoppingAgentConfig(
-        brand_name="ACME",
-        assistant_name="ACME 购物助手",
+        brand_name="户外装备站",
+        assistant_name="户外装备助手",
         brand_voice=(
             "使用简体中文，专业、自然、简洁。所有回复、卡片标题、推荐理由、追问和工具进度均使用中文。"
-            "保留商品 ID、ACME 品牌名和币种；价格以美元展示，不做汇率换算。"
-            "这是虚构商品的购物体验，结算不创建真实订单。"
+            "专注徒步、露营和轻量出行的装备选择、比较与成套规划；商品没有品牌前缀，"
+            "不要沿用旧目录的商店名称。新商品以人民币报价，保留工具返回的币种，"
+            "旧历史中的美元金额不得直接改成人民币。"
+            "这是虚构户外商品的购物体验，结算不创建真实订单。"
+            "把重量、容量、温度和适用场景作为取舍依据；已有装备不重复推荐。"
+            "天气、路线与现场条件由用户提供，不声称查询了实时天气或地图。"
+            "只在与户外需求相关时使用长期偏好，本次行程与预算留在当前对话。"
             "静默应用偏好，不展示记忆状态，不说已记住或正在读取记忆。"
         ),
-        domain_search_notes="支持中文关键词，category 使用商品记录中的稳定分类 ID。硬性条件不满足时说明差异。",
-        product_id_patterns=(r"(?<![A-Z0-9_-])AR-\d{4}(?:-[A-Z0-9]+)*(?![A-Z0-9_-])",),
+        domain_search_notes=(
+            "使用中文装备关键词；分类为 outdoor-shelter、outdoor-sleep、outdoor-packs、"
+            "outdoor-apparel、outdoor-footwear、outdoor-lighting、outdoor-cooking、outdoor-accessories。"
+            "数值条件用 attributes.max_weight_g、min_capacity_l、min_people、"
+            "max_comfort_temperature_c、min_r_value、min_waterproof_mm，值为对应单位的数值字符串。"
+            "按睡袋舒适温度而非极限温度选型。模糊请求可先展示少量有区别的户外候选；"
+            "明确行程时直接给出方案，只追问会改变选型的关键信息。硬性条件不满足时说明差异。"
+            "AR 开头的旧商品已下架，仅可查看或移除。"
+        ),
+        product_id_patterns=(r"(?<![A-Z0-9_-])(?:OD|AR)-\d{4}(?:-[A-Z0-9]+)*(?![A-Z0-9_-])",),
+        enable_orders=False,
         model=os.environ.get("SHOPPING_MODEL") or defaults.model,
         memory_model=os.environ.get("SHOPPING_MEMORY_MODEL") or defaults.memory_model,
         context_window_tokens=int(os.environ.get("SHOPPING_CONTEXT_WINDOW_TOKENS", "131072")),
@@ -93,7 +107,7 @@ def build_config() -> ShoppingAgentConfig:
 
 
 database = Supabase(SupabaseSettings.from_env())
-backend = MockRetail(cart_store=PersistentCarts(database))
+backend = MockRetail(cart_store=PersistentCarts(database, require_currency_schema=True))
 agent = ShoppingAgent(
     backend=backend,
     skills_dir=REPO_ROOT / "shopping-agent" / "skills",

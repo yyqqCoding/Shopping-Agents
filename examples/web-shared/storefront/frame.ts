@@ -21,7 +21,7 @@ export interface StoreFrame {
 
 export const FrameContext = createContext<StoreFrame>({
   chat: null,
-  assistantName: "ACME 购物助手",
+  assistantName: "户外装备助手",
   ask: () => {},
   closePanel: () => {},
 });

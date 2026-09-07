@@ -78,6 +78,8 @@ class CartItem(BaseModel):
     image_url: str | None = None
     option_values: dict[str, str] = Field(default_factory=dict)
     variant_of: str | None = None
+    category: str | None = None
+    unavailable_reason: str | None = None
 
     @property
     def line_total(self) -> float:

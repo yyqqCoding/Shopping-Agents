@@ -2,7 +2,7 @@
 
 ## 中文体验站
 
-体验站使用一个 HTTPS 域名承载页面和 `/api`。浏览器自动创建或恢复 Supabase 匿名身份；API 验证访问凭证后，按用户归属读写对话。没有登录页面，也不要求跨设备恢复。
+户外体验站使用一个 HTTPS 域名承载页面和 `/api`。`/` 是山野动画首页，点击进入 `/chat`；聊天页使用左侧历史导航和右下角购物车抽屉。浏览器自动创建或恢复 Supabase 匿名身份；API 验证访问凭证后，按用户归属读写对话。没有登录页面，也不要求跨设备恢复。
 
 本次部署从公开仓库 `https://github.com/yyqqCoding/Shopping-Agents.git` 的 `main` 分支获取代码，入口为 `https://jobb.lol`。服务器为 Ubuntu 22.04 x86_64，已有 Docker Compose；现有的 8090 服务使用独立端口，继续运行。
 
@@ -11,7 +11,7 @@
 本地与服务器沿用同一个已验证的 Supabase 项目和模型配置。已有数据库迁移不重复执行；以下步骤用于首次接入项目。
 
 1. 建立 Supabase 项目，在 Authentication 的 Sign In / Providers 中启用 Anonymous Sign-ins。将 Site URL 设置为体验站的 HTTPS 域名；本地开发可使用 `http://localhost:3004`。
-2. 在该项目执行 [数据库迁移](../supabase/migrations/001_agent_experience.sql)。它创建新表与 RPC，不清空现有记录、不导入 `demo-user` 偏好。只执行一次，后续结构变化使用新的迁移。
+2. 新项目依次执行 [001 存储迁移](../supabase/migrations/001_agent_experience.sql) 和 [002 购物车币种迁移](../supabase/migrations/002_outdoor_cart_currency.sql)，各执行一次。已有 `001` 的项目只执行 `002`，顺序见下文“户外版本升级”。迁移不清空对话或记忆，不导入 `demo-user` 偏好。
 3. 在根目录 `.env` 填写 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（或旧版 `SUPABASE_ANON_KEY`）和同项目的旧版 `SUPABASE_SERVICE_ROLE_KEY` JWT。服务端密钥只给 API，不能放入 `NEXT_PUBLIC_*` 或 Web 镜像。
 4. 在 Authentication 的 Rate Limits 配置匿名注册频率。公开项目还应按容量设置网关流量限制。模型频率、并发与每日回合额度由 API 和数据库控制。
 
@@ -87,7 +87,7 @@ docker compose --env-file .env -f deploy/compose.yaml build api
 docker compose --env-file .env -f deploy/compose.yaml build --build-arg BUILD_NODE_OPTIONS=--max-old-space-size=768 web
 ```
 
-两个镜像都构建成功后执行以下命令。更新时先停止旧 API，再启动新版本，保持单实例边界；切换期间聊天短暂不可用。
+两个镜像都构建成功，且已完成该版本迁移后，执行以下命令。更新时先停止旧 API，再启动新版本，保持单实例边界；切换期间聊天短暂不可用。首次从旧商品版本升级时，使用下文“户外版本升级”的迁移步骤。
 
 ```bash
 docker compose --env-file .env -f deploy/compose.yaml stop api
@@ -110,9 +110,37 @@ git status --short
 git pull --ff-only origin main
 ```
 
-服务器的代码改动应先处理清楚，再拉取更新；环境值保存在被 Git 忽略的 `.env` 中。拉取成功后，执行上面的配置校验、顺序构建和启动命令。构建完成前旧容器继续服务；构建失败时先修复构建，不执行后续停止和启动步骤。
+服务器的代码改动应先处理清楚，再拉取更新；环境值保存在被 Git 忽略的 `.env` 中。拉取成功后，执行上面的配置校验、顺序构建和启动命令。有新增数据库迁移时按对应版本步骤执行。构建完成前旧容器继续服务；构建失败时先修复构建，不执行后续停止和启动步骤。
 
-仅代码更新不会重新执行数据库迁移、删除对话或清空记忆。将来若新增迁移文件，再按该版本说明单独执行，不重复执行 `001_agent_experience.sql`。证书卷也保留，不使用 `down -v` 或数据库重置作为更新步骤。
+仅代码更新不会自动执行数据库迁移、删除对话或清空记忆。不重复执行已经完成的迁移。证书卷也保留，不使用 `down -v` 或数据库重置作为更新步骤。
+
+### 户外版本升级
+
+本版本自带 96 个户外主商品和 120 个尺码变体。商品、库存、模拟评价和政策从 Git 中的 JSON 加载，不需要在 Supabase 建商品表或再次生成数据。沿用现有模型、Supabase、域名及匿名访问配置。
+
+从旧商品版本升级，在服务器拉取代码后先构建镜像：
+
+```bash
+cd /opt/shopping-agents
+docker compose --env-file .env -f deploy/compose.yaml config --quiet
+docker compose --env-file .env -f deploy/compose.yaml build api
+docker compose --env-file .env -f deploy/compose.yaml build --build-arg BUILD_NODE_OPTIONS=--max-old-space-size=768 web
+docker compose --env-file .env -f deploy/compose.yaml stop api
+```
+
+停止 API 后，在同一个 Supabase 项目的 SQL Editor 中打开并完整执行 [002_outdoor_cart_currency.sql](../supabase/migrations/002_outdoor_cart_currency.sql)，只执行一次。不要重新执行 `001`。SQL 成功后再回到服务器启动新版本：
+
+```bash
+docker compose --env-file .env -f deploy/compose.yaml up -d --no-build --wait --wait-timeout 120
+docker compose --env-file .env -f deploy/compose.yaml ps
+docker compose --env-file .env -f deploy/compose.yaml logs --tail=80 api proxy
+```
+
+`002` 给已有购物车保留 USD 币种和原金额，新建购物车默认 CNY。非空购物车拒绝混合币种；移除全部旧商品后可添加人民币装备。旧商品不参与搜索，当前详情标记下架，购物车仍可查看与移除。完整历史、匿名用户、长期记忆和浏览器身份键保留；首次进入户外聊天会新建空对话，旧对话仍在左侧列表中。
+
+没有执行 `002` 时，API 拒绝使用新版购物车，避免把人民币金额写进旧版美元结构。此时应检查迁移和 API 指向的 Supabase 项目，不通过清除浏览器数据或重建数据库处理。后续只更新代码时不再执行 `002`。
+
+更新后访问 `https://jobb.lol/` 检查首页，进入 `/chat` 检查新商品价格为人民币，确认左侧旧历史仍可打开。已有美元购物车应仍显示原美元金额和下架提示。
 
 ### 保存与恢复
 
@@ -127,12 +155,14 @@ git pull --ff-only origin main
 仓库离线验证范围见 [设计测试契约](agent-experience-design.md#测试契约)，当前结果和验证边界见 [实现与验证](agent-experience-verification.md)。上线还需在真实环境完成以下检查：
 
 - 普通窗口刷新后恢复身份、对话和最终卡片；多个标签页共享身份但可选择不同对话。
+- 首页点击进入聊天；桌面侧栏可折叠，手机历史与购物车弹窗可关闭，购物车按钮不遮住输入框。
+- 新商品与结算摘要使用 CNY；旧购物车金额及历史内容保持原样，下架商品可移除。
 - 无痕窗口拥有独立数据，已知另一用户的对话 ID 也不能读取或修改。
 - 表达稳定偏好后，在开发侧确认记忆任务完成，再新建对话验证推荐；不把当前预算或收礼对象当作长期偏好。
 - 聊天与记忆模型均成功调用，SSE 持续输出；切断网络再恢复不重复写购物车。
 - 重启 API 后历史与购物车可恢复，进行中的回合明确显示中断。
 
-`/api/health` 只报告进程和配置状态，不能代替上述模型、数据库和域名验收。图片生成暂缓，部署保留现有照片与缺图的分类图形。
+`/api/health` 只报告进程和配置状态，不能代替上述模型、数据库和域名验收。户外商品照片生成暂缓，当前使用原创分类插画；旧照片供历史查看。
 
 ## Model platforms
 

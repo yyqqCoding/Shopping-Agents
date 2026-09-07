@@ -14,7 +14,7 @@ export class AgentApi {
   private bootstrap: Promise<string> | null = null;
   private userId: string | null = null;
 
-  constructor(readonly root: string, prefix: string) {
+  constructor(readonly root: string, prefix: string, private readonly conversationScope = "") {
     this.base = `${root}${prefix}`;
   }
 
@@ -117,7 +117,7 @@ export class AgentApi {
     if (pending?.requestId === requestId) sessionStorage.setItem(`${this.selectionKey}:${id}:turn`, JSON.stringify({ ...pending, failure }));
   }
 
-  private get selectionKey(): string { return `acme.conversation:${this.userId}`; }
+  private get selectionKey(): string { return `acme.conversation:${this.userId}${this.conversationScope ? `:${this.conversationScope}` : ""}`; }
 
   selectConversation(id: string): void {
     this.session = id;
@@ -141,7 +141,7 @@ export class AgentApi {
 
   async restoreConversation(): Promise<string> {
     const userId = await this.initialize();
-    return browserLock(`acme.first-conversation:${userId}`, async () => {
+    return browserLock(`acme.first-conversation:${userId}${this.conversationScope ? `:${this.conversationScope}` : ""}`, async () => {
       const chosen = sessionStorage.getItem(this.selectionKey) || localStorage.getItem(this.selectionKey);
       if (chosen) {
         try {
@@ -152,7 +152,8 @@ export class AgentApi {
           if (!(error instanceof ApiError) || error.status !== 404) throw error;
         }
       }
-      const { conversations } = await this.listConversations();
+      // A new experience scope starts fresh without changing identity or deleting history.
+      const conversations = this.conversationScope ? [] : (await this.listConversations()).conversations;
       const id = conversations[0]?.id ?? (await this.createConversation(true)).id;
       this.selectConversation(id);
       return id;

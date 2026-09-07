@@ -1,34 +1,377 @@
 {
-  "default_stock": 40,
   "default_threshold": 8,
   "inventory": [
-    { "product_id": "AR-2102", "stock": 3, "threshold": 12, "sales_last_30d": 52, "unit_cost": 10.5, "content_quality": "needs_work", "missing_attributes": ["wall coverage", "material"] },
-    { "product_id": "AR-2106", "stock": 4, "threshold": 10, "sales_last_30d": 38, "unit_cost": 13.0 },
-    { "product_id": "AR-2101", "stock": 21, "threshold": 8, "sales_last_30d": 33, "unit_cost": 24.5 },
-    { "product_id": "AR-2103", "stock": 17, "threshold": 6, "sales_last_30d": 19, "unit_cost": 22.0 },
-    { "product_id": "AR-2104", "stock": 26, "threshold": 8, "sales_last_30d": 41, "unit_cost": 11.8 },
-    { "product_id": "AR-2105", "stock": 33, "threshold": 8, "sales_last_30d": 27, "unit_cost": 14.2 },
-    { "product_id": "AR-2107", "stock": 19, "threshold": 6, "sales_last_30d": 12, "unit_cost": 9.6 },
-    { "product_id": "AR-2108", "stock": 44, "threshold": 6, "sales_last_30d": 16, "unit_cost": 6.4 },
-    { "product_id": "AR-2109", "stock": 23, "threshold": 6, "sales_last_30d": 14, "unit_cost": 16.2 },
-    { "product_id": "AR-1401", "stock": 38, "threshold": 8, "sales_last_30d": 29, "unit_cost": 15.3 },
-    { "product_id": "AR-1804", "stock": 57, "threshold": 10, "sales_last_30d": 44, "unit_cost": 13.4, "return_rate_pct": 11.0, "content_quality": "needs_work", "missing_attributes": ["firmness"] },
-    { "product_id": "AR-1207", "stock": 64, "threshold": 8, "sales_last_30d": 3, "unit_cost": 71.0, "slow_mover": true, "status": "paused" },
-    { "product_id": "AR-1002", "stock": 0, "threshold": 8, "sales_last_30d": 17, "unit_cost": 181.0 },
-    { "product_id": "AR-1508", "stock": 0, "threshold": 6, "sales_last_30d": 11, "unit_cost": 54.5 },
-    { "product_id": "AR-1903", "stock": 35, "threshold": 6, "sales_last_30d": 6, "unit_cost": 41.5, "slow_mover": true },
-    { "product_id": "AR-1801", "stock": 18, "threshold": 6, "sales_last_30d": 22, "unit_cost": 96.0 },
-    { "product_id": "AR-1803", "stock": 41, "threshold": 8, "sales_last_30d": 31, "unit_cost": 17.5 },
-    { "product_id": "AR-1001", "stock": 27, "threshold": 8, "sales_last_30d": 18, "unit_cost": 41.0 },
-    { "product_id": "AR-1004", "stock": 22, "threshold": 6, "sales_last_30d": 15, "unit_cost": 46.0 },
-    { "product_id": "AR-1006", "stock": 13, "threshold": 6, "sales_last_30d": 9, "unit_cost": 102.0 },
-    { "product_id": "AR-1601", "stock": 31, "threshold": 8, "sales_last_30d": 21, "unit_cost": 44.0 },
-    { "product_id": "AR-1605", "stock": 48, "threshold": 10, "sales_last_30d": 35, "unit_cost": 17.0 },
-    { "product_id": "AR-1201", "stock": 16, "threshold": 6, "sales_last_30d": 11, "unit_cost": 78.0 },
-    { "product_id": "AR-1206", "stock": 52, "threshold": 10, "sales_last_30d": 24, "unit_cost": 15.5 },
-    { "product_id": "AR-1902-QUEEN", "stock": 22, "threshold": 6, "sales_last_30d": 31, "unit_cost": 302.0 },
-    { "product_id": "AR-1902-KING", "stock": 3, "threshold": 4, "sales_last_30d": 9, "unit_cost": 384.0 },
-    { "product_id": "AR-1902-FULL", "stock": 0, "threshold": 4, "sales_last_30d": 6, "unit_cost": 247.0 },
-    { "product_id": "AR-1606-KING-BLUSH", "stock": 0, "threshold": 5, "sales_last_30d": 4, "unit_cost": 14.8 }
+    {
+      "product_id": "OD-1001",
+      "stock": 4
+    },
+    {
+      "product_id": "OD-1002",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1003",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1004",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1005",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1006",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1007",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1008",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1009",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1010",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-1011",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2001",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2002",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2003",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2004",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2005",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2006",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2007",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2008",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2009",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2010",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-2011",
+      "stock": 4
+    },
+    {
+      "product_id": "OD-2012",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3001",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3002",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3003",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3004",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3005",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3006",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3007",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3008",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3009",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-3010",
+      "stock": 4
+    },
+    {
+      "product_id": "OD-3011",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4001",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4002",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4003",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4004",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4005",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4006",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4007",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4008",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4009",
+      "stock": 4
+    },
+    {
+      "product_id": "OD-4010",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4011",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-4012",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5001",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5002",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5003",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5004",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5005",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5006",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5007",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5008",
+      "stock": 4
+    },
+    {
+      "product_id": "OD-5009",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5010",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5011",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-5012",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6001",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6002",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6003",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6004",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6005",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6006",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6007",
+      "stock": 4
+    },
+    {
+      "product_id": "OD-6008",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6009",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6010",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-6011",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7001",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7002",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7003",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7004",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7005",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7006",
+      "stock": 4
+    },
+    {
+      "product_id": "OD-7007",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7008",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7009",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7010",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7011",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-7012",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8001",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8002",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8003",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8004",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8005",
+      "stock": 4
+    },
+    {
+      "product_id": "OD-8006",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8007",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8008",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8009",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8010",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8011",
+      "stock": 36
+    },
+    {
+      "product_id": "OD-8012",
+      "stock": 36
+    }
   ]
 }

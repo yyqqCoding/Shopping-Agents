@@ -11,7 +11,7 @@ const RECOMMENDED_LABEL = "推荐";
 /** The sign has its own column so text shares a left edge across rows. */
 function TermRow({ sign, text }: { sign: "+" | "−"; text: string }) {
   return (
-    <div className="grid grid-cols-[1.1rem_1fr] text-sm leading-normal text-(--ink)">
+    <div className="grid grid-cols-[1.1rem_1fr] text-[16px] leading-normal text-(--ink)">
       <span aria-hidden className={sign === "+" ? "text-(--ok)" : "text-(--ink-soft)"}>
         {sign}
       </span>
@@ -28,7 +28,9 @@ export default function ComparisonGrid({
   partial?: boolean;
 }) {
   const entries = payload.entries ?? [];
-  const delta = payload.price_delta;
+  const currencies = new Set(entries.map((entry) => entry.product.currency ?? "USD"));
+  const currency = entries[0]?.product.currency;
+  const delta = currencies.size === 1 ? payload.price_delta : undefined;
   // Each pro/con line is a subgrid row, padded to the longest list, so the k-th line of
   // every card shares a baseline.
   const maxPros = Math.max(0, ...entries.map((entry) => (entry.pros ?? []).length));
@@ -54,23 +56,23 @@ export default function ComparisonGrid({
                 <ProductImage product={entry.product} className="h-14 w-14 rounded-lg" />
                 <div className="min-w-0">
                   {recommended ? (
-                    <div className="text-[11px] font-bold uppercase tracking-wide text-(--ink)">
+                    <div className="text-[13px] font-bold uppercase tracking-wide text-(--ink)">
                       {RECOMMENDED_LABEL}
                     </div>
                   ) : null}
                   <ProductTitle
                     title={entry.product.title}
-                    className="line-clamp-2 text-sm font-medium leading-snug"
+                    className="line-clamp-2 text-[16px] font-medium leading-snug"
                   />
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="font-semibold">{formatMoney(entry.product.price)}</span>
+                  <div className="flex flex-wrap items-center gap-2 text-[16px]">
+                    <span className="font-semibold">{formatMoney(entry.product.price, entry.product.currency)}</span>
                     <Rating rating={entry.product.rating} count={entry.product.review_count} />
                   </div>
                 </div>
               </div>
               <div>
                 {entry.best_for ? (
-                  <div className="rounded-md bg-(--well) px-2 py-1 text-[13px] text-(--ink)">
+                  <div className="rounded-md bg-(--well) px-2 py-1 text-[15px] text-(--ink)">
                     适合： {entry.best_for}
                   </div>
                 ) : null}
@@ -96,16 +98,16 @@ export default function ComparisonGrid({
         ) : null}
       </div>
       {delta ? (
-        <p className="mt-3 text-[13px] text-(--ink)">
+        <p className="mt-3 text-[15px] text-(--ink)">
           价格差：{" "}
-          <span className="font-semibold">{formatMoney(delta.amount)}</span>{" "}
+          <span className="font-semibold">{formatMoney(delta.amount, currency)}</span>{" "}
           <span className="text-(--ink-soft)">
-            ({formatMoney(delta.low_price)} 与 {formatMoney(delta.high_price)})
+            ({formatMoney(delta.low_price, currency)} 与 {formatMoney(delta.high_price, currency)})
           </span>
         </p>
       ) : null}
       {payload.dimensions?.length ? (
-        <p className="mt-3 text-xs text-(--ink-soft)/80">比较维度： {payload.dimensions.join(" · ")}</p>
+        <p className="mt-3 text-[13px] text-(--ink-soft)/80">比较维度： {payload.dimensions.join(" · ")}</p>
       ) : null}
     </section>
   );

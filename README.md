@@ -2,10 +2,12 @@
 
 A shopping agent built on Claude that a business embeds in its app for customers. The
 agent is defined once (prompt, skills, tool contracts, gates) and runs on the Messages
-API; a runnable demo shows its full feature set over a mock catalog.
+API; a Chinese outdoor equipment demo shows search, comparisons and coordinated plans
+over a fictional CNY catalog.
 
 > [!NOTE]
-> Every company, brand, product, and person here is fictional; the only company is ACME.
+> Every product and person here is fictional. The outdoor demo uses unbranded equipment;
+> the retired catalog remains available for historical conversations.
 > Nothing places an order or charges a card: `checkout` renders the cart for the host to
 > complete. Business rules, authorization, and compliance are the deployment's.
 
@@ -21,9 +23,12 @@ cp .env.example .env                  # fill model and Supabase values; see docs
 python scripts/run_demo.py            # API :8004 + web :3004
 ```
 
-The Chinese demo uses Supabase anonymous identity, with no login screen. Enable
-anonymous sign-ins and apply [`001_agent_experience.sql`](supabase/migrations/001_agent_experience.sql)
-before opening a conversation. The public catalog can be browsed without Supabase.
+The demo opens on an animated welcome page at `/`; its entry button opens `/chat`.
+It uses Supabase anonymous identity, with no login screen. Enable anonymous sign-ins
+and apply [`001_agent_experience.sql`](supabase/migrations/001_agent_experience.sql), then
+[`002_outdoor_cart_currency.sql`](supabase/migrations/002_outdoor_cart_currency.sql), once
+each before opening a conversation. Existing installations apply only the new migration
+with the API stopped. The public catalog can be browsed without Supabase.
 [`docs/deployment.md`](docs/deployment.md#中文体验站) covers configuration and HTTPS hosting.
 
 ## The agent
@@ -44,9 +49,9 @@ cart, order, and policy systems.
 | [`shopping-agent/skills/`](shopping-agent/skills/) | The flows, one `SKILL.md` each | — |
 | [`examples/`](examples/) | The demo (`assistant/`), shared host code (`demo_common/`), shared web code (`web-shared/`) | — |
 | [`docs/`](docs/) | Safety rules, backend integration, deployment, [experience design](docs/agent-experience-design.md) and [verification](docs/agent-experience-verification.md) | — |
-| [`scripts/`](scripts/) | `install.sh`, `run_demo.py`, `smoke_chat.py`, `verify_all.py` | — |
+| [`scripts/`](scripts/) | Install, run and verify commands; `outdoor_catalog.py` authors equipment and `prepare_catalog.py` freezes the catalog and evidence | — |
 | [`deploy/`](deploy/) | API and Web containers, Caddy HTTPS/SSE proxy | — |
-| [`supabase/`](supabase/) | Conversation, cart, ordered memory and quota migration | — |
+| [`supabase/`](supabase/) | Conversation, ordered memory and quota storage; cart currency migration | — |
 
 ## Running the agent
 
@@ -82,7 +87,7 @@ configured deployment domain.
 ```bash
 ruff check . && ruff format --check . && pytest
 python scripts/verify_all.py          # adds catalog validation, Node tests and the web build
-python scripts/smoke_chat.py          # live conversation; needs the running API, model and Supabase
+python scripts/smoke_chat.py          # legacy shopping scenarios; needs the API, model and Supabase
 ```
 
 `requirements-dev.txt` adds pytest and ruff. CI installs from it on two Python versions,
@@ -93,7 +98,10 @@ model call logs on the runtime's logger: zero on a second turn means the prefix 
 
 [Examples verification](examples/README.md#验证) covers browser and optional database
 checks. [Experience verification](docs/agent-experience-verification.md) records the
-implemented behavior, local evidence and remaining deployment checks.
+implemented behavior, local evidence and remaining deployment checks. Catalog-specific
+tests and the browser smoke script retain the old catalog and layout assertions, and
+the live smoke script keeps its old scenarios. They have not been rewritten for the
+outdoor experience.
 
 ## Deploying elsewhere
 

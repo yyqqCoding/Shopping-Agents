@@ -61,7 +61,7 @@ function DeliveryRail({ order }: { order: NonNullable<OrderStatusPayload["order"
                 >
                   {isDelaySegment ? (
                     <span
-                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-(--warn-soft) px-2 py-0.5 text-[11px] font-semibold text-(--warn)"
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-(--warn-soft) px-2 py-0.5 text-[13px] font-semibold text-(--warn)"
                       title="已超过原预计送达时间"
                     >
                       已延迟
@@ -85,7 +85,7 @@ function DeliveryRail({ order }: { order: NonNullable<OrderStatusPayload["order"
           );
         })}
       </div>
-      <div className="mt-1.5 flex justify-between text-[11px] leading-tight">
+      <div className="mt-1.5 flex justify-between text-[13px] leading-tight">
         {RAIL_STAGES.map((stage, index) => {
           const complete = index < reached;
           const last = index === RAIL_STAGES.length - 1;
@@ -142,20 +142,20 @@ export default function OrderStatusCard({ payload }: { payload: OrderStatusPaylo
     <section className="rounded-2xl border border-(--line) bg-(--card) p-4 shadow-(--shadow-sm)">
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">订单 {payload.order_id}</h3>
-        <span className={`rounded-full px-2.5 py-0.5 text-[13px] font-medium ${STATUS_STYLES[status] ?? STATUS_STYLES.processing}`}>
+        <span className={`rounded-full px-2.5 py-0.5 text-[15px] font-medium ${STATUS_STYLES[status] ?? STATUS_STYLES.processing}`}>
           {STATUS_LABELS[status] ?? "状态待确认"}
         </span>
       </div>
-      <p className="mt-2 text-[15px] leading-relaxed text-(--ink)">{payload.summary}</p>
+      <p className="mt-2 text-[17px] leading-relaxed text-(--ink)">{payload.summary}</p>
       {order ? <DeliveryRail order={order} /> : null}
       {order ? (
-        <div className="mt-3 space-y-1 rounded-lg bg-(--well)/60 p-3 text-sm">
+        <div className="mt-3 space-y-1 rounded-lg bg-(--well)/60 p-3 text-[16px]">
           {order.items.map((item) => (
             <div key={item.product_id} className="flex justify-between gap-2">
               <span className="truncate text-(--ink)">
                 {item.title} × {item.quantity}
               </span>
-              <span className="shrink-0 text-(--ink-soft)">{formatMoney(item.price * item.quantity)}</span>
+              <span className="shrink-0 text-(--ink-soft)">{formatMoney(item.price * item.quantity, order.currency)}</span>
             </div>
           ))}
           <div className="flex justify-between border-t border-(--line) pt-1 font-medium text-(--ink)">
@@ -164,7 +164,7 @@ export default function OrderStatusCard({ payload }: { payload: OrderStatusPaylo
           </div>
           {order.estimated_delivery && RAIL_PROGRESS[status] == null ? (
             // The rail shows the estimate for its own statuses; this line covers the rest.
-            <div className="text-[13px] text-(--ink-soft)">
+            <div className="text-[15px] text-(--ink-soft)">
               预计送达： {formatDate(order.estimated_delivery)}
             </div>
           ) : null}
@@ -175,14 +175,14 @@ export default function OrderStatusCard({ payload }: { payload: OrderStatusPaylo
           href={trackingHref}
           target="_blank"
           rel="noreferrer"
-          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-(--line) px-3 py-1.5 text-[13px] font-semibold text-(--ink) transition hover:border-(--accent) hover:shadow-(--shadow-sm)"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-(--line) px-3 py-1.5 text-[15px] font-semibold text-(--ink) transition hover:border-(--accent) hover:shadow-(--shadow-sm)"
         >
           查看物流
           <span aria-hidden>↗</span>
         </a>
       ) : null}
       {payload.next_step ? (
-        <p className="mt-2 text-[15px] font-medium text-(--ink)">{payload.next_step}</p>
+        <p className="mt-2 text-[17px] font-medium text-(--ink)">{payload.next_step}</p>
       ) : null}
     </section>
   );

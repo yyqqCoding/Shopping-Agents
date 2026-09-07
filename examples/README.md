@@ -1,6 +1,6 @@
 # examples
 
-`assistant/` 是中文购物 Agent 体验站。运行入口为 `python scripts/run_demo.py`，Supabase 与域名配置见 [部署说明](../docs/deployment.md#中文体验站)。
+`assistant/` 是中文户外装备 Agent 体验站。`/` 展示山野动画首页，点击进入 `/chat`。运行入口为 `python scripts/run_demo.py`，Supabase 与域名配置见 [部署说明](../docs/deployment.md#中文体验站)。
 
 ## Layout
 
@@ -12,14 +12,16 @@
 | `demo_common/host.py`、`sessions.py`、`storefront.py` | 共享宿主、记录类型、商品路由和来源校验；旧的本地宿主仅供隔离测试与本地集成 |
 | `demo_common/memory.py`、`storefront_fixtures.py` | 记忆输入模型、旧夹具加载和商品、政策搜索 |
 | `web-shared/identity.ts`、`api.ts`、`session.ts`、`turn.ts` | 浏览器身份恢复、多标签页协调、对话切换、请求恢复和最终卡片展示 |
-| `web-shared/Conversations.tsx`、`storefront/` | 历史入口、页面框架和购物车组件 |
-| `assistant/api/`、`assistant/data/` | 模拟商品后端和固化中文数据 |
+| `web-shared/Conversations.tsx`、`storefront/` | 左侧历史导航、可折叠页面框架、移动端导航和购物车抽屉 |
+| `assistant/api/`、`assistant/data/` | 96 款人民币户外商品、120 个尺码变体及旧目录只读兼容 |
 | `assistant/storefront-web/` | Next.js 页面、商品卡片和静态图片 |
 | `package.json` | `web-shared` 与 Web 应用共享的 npm workspace |
 
 个人数据请求同时携带 Supabase `Authorization: Bearer ...` 和选择对话的 `X-Session-Id`。客户端不能指定自己的用户 ID。商品列表与详情是公开读取；访问其他用户的对话返回未找到。
 
 新对话保留旧历史并共享该用户的长期记忆，购物车、来源记录和工作上下文分别保存。恢复历史读取已提交的展示片段，不运行模型或工具。API 使用一个 worker；进程内工具锁和启动中断恢复尚不支持多实例部署。
+
+`AgentApi` 的 `outdoor-v1` 对话选择范围让户外入口首次进入时新建对话，保留原匿名身份和全部历史。后续访问恢复该范围中选中的对话；内部身份存储键保持兼容。人民币购物车要求执行 `002_outdoor_cart_currency.sql`，旧美元金额不换算。
 
 ## 配置
 
@@ -36,22 +38,14 @@ cd examples
 node --import ./web-shared/tests/register.mjs --test web-shared/tests/*.test.mjs
 ```
 
-实际浏览器检查使用本地身份与 API 夹具，页面来自真实的 Next.js 生产构建。先在 `examples/assistant/storefront-web` 启动页面：
+实际浏览器检查使用本地身份与 API 夹具，页面来自真实的 Next.js 生产构建。`browser-smoke.mjs` 保留旧首页和固定购物车布局的断言，本次按要求不修改测试；它不能作为户外页面的通过依据。手动检查页面可先在 `examples/assistant/storefront-web` 构建并启动：
 
 ```bash
 node ../../node_modules/next/dist/bin/next build
 node ../../node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 18004
 ```
 
-再从仓库根目录运行：
-
-```bash
-node examples/web-shared/tests/browser-smoke.mjs \
-  --web-url http://127.0.0.1:18004 \
-  --chrome /path/to/chrome
-```
-
-脚本自动创建并清理临时浏览器环境，检查同浏览器身份复用、独立访客、历史与卡片恢复、新对话隔离、重试请求编号以及移动端弹窗焦点。可用 `--screenshots /path/to/output` 保存检查图片。它不调用真实 Supabase 或模型，不能证明真实偏好提取和数据库事务正确。
+检查 `/` 的进入链接、`/chat` 的侧栏折叠、手机历史导航、购物车抽屉、Escape 关闭、焦点返回、输入框与浮动按钮的位置，以及商品卡片的币种。真实偏好提取和数据库事务另行联调。连接线上同一 Supabase 项目的本地 API 必须在停止线上 API 后才启动。
 
 数据库事务测试需要已执行迁移的独立 Supabase 测试项目及 `psql`。配置 `SHOPPING_TEST_DATABASE_URL` 后，在仓库根目录运行：
 

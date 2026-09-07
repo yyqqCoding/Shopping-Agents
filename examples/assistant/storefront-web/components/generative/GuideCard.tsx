@@ -11,8 +11,8 @@ export default function GuideCard({ payload }: { payload: GuidePayload }) {
       <div className="mt-2 space-y-3">
         {(payload.sections ?? []).map((section, index) => (
           <div key={index}>
-            <div className="text-[12px] font-bold uppercase tracking-[0.08em] text-(--accent-ink)">{section.heading}</div>
-            <p className="mt-0.5 text-[15px] leading-relaxed text-(--ink)">{section.body}</p>
+            <div className="text-[14px] font-bold uppercase tracking-[0.08em] text-(--accent-ink)">{section.heading}</div>
+            <p className="mt-0.5 text-[17px] leading-relaxed text-(--ink)">{section.body}</p>
           </div>
         ))}
       </div>
@@ -24,7 +24,7 @@ export default function GuideCard({ payload }: { payload: GuidePayload }) {
         </div>
       ) : null}
       {payload.sources?.length ? (
-        <p className="mt-3 break-all text-[11px] text-(--ink-soft)/80">参考来源： {payload.sources.join(" · ")}</p>
+        <p className="mt-3 break-all text-[13px] text-(--ink-soft)/80">参考来源： {payload.sources.join(" · ")}</p>
       ) : null}
     </section>
   );

@@ -7,6 +7,7 @@ COPY examples/assistant/storefront-web/package.json ./assistant/storefront-web/p
 RUN npm ci --no-audit --no-fund
 COPY examples/web-shared ./web-shared
 COPY examples/assistant/storefront-web ./assistant/storefront-web
+COPY examples/assistant/data/policies.json ./assistant/data/policies.json
 ARG BUILD_NODE_OPTIONS=""
 RUN NODE_OPTIONS="$BUILD_NODE_OPTIONS" npm run build --workspace=acme-assistant-web
 

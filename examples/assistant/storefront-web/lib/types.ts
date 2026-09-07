@@ -58,6 +58,8 @@ export interface CartItem {
   option_values?: Record<string, string>;
   variant_of?: string | null;
   line_total: number;
+  unavailable_reason?: string | null;
+  category?: string | null;
 }
 
 export interface CartPayload {

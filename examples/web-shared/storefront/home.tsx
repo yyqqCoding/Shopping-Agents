@@ -56,8 +56,8 @@ export function HomeSection({ title, subtitle, children }: { title: string; subt
   return (
     <section className="ac-reveal" style={{ animationDelay: "160ms" }}>
       <div className="mb-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-(--ink)">{title}</h2>
-        {subtitle ? <span className="text-[12.5px] text-(--ink-soft)">{subtitle}</span> : null}
+        <h2 className="text-[18px] font-semibold tracking-[-0.01em] text-(--ink)">{title}</h2>
+        {subtitle ? <span className="text-[14px] text-(--ink-soft)">{subtitle}</span> : null}
       </div>
       {children}
     </section>

@@ -16,7 +16,7 @@ from commerce_common.types import MemoryFact
 from shopping_agent import Cart, ShoppingSessionContext, ShoppingSessionState
 
 from .sessions import SessionRecord
-from .supabase import Supabase
+from .supabase import StorageUnavailable, Supabase
 
 CART_OPERATION: ContextVar[str | None] = ContextVar("cart_operation", default=None)
 
@@ -202,8 +202,10 @@ class SupabaseMemoryStore:
 class PersistentCarts:
     """A cart read is fresh; each mutation is committed before a tool reports success."""
 
-    def __init__(self, database: Supabase):
+    def __init__(self, database: Supabase, *, require_currency_schema: bool = False):
         self.database = database
+        self.require_currency_schema = require_currency_schema
+        self._currency_ready = False
 
     async def get(self, session: ShoppingSessionContext) -> Cart:
         row = await self.database.rpc(
@@ -215,6 +217,12 @@ class PersistentCarts:
             p_quantity=0,
             p_operation=str(uuid4()),
         )
+        if self.require_currency_schema:
+            if row.get("schema_version") != 2:
+                raise StorageUnavailable(
+                    "Apply 002_outdoor_cart_currency.sql before using CNY carts"
+                )
+            self._currency_ready = True
         return Cart.model_validate(row)
 
     async def change(
@@ -224,6 +232,8 @@ class PersistentCarts:
         product: dict[str, Any],
         quantity: int,
     ) -> Cart:
+        if self.require_currency_schema and not self._currency_ready:
+            await self.get(session)
         operation_id = CART_OPERATION.get() or str(uuid4())
         row = await self.database.rpc_idempotent(
             "experience_cart",

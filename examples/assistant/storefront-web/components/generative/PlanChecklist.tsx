@@ -11,6 +11,9 @@ const SEGMENT_CLASSES = ["plan-seg-0", "plan-seg-1", "plan-seg-2", "plan-seg-3",
 
 /** Each priced step contributes its cheapest option. */
 function BudgetBar({ steps }: { steps: PlanPayload["steps"] }) {
+  const currencies = new Set(steps.flatMap((step) => step.products.map((product) => product.currency ?? "USD")));
+  if (currencies.size > 1) return <p className="mt-3 text-[16px] text-(--ink-soft)">商品币种不同，分别展示价格，不合并计算。</p>;
+  const currency = [...currencies][0];
   const priced = steps.map((step) =>
     step.products.length ? Math.min(...step.products.map((product) => product.price)) : 0,
   );
@@ -27,14 +30,15 @@ function BudgetBar({ steps }: { steps: PlanPayload["steps"] }) {
               key={`${step.label}-${index}`}
               className={`h-full ${SEGMENT_CLASSES[index % SEGMENT_CLASSES.length]}`}
               style={{ width: `${(priced[index] / total) * 100}%` }}
-              title={`${step.label} · ${formatMoney(priced[index])}`}
+              title={`${step.label} · ${formatMoney(priced[index], currency)}`}
             />
           ) : null,
         )}
       </div>
-      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-(--ink-soft)">
+      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-(--ink-soft)">
         <span>
-          搭配合计 <span className="font-semibold text-(--ink)">{formatMoney(total)}</span>
+          搭配参考 <span className="font-semibold text-(--ink)">{formatMoney(total, currency)}</span>
+          （每步选一件，实际人数与数量请以购物车为准）
           {steps.some((step) => step.products.length > 1) ? "（每步按最低价选项计算）" : ""}
         </span>
         {withoutItems > 0 ? (
@@ -60,17 +64,17 @@ export default function PlanChecklist({
   return (
     <section className="rounded-2xl border border-(--line) bg-(--card) p-3.5 shadow-(--shadow-sm)">
       <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">{payload.title}</h3>
-      {payload.intro ? <p className="mt-1 text-[15px] text-(--ink-soft)">{payload.intro}</p> : null}
+      {payload.intro ? <p className="mt-1 text-[17px] text-(--ink-soft)">{payload.intro}</p> : null}
       {partial ? null : <BudgetBar steps={steps} />}
       <ol className="mt-2.5 space-y-3">
         {steps.map((step, index) => (
           <li key={`${step.label}-${index}`} className="ac-reveal flex gap-3">
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--accent-soft) text-[13px] font-bold text-(--accent-ink)">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--accent-soft) text-[15px] font-bold text-(--accent-ink)">
               {index + 1}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[15px] font-medium text-(--ink)">{step.label}</div>
-              {step.detail ? <div className="text-[13px] text-(--ink-soft)">{step.detail}</div> : null}
+              <div className="text-[17px] font-medium text-(--ink)">{step.label}</div>
+              {step.detail ? <div className="text-[15px] text-(--ink-soft)">{step.detail}</div> : null}
               {step.products.length === 1 ? (
                 <div className="mt-1.5">
                   <ProductRow product={step.products[0]} onAdd={onAdd} />
@@ -82,7 +86,7 @@ export default function PlanChecklist({
                   ))}
                 </div>
               ) : partial ? null : (
-                <div className="mt-1 text-[13px] text-(--ink-soft)/80">此步骤暂未关联商品。</div>
+                <div className="mt-1 text-[15px] text-(--ink-soft)/80">此步骤暂未关联商品。</div>
               )}
             </div>
           </li>

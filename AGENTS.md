@@ -12,9 +12,9 @@ Messages API runtime, the skills, and a runnable demo.
 - `shopping-agent/skills/`: the flows, one `SKILL.md` each.
 - `examples/demo_common/` and `examples/web-shared/`: what the demo's API and web app share; `examples/` is the npm workspace.
 - `demo_common/experience.py`, `persistence.py`, `supabase.py`: anonymous identity, owned conversations, durable turns, carts and memory jobs. `web-shared/identity.ts` and `Conversations.tsx` handle browser identity and conversation history.
-- `examples/assistant/`: the shopping agent over the mock catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004.
+- `examples/assistant/`: the outdoor equipment agent over a fictional CNY catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004. `/` is the welcome page; `/chat` hosts conversations. `data/legacy/` preserves retired catalog records for old conversations.
 - `supabase/migrations/`: service-only tables and transactional RPCs. `deploy/`: single-worker containers and HTTPS/SSE proxy.
-- `docs/`: `safety.md`, `backends.md`, `deployment.md`, `agent-experience-design.md`. `scripts/`: install, demo, smoke, verify, and `prepare_catalog.py` for frozen Chinese catalog content and evidence.
+- `docs/`: `safety.md`, `backends.md`, `deployment.md`, `agent-experience-design.md`. `scripts/`: install, demo, smoke, verify; `outdoor_catalog.py` defines outdoor equipment and `prepare_catalog.py` freezes the catalog, evidence and image requests.
 - Tests live in each package's `tests/` plus `examples/demo_common/tests/` and `examples/assistant/api/tests/`.
 
 `requirements.txt` installs the three packages and their pinned dependencies
@@ -31,8 +31,9 @@ Messages API runtime, the skills, and a runnable demo.
 
 ## Fictional and original
 
-No real company, brand, product, or person appears: the only company is ACME and its
-lines; every brand, prompt, schema, and figure is invented here. Two exceptions:
+No real company, brand, product, or person appears. The outdoor experience uses
+unbranded fictional equipment and the descriptive name 户外装备助手. Legacy product
+records retain their original names for archived conversations. Two exceptions:
 deployment and integration targets (the README's "MCP connectors" section; platform
 names in `docs/deployment.md` and the README's deploying section), and CC0 product
 photos listed in the `IMAGE-CREDITS.md` beside them. When in doubt, redesign rather

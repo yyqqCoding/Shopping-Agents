@@ -6,9 +6,9 @@ import type { CartPayload, Product, ProductDetails } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
-export const api = new AgentApi(API_URL, "/api");
+export const api = new AgentApi(API_URL, "/api", "outdoor-v1");
 
-export const UNREACHABLE = "暂时无法连接购物助手，请稍后重试。";
+export const UNREACHABLE = "暂时无法连接户外助手，请稍后重试。";
 
 export async function fetchProducts(): Promise<Product[] | null> {
   const products: Product[] = [];

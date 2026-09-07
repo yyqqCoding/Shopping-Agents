@@ -26,8 +26,8 @@ export function Chat({
   const { scrollRef, onScroll, showLatest, jumpToLatest } = useStickToBottom(chat.items, chat.busy);
   return (
     <div className="relative h-full">
-      <div ref={scrollRef} onScroll={onScroll} style={{ overflowAnchor: "none" }} className="panel-scroll h-full overflow-y-auto px-4 pb-8 pt-6 sm:px-6">
-        <div className="mx-auto flex max-w-[760px] flex-col gap-5 text-[15.5px]">
+      <div ref={scrollRef} onScroll={onScroll} style={{ overflowAnchor: "none" }} className="panel-scroll h-full overflow-y-auto px-4 pb-24 pt-6 sm:px-6">
+        <div className="conversation-column flex flex-col gap-7 text-[17px] leading-[1.75] sm:text-[18px]">
           {chat.hasEarlier ? (
             <button type="button" disabled={chat.historyLoading || chat.busy} className="text-sm text-(--ink-soft) underline disabled:opacity-50" onClick={() => void chat.loadEarlier()}>加载更早的对话</button>
           ) : null}

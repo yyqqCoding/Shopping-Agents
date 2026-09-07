@@ -32,7 +32,7 @@ export function Pill({ tone = "muted", dot = false, children, title }: { tone?: 
   return (
     <span
       title={title}
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-[11.5px] font-semibold leading-[1.35] ${TONE_SOFT[tone]}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-[13px] font-semibold leading-[1.35] ${TONE_SOFT[tone]}`}
     >
       {dot ? <i aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" /> : null}
       {children}
@@ -346,9 +346,9 @@ export function Facts({ children }: { children: ReactNode }) {
 /** A section heading inside a sheet, with an optional note on the right. */
 export function SectionTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
-    <h3 className="mb-2 flex items-baseline gap-2 text-[13px] font-semibold text-(--ink)">
+    <h3 className="mb-2 flex items-baseline gap-2 text-[16px] font-semibold text-(--ink)">
       {children}
-      {aside ? <span className="ml-auto text-[12px] font-normal text-(--ink-soft)">{aside}</span> : null}
+      {aside ? <span className="ml-auto text-[14px] font-normal text-(--ink-soft)">{aside}</span> : null}
     </h3>
   );
 }
@@ -443,7 +443,7 @@ export function IconButton({ icon, label, onClick, className = "" }: { icon: Ico
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`grid h-[30px] w-[30px] shrink-0 place-items-center rounded-lg text-(--ink-soft) transition-colors hover:bg-(--ground) hover:text-(--ink) ${className}`}
+      className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg text-(--ink-soft) transition-colors hover:bg-(--ground) hover:text-(--ink) ${className}`}
     >
       <Icon name={icon} size={17} />
     </button>
@@ -469,7 +469,7 @@ export function Button({
     secondary: "border border-(--line-strong) bg-(--card) text-(--ink) hover:bg-(--ground)",
     accent: "bg-(--accent-strong) text-(--on-accent) shadow-(--shadow-sm) hover:brightness-95",
   };
-  const sizes = { sm: "px-3 py-[6px] text-[13px] rounded-[9px]", md: "px-3.5 py-2 text-[13.5px] rounded-[10px]" };
+  const sizes = { sm: "min-h-9 px-3 py-[6px] text-[14px] rounded-[9px]", md: "min-h-11 px-3.5 py-2 text-[15px] rounded-[10px]" };
   return (
     <button
       type="button"

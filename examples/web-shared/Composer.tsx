@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "./icons";
 
 export interface Prefill {
@@ -15,9 +15,9 @@ export interface Prefill {
 const VARIANTS = {
   /** The storefront's composer under the page: one roomy field with the send arrow inside it. */
   dock: {
-    form: "items-center gap-2 rounded-[16px] border border-(--line-strong) bg-(--card) py-1.5 pl-4 pr-1.5 shadow-(--shadow) transition-colors focus-within:border-(--accent)",
-    input: "bg-transparent py-1.5 text-[16px]",
-    button: "h-9 w-9 rounded-[11px]",
+    form: "items-end gap-3 rounded-[19px] border border-(--line-strong) bg-(--card) py-2.5 pl-5 pr-2.5 shadow-(--shadow) transition-colors focus-within:border-(--accent)",
+    input: "bg-transparent py-2 text-[16px] sm:text-[17px] leading-[1.65]",
+    button: "h-11 w-11 rounded-[13px]",
   },
   /** The portal rail: the same field, compact. */
   field: {
@@ -50,6 +50,30 @@ export function Composer({
 }) {
   const [draft, setDraft] = useState("");
   const boxRef = useRef<HTMLTextAreaElement>(null);
+
+  const resize = useCallback(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    box.style.height = "auto";
+    const height = box.scrollHeight;
+    box.style.height = `${Math.min(height, 160)}px`;
+    box.style.overflowY = height > 160 ? "auto" : "hidden";
+  }, []);
+
+  useEffect(() => { resize(); }, [draft, placeholder, busy, variant, resize]);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    let width = 0;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width === width) return;
+      width = entry.contentRect.width;
+      resize();
+    });
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [resize]);
 
   useEffect(() => {
     if (!prefill) return;
@@ -85,7 +109,7 @@ export function Composer({
         maxLength={4000}
         aria-label={label}
         placeholder={busy ? "正在处理…" : placeholder}
-        className={`max-h-40 min-w-0 flex-1 resize-none text-(--ink) outline-none transition placeholder:text-(--ink-soft)/70 ${VARIANTS[variant].input}`}
+        className={`max-h-40 min-w-0 flex-1 resize-none text-(--ink) outline-none placeholder:text-(--ink-soft) ${VARIANTS[variant].input}`}
       />
       <button
         type="submit"
@@ -93,7 +117,7 @@ export function Composer({
         aria-label="发送"
         className={`grid shrink-0 place-items-center bg-(--ink) text-(--surface) transition hover:brightness-110 disabled:opacity-35 ${VARIANTS[variant].button}`}
       >
-        <Icon name="arrow-up" size={16} />
+        <Icon name="arrow-up" size={21} />
       </button>
     </form>
   );

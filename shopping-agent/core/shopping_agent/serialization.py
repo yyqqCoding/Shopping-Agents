@@ -109,7 +109,7 @@ def cart_summary(cart: Cart) -> str:
 
 def cart_line_payload(item: CartItem) -> dict[str, Any]:
     line = item.model_dump() | {"line_total": item.line_total}
-    for key in ("option_values", "variant_of"):
+    for key in ("option_values", "variant_of", "category", "unavailable_reason"):
         if not line[key]:
             del line[key]
     return line

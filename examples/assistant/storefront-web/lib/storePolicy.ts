@@ -1,7 +1,11 @@
-/** Mirrors data/policies.json; these are demonstration terms. */
+import policy from "../../data/policies.json";
+
+/** The page and backend quote the same frozen demonstration terms. */
 export const STORE_POLICY = {
-  returnsShort: "退货条件见商品与政策说明",
-  returnsLine: "多数商品支持送达后 30 天内退货，电子产品、床品和个护等另有条件。",
-  freeShippingThreshold: 49,
-  standardShippingEta: "3–5 个工作日",
+  currency: policy.terms.currency,
+  returnsShort: policy.terms.returns_short,
+  returnsLine: policy.terms.returns_line,
+  freeShippingThreshold: policy.terms.free_shipping_over,
+  standardShippingFee: policy.terms.standard_fee,
+  standardShippingEta: policy.terms.standard_eta,
 } as const;

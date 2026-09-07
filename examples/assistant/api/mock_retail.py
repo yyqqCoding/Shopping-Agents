@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -38,7 +39,9 @@ from demo_common.storefront_fixtures import (
 )
 from shopping_agent import (
     Cart,
+    CheckoutHandoff,
     FulfillmentOption,
+    NotOffered,
     Order,
     Policy,
     Product,
@@ -59,33 +62,38 @@ _STAMPED_ATTRIBUTES = {DELIVERY_ATTRIBUTE, LOW_STOCK_ATTRIBUTE}
 
 _SEARCH_WEIGHTS = {
     "title": 3.0,
+    "keywords": 0.5,
     "brand": 2.0,
     "category": 2.0,
     "attributes": 1.5,
     "description": 1.0,
 }
 _SYNONYMS: dict[str, list[str]] = {
-    "luggage": ["spinner", "carry-on", "suitcase"],
-    "suitcase": ["spinner", "carry-on", "luggage"],
-    "headphones": ["headphone", "earphones"],
-    "computer": ["laptop", "monitor"],
-    "workout": ["fitness", "exercise"],
-    "exercise": ["fitness", "workout"],
-    "puppy": ["dog"],
-    "kitten": ["cat"],
-    "kid": ["kids", "children"],
-    "child": ["kids", "children"],
-    "couch": ["sofa"],
-    "present": ["gift"],
-    "camping": ["camp", "tent", "outdoor"],
-    "cook": ["cookware", "kitchen"],
-    "coffee": ["espresso"],
-    "sleep": ["sleeping"],
-    "pack": ["backpack"],
-    "hike": ["hiking"],
+    "tent": ["帐篷"],
+    "tents": ["帐篷"],
+    "tarp": ["天幕"],
+    "backpack": ["背包"],
+    "pack": ["背包"],
+    "hike": ["徒步"],
+    "hiking": ["徒步"],
+    "sleeping": ["睡袋"],
+    "sleep": ["睡袋", "睡垫"],
+    "pad": ["睡垫"],
+    "headlamp": ["头灯"],
+    "lantern": ["营地灯"],
+    "stove": ["炉具", "气炉"],
+    "bottle": ["水壶", "水瓶"],
+    "boots": ["徒步靴"],
+    "shoes": ["徒步鞋"],
+    "socks": ["袜"],
+    "lightweight": ["轻量"],
+    "waterproof": ["防水"],
+    "camping": ["露营", "帐篷"],
+    "cook": ["炊具", "锅具"],
     "露营": ["帐篷", "营地"],
-    "沙发": ["sofa"],
-    "耳机": ["headphone", "earphones"],
+    "两人": ["双人", "2 人"],
+    "双人": ["两人", "2 人"],
+    "两个": ["双人", "两人", "2 人"],
 }
 _POLICY_ALIASES = {
     "tent": "帐篷",
@@ -126,6 +134,14 @@ _ATTRIBUTE_ALIASES = {
     "容量": "capacity",
     "色号": "shade",
 }
+_NUMERIC_FILTERS = {
+    "max_weight_g": ("weight_g", "max"),
+    "min_capacity_l": ("capacity_l", "min"),
+    "min_people": ("people", "min"),
+    "max_comfort_temperature_c": ("comfort_temperature_c", "max"),
+    "min_r_value": ("r_value", "min"),
+    "min_waterproof_mm": ("waterproof_mm", "min"),
+}
 
 # Review-aspect vocabularies per category (invented, like the reviews themselves).
 _ASPECTS_BY_CATEGORY: dict[str, list[str]] = {
@@ -144,8 +160,7 @@ _ASPECTS_BY_CATEGORY: dict[str, list[str]] = {
 _ASPECTS_FALLBACK = ["品质", "符合描述", "性价比"]
 _FREIGHT_CATEGORIES = {"office-electronics", "fitness", "furniture-bedroom"}
 _FREIGHT_PRICE_FLOOR = 350
-# The terms of the shipping entry in policies.json, which is what the agent quotes;
-# test_mock_retail checks that the entry still states each of them.
+# Fallback terms for older fixture catalogs without a structured policy terms entry.
 FREE_SHIPPING_OVER = 49
 STANDARD_SHIPPING = FulfillmentOption(method="delivery", eta="3–5 个工作日（标准配送）", fee=5.99)
 EXPRESS_SHIPPING = FulfillmentOption(method="delivery", eta="2 个工作日（加急配送）", fee=9.99)
@@ -168,11 +183,30 @@ class MockRetail(StorefrontBackend):
         self._evidence = (
             json.loads(evidence_path.read_text(encoding="utf-8")) if evidence_path.exists() else {}
         )
-        self.store_name: str = catalog.get("store_name", "ACME")
+        self._legacy_products: dict[str, ProductDetails] = {}
+        self._legacy_variants: dict[str, ProductDetails] = {}
+        legacy_dir = data_dir / "legacy"
+        if (legacy_dir / "catalog.json").exists():
+            _, self._legacy_products, self._legacy_variants = load_catalog(legacy_dir)
+            for product in [*self._legacy_products.values(), *self._legacy_variants.values()]:
+                product.in_stock = False
+                product.title = product.title.removeprefix("ACME ")
+                product.brand = None
+                product.attributes["retired"] = "true"
+                product.attributes["availability_note"] = "已下架，仅供历史查看"
+            legacy_evidence = legacy_dir / "evidence.json"
+            if legacy_evidence.exists():
+                self._evidence = (
+                    json.loads(legacy_evidence.read_text(encoding="utf-8")) | self._evidence
+                )
+        self.store_name: str = catalog.get("store_name", "户外装备助手")
+        self.currency: str = catalog.get("currency", "USD")
+        policy_data = json.loads((data_dir / "policies.json").read_text(encoding="utf-8"))
+        self._terms = policy_data.get("terms", {})
         self._users = load_users(data_dir)
         self._orders = load_orders(data_dir)
         self._policies = load_policies(data_dir)
-        self._carts = SessionCarts()
+        self._carts = SessionCarts(currency=self.currency)
         self._cart_store = cart_store
         self._stamp_delivery_promises()
         self._stamp_low_stock(data_dir)
@@ -212,12 +246,15 @@ class MockRetail(StorefrontBackend):
         """The listing an id belongs to: itself, or its family when it is a variant."""
         record = self.product(product_id)
         if record is not None and record.variant_of:
-            return self.products.get(record.variant_of)
+            return self.products.get(record.variant_of) or self._legacy_products.get(
+                record.variant_of
+            )
         return record
 
     def _searchable_text(self, product: ProductDetails) -> dict[str, str]:
         return {
-            "title": product.title + " " + self._search_terms.get(product.product_id, ""),
+            "title": product.title,
+            "keywords": self._search_terms.get(product.product_id, ""),
             "brand": product.brand or "",
             "category": product.category or "",
             "attributes": " ".join(
@@ -260,6 +297,19 @@ class MockRetail(StorefrontBackend):
         for key, value in filters.attributes.items():
             key = _ATTRIBUTE_ALIASES.get(key, key)
             wanted = str(value).strip().casefold()
+            if key in _NUMERIC_FILTERS:
+                attribute, direction = _NUMERIC_FILTERS[key]
+                actual = product.attributes.get(attribute, "")
+                if not re.fullmatch(r"-?\d+(?:\.\d+)?", wanted) or not re.fullmatch(
+                    r"-?\d+(?:\.\d+)?", actual
+                ):
+                    return False
+                actual_number, limit = float(actual), float(wanted)
+                if (direction == "max" and actual_number > limit) or (
+                    direction == "min" and actual_number < limit
+                ):
+                    return False
+                continue
             choices = (
                 [product.option_values[key]]
                 if key in product.option_values
@@ -310,7 +360,9 @@ class MockRetail(StorefrontBackend):
         return [summary_of(product) for product in ranked]
 
     def product(self, product_id: str) -> ProductDetails | None:
-        return find_product(self.products, self.variants, product_id)
+        return find_product(self.products, self.variants, product_id) or find_product(
+            self._legacy_products, self._legacy_variants, product_id
+        )
 
     async def get_product_details(
         self, session: ShoppingSessionContext, product_id: str
@@ -321,7 +373,9 @@ class MockRetail(StorefrontBackend):
             return None
         specs = dict(product.specs)
         if intel := self.price_intelligence(product_id):
-            specs["模拟价格走势（USD）"] = ", ".join(str(value) for value in intel["series"])
+            specs[f"模拟价格走势（{product.currency}）"] = ", ".join(
+                str(value) for value in intel["series"]
+            )
             specs["模拟价格说明"] = intel["verdict"]
         if reviews := self.review_aspects(product_id):
             specs["模拟评价摘要"] = "；".join(
@@ -356,10 +410,11 @@ class MockRetail(StorefrontBackend):
         else:
             ratio = (product.price - low) / (high - low)
             position = "low" if ratio <= 0.25 else "high" if ratio >= 0.75 else "typical"
+        symbol = "¥" if product.currency == "CNY" else f"{product.currency} "
         verdict = {
-            "low": f"US${product.price:.2f} 接近模拟价格低位",
-            "typical": f"US${product.price:.2f} 处于模拟价格常规区间",
-            "high": f"US${product.price:.2f} 处于模拟价格高位",
+            "low": f"{symbol}{product.price:.2f} 接近模拟价格低位",
+            "typical": f"{symbol}{product.price:.2f} 处于模拟价格常规区间",
+            "high": f"{symbol}{product.price:.2f} 处于模拟价格高位",
         }[position]
         return {
             "days": 90,
@@ -367,7 +422,7 @@ class MockRetail(StorefrontBackend):
             "low": low,
             "high": high,
             "position": position,
-            "verdict": f"{verdict}（90 天范围 US${low:.0f}–US${high:.0f}）",
+            "verdict": f"{verdict}（90 天范围 {symbol}{low:.0f}–{symbol}{high:.0f}）",
         }
 
     def review_aspects(self, product_id: str) -> dict[str, Any] | None:
@@ -399,8 +454,28 @@ class MockRetail(StorefrontBackend):
 
     async def get_cart(self, session: ShoppingSessionContext) -> Cart:
         if self._cart_store is not None:
-            return await self._cart_store.get(session)
-        return self._carts.cart(session.session_id)
+            return self._annotate_cart(await self._cart_store.get(session))
+        return self._annotate_cart(self._carts.cart(session.session_id))
+
+    def _annotate_cart(self, cart: Cart) -> Cart:
+        items = []
+        for item in cart.items:
+            product = self.product(item.product_id)
+            reason = None
+            if product is None or product.attributes.get("retired") == "true":
+                reason = "已下架，可从购物车移除"
+            elif not product.in_stock:
+                reason = "暂时缺货"
+            items.append(
+                item.model_copy(
+                    update={
+                        "unavailable_reason": reason,
+                        "category": product.category if product else item.category,
+                        "title": product.title if product else item.title.removeprefix("ACME "),
+                    }
+                )
+            )
+        return cart.model_copy(update={"items": items})
 
     async def add_to_cart(
         self, session: ShoppingSessionContext, product_id: str, quantity: int
@@ -412,13 +487,23 @@ class MockRetail(StorefrontBackend):
             raise KeyError(product_id)
         if not product.in_stock:
             raise Unavailable(unavailable_detail(product, self.listing_of(product_id)))
-        if self._cart_store is not None:
-            return await self._cart_store.change(
-                session, "add", cart_line(product, quantity).model_dump(mode="json"), quantity
+        cart = await self.get_cart(session)
+        if cart.items and cart.currency != product.currency:
+            raise NotOffered(
+                "这份购物车包含旧币种商品。请先移除旧商品，或新建对话后添加人民币装备。"
             )
+        if self._cart_store is not None:
+            result = await self._cart_store.change(
+                session,
+                "add",
+                cart_line(product, quantity).model_dump(mode="json")
+                | {"currency": product.currency},
+                quantity,
+            )
+            return self._annotate_cart(result)
         existing = self._carts.lines(session.session_id).get(product_id)
         quantity += existing.quantity if existing else 0
-        return self._carts.put(session.session_id, product, quantity)
+        return self._annotate_cart(self._carts.put(session.session_id, product, quantity))
 
     async def update_cart_item(
         self, session: ShoppingSessionContext, product_id: str, quantity: int
@@ -429,15 +514,34 @@ class MockRetail(StorefrontBackend):
                 raise KeyError(product_id)
             if not product.in_stock:
                 raise Unavailable(unavailable_detail(product, self.listing_of(product_id)))
-            return await self._cart_store.change(
-                session, "set", cart_line(product, quantity).model_dump(mode="json"), quantity
+            result = await self._cart_store.change(
+                session,
+                "set",
+                cart_line(product, quantity).model_dump(mode="json")
+                | {"currency": product.currency},
+                quantity,
             )
-        return self._carts.set_quantity(session.session_id, product_id, quantity)
+            return self._annotate_cart(result)
+        product = self.product(product_id)
+        if product is None or not product.in_stock:
+            raise Unavailable("商品已下架或缺货，只能移除。")
+        return self._annotate_cart(
+            self._carts.set_quantity(session.session_id, product_id, quantity)
+        )
 
     async def remove_from_cart(self, session: ShoppingSessionContext, product_id: str) -> Cart:
         if self._cart_store is not None:
-            return await self._cart_store.change(session, "remove", {"product_id": product_id}, 0)
-        return self._carts.remove(session.session_id, product_id)
+            result = await self._cart_store.change(session, "remove", {"product_id": product_id}, 0)
+            return self._annotate_cart(result)
+        return self._annotate_cart(self._carts.remove(session.session_id, product_id))
+
+    async def checkout_handoff(
+        self, session: ShoppingSessionContext, cart: Cart
+    ) -> list[CheckoutHandoff]:
+        del session
+        if any(item.unavailable_reason for item in self._annotate_cart(cart).items):
+            raise Unavailable("购物车中有下架或缺货商品，请先移除或替换后再查看结算摘要。")
+        return []
 
     def reset_session(self, session_id: str) -> None:
         self._carts.reset(session_id)
@@ -477,6 +581,35 @@ class MockRetail(StorefrontBackend):
     async def get_fulfillment_options(
         self, session: ShoppingSessionContext, product_ids: list[str]
     ) -> list[FulfillmentOption]:
+        if self._terms:
+            quoted = [
+                product for pid in dict.fromkeys(product_ids) if (product := self.product(pid))
+            ]
+            if any(product.currency != self.currency or not product.in_stock for product in quoted):
+                raise Unavailable("已下架或缺货商品没有配送方案。")
+            cart = await self.get_cart(session)
+            matches_cart = (
+                bool(cart.items)
+                and cart.currency == self.currency
+                and {item.product_id for item in cart.items}
+                == {product.product_id for product in quoted}
+            )
+            subtotal = cart.subtotal if matches_cart else sum(product.price for product in quoted)
+            basis = "按当前购物车数量" if matches_cart else "按所列商品各 1 件估算"
+            return [
+                FulfillmentOption(
+                    method="delivery",
+                    eta=f"{self._terms['standard_eta']}（模拟标准配送，{basis}）",
+                    fee=0
+                    if subtotal > self._terms["free_shipping_over"]
+                    else self._terms["standard_fee"],
+                ),
+                FulfillmentOption(
+                    method="delivery",
+                    eta=f"{self._terms['express_eta']}（模拟加急配送，{basis}）",
+                    fee=self._terms["express_fee"],
+                ),
+            ]
         prefs = await self.get_preferences(session)
         location = prefs.default_location or "体验门店"
         quoted = [product for pid in product_ids if (product := self.product(pid))]
@@ -490,7 +623,7 @@ class MockRetail(StorefrontBackend):
                 method="pickup",
                 eta=self._pickup_eta(session.local_now() or datetime.now()),
                 fee=0.0,
-                location=f"ACME {location}",
+                location=f"{self.store_name} {location}",
             ),
         ]
         if any(

@@ -426,6 +426,7 @@ def cart_line(product: ProductDetails, quantity: int) -> CartItem:
         image_url=product.image_url,
         option_values=product.option_values,
         variant_of=product.variant_of,
+        category=product.category,
     )
 
 
@@ -434,14 +435,15 @@ class SessionCarts:
     view of live holds instead). Each mock applies its own quantity rules, then ``put``s
     the resulting line."""
 
-    def __init__(self) -> None:
+    def __init__(self, currency: str = "USD") -> None:
         self._lines: dict[str, dict[str, CartItem]] = {}
+        self.currency = currency
 
     def lines(self, session_id: str) -> dict[str, CartItem]:
         return self._lines.setdefault(session_id, {})
 
     def cart(self, session_id: str) -> Cart:
-        return Cart(items=list(self.lines(session_id).values()))
+        return Cart(items=list(self.lines(session_id).values()), currency=self.currency)
 
     def put(self, session_id: str, product: ProductDetails, quantity: int) -> Cart:
         self.lines(session_id)[product.product_id] = cart_line(product, quantity)

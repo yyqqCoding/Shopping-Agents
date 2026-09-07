@@ -9,8 +9,6 @@ import { addToCart, api } from "@/lib/api";
 import type { CartPayload } from "@/lib/types";
 import GenerativeBlock from "./generative";
 
-const WIDE = new Set(["comparison", "plan"]);
-
 /** Shimmers where the carousel will land while a search runs. */
 function Pending({ item }: { item: AssistantChatItem }) {
   const searching = item.tools.includes("search_products") && !item.segments.some((s) => s.type === "ui");
@@ -36,7 +34,6 @@ export default function Chat({ chat, home, onCartUpdate }: { chat: AgentTurn; ho
     <ChatShell
       chat={chat}
       home={home}
-      wide={WIDE}
       renderPending={(item) => <Pending item={item} />}
       renderBlock={(segment) => (
         <GenerativeBlock

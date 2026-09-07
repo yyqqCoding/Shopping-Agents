@@ -3,6 +3,8 @@
 
 from datetime import datetime
 
+import pytest
+
 from shopping_agent import Cart, CartItem, PageContext, UserPreferences
 from shopping_agent.prompt import build_dynamic_context, build_static_system
 
@@ -86,3 +88,11 @@ def test_dynamic_context_oversize_account_collapses_to_note():
 def test_static_system_states_account_trust_rule(config, skills):
     text = build_static_system(config, skills)
     assert "computed by the store's systems" in text
+
+
+@pytest.mark.parametrize("enable_cart", [True, False])
+def test_memory_is_silent_and_current_requests_override_saved_defaults(config, skills, enable_cart):
+    text = build_static_system(config.model_copy(update={"enable_cart": enable_cart}), skills)
+    assert "Save and apply durable preferences silently" in text
+    assert "Current explicit requests override saved preferences" in text
+    assert "save after the tool call succeeds" not in text

@@ -15,6 +15,8 @@
  */
 
 :root {
+  --font-body: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC";
+  --font-display: "Songti SC", "Noto Serif CJK SC";
   --ground: #f5f3ee; /* page */
   --surface: #fffdfa; /* text on ink */
   --card: #fffdfa; /* cards, panel, app bar */
@@ -175,12 +177,12 @@ button.ac-reveal:nth-child(4) {
 }
 
 /* The composer's focus ring wraps the dock. */
-form:has(> button[aria-label="Send"]) {
+form:has(> button[aria-label="发送"]) {
   transition:
     border-color 180ms,
     box-shadow 220ms;
 }
-form:has(> button[aria-label="Send"]):focus-within {
+form:has(> button[aria-label="发送"]):focus-within {
   box-shadow:
     var(--shadow),
     0 0 0 4px var(--accent-soft);

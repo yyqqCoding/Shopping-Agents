@@ -1,25 +1,18 @@
 # Copyright 2026 Anthropic PBC
 # SPDX-License-Identifier: Apache-2.0
 
-"""The assistant API is the shared storefront host over the retail mock: these cover what
-the chat-only page calls (session, catalog, cart, orders, memory, reset, the add button's
-gate) without a model. The shared host's own behavior is under demo_common's contract."""
+"""The public catalog and the verified visitor boundary of the deployed assistant."""
+
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
 
-from demo_common.tests.fixtures import start_shopper
+from demo_common.tests.experience_fixtures import AUTH_A, AUTH_B, USER_A, USER_B
 
-from ..main import build_config, host
-
-app = host.app
+from ..main import build_config
 
 GATEWAY_VARS = ("SHOPPING_MODEL", "SHOPPING_MEMORY_MODEL", "SHOPPING_THINKING_EFFORT")
-
-
-@pytest.fixture
-def client() -> TestClient:
-    return TestClient(app, base_url="http://localhost")
 
 
 def test_health_lists_the_agent_surface(client: TestClient) -> None:
@@ -37,10 +30,20 @@ def test_health_lists_the_agent_surface(client: TestClient) -> None:
     ]
 
 
-def test_session_returns_the_demo_profile(client: TestClient) -> None:
-    started = client.post("/api/session", json={"user_id": "demo-user"}).json()
-    assert started["session_id"]
-    assert started["name"]
+def test_session_uses_verified_identity_and_rejects_profile_impersonation(
+    client, conversation_store
+):
+    body = {"request_id": str(uuid4())}
+    assert client.post("/api/conversations", json=body).status_code == 401
+    assert (
+        client.post("/api/session", json=body | {"user_id": USER_B}, headers=AUTH_A).status_code
+        == 422
+    )
+    first = client.post("/api/conversations", json=body, headers=AUTH_A).json()
+    retry = client.post("/api/conversations", json=body, headers=AUTH_A).json()
+    assert first == retry
+    assert conversation_store.rows[first["session_id"]].user_id == USER_A
+    assert "name" not in first and "user_id" not in first
 
 
 def test_catalog_reads_are_public_and_detail_is_enriched(client: TestClient) -> None:
@@ -51,28 +54,70 @@ def test_catalog_reads_are_public_and_detail_is_enriched(client: TestClient) -> 
     assert "review_aspects" in detail
 
 
-def test_orders_need_a_session(client: TestClient) -> None:
+def test_orders_need_a_verified_session_and_do_not_inherit_demo_orders(client, shopper):
     assert client.get("/api/orders").status_code == 401
-    orders = client.get("/api/orders", headers=start_shopper(client)).json()["orders"]
-    assert orders
+    orders = client.get("/api/orders", headers=shopper()).json()["orders"]
+    assert orders == []
 
 
-def test_add_button_is_provenance_gated(client: TestClient) -> None:
-    headers = start_shopper(client)
+def test_add_button_is_provenance_gated(client, shopper):
+    headers = shopper()
     response = client.post(
-        "/api/cart/add", json={"product_id": "AR-1002", "quantity": 1}, headers=headers
+        "/api/cart/add",
+        json={"product_id": "AR-1002", "quantity": 1, "request_id": str(uuid4())},
+        headers=headers,
     )
     # Nothing searched yet, so the session has no provenance for the product.
     assert response.status_code == 400
     assert response.json()["detail"]
 
 
-def test_reset_reseeds_memory(client: TestClient) -> None:
-    headers = start_shopper(client)
-    fresh = client.post("/api/reset", json={"clear_memory": True}, headers=headers).json()
-    headers = {"X-Session-Id": fresh["session_id"]}
-    facts = client.get("/api/memory", headers=headers).json()["facts"]
-    assert isinstance(facts, list)
+def test_new_conversation_preserves_the_old_one_and_does_not_seed_memory(client, shopper):
+    first, second = shopper("AR-1002"), shopper()
+    ids = {
+        c["id"] for c in client.get("/api/conversations", headers=AUTH_A).json()["conversations"]
+    }
+    assert ids == {first["X-Session-Id"], second["X-Session-Id"]}
+    for headers in (first, second):
+        assert client.get("/api/memory", headers=headers).json() == {"facts": []}
+        assert client.get("/api/cart", headers=headers).json()["items"] == []
+    assert client.post("/api/reset", json={"clear_memory": True}, headers=first).status_code == 404
+
+
+@pytest.mark.parametrize(
+    "method,path,body",
+    [
+        ("GET", "/api/cart", None),
+        ("GET", "/api/orders", None),
+        ("GET", "/api/memory", None),
+        ("PATCH", "/api/memory", {"key": "material", "value": "只选棉质"}),
+        ("DELETE", "/api/memory", {"key": "material"}),
+        ("DELETE", "/api/memory/all", None),
+        ("POST", "/api/cart/add", {"product_id": "AR-1002", "request_id": str(uuid4())}),
+        ("POST", "/api/chat", {"message": "你好", "request_id": str(uuid4())}),
+        ("GET", "/api/conversations/{id}/turns", None),
+        ("GET", "/api/conversations/{id}/turns/00000000-0000-4000-8000-000000000003", None),
+    ],
+)
+def test_another_visitors_known_conversation_id_grants_no_access(
+    client, shopper, method, path, body
+):
+    victim = shopper("AR-1002", auth=AUTH_B)["X-Session-Id"]
+    headers = AUTH_A | {"X-Session-Id": victim}
+    response = client.request(method, path.format(id=victim), headers=headers, json=body)
+    assert response.status_code == 404
+
+
+def test_conversation_listing_is_owned_and_paginated(client, shopper):
+    first, second = shopper(), shopper()
+    shopper(auth=AUTH_B)
+    page = client.get("/api/conversations?limit=1", headers=AUTH_A).json()
+    tail = client.get("/api/conversations?offset=1&limit=1", headers=AUTH_A).json()
+    assert page["has_more"] and not tail["has_more"]
+    assert {page["conversations"][0]["id"], tail["conversations"][0]["id"]} == {
+        first["X-Session-Id"],
+        second["X-Session-Id"],
+    }
 
 
 def test_build_config_defaults_when_the_gateway_vars_are_blank(

@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { hasOptions, optionSummary, optionValuesLabel, priceLabel, useStoreFrame } from "web-shared";
 import type { Product } from "@/lib/types";
 import { flyToCart } from "@/lib/flight";
@@ -72,7 +72,7 @@ function LowStockChip({ product, className = "" }: { product: Product; className
     <span
       className={`whitespace-nowrap rounded-full bg-(--warn-soft) px-2 py-0.5 text-[11px] font-semibold text-(--warn) ${className}`}
     >
-      Only {count} left
+      仅剩 {count} 件
     </span>
   );
 }
@@ -114,16 +114,19 @@ export function AddButton({
   onAdd: (product: Product) => boolean | void | Promise<boolean | void>;
 }) {
   const [phase, setPhase] = useState<"idle" | "busy" | "done" | "error">("idle");
-  const { ask } = useStoreFrame();
+  const adding = useRef(false);
+  const { ask, chat } = useStoreFrame();
+  const disabled = !!chat && (!chat.ready || chat.busy);
   if (hasOptions(product)) {
     return (
       <button
         type="button"
+        disabled={disabled}
         onClick={(event) => {
           event.stopPropagation();
-          ask(`Add the ${product.title} (${product.product_id}) to my cart.`);
+          ask(`帮我选择${product.title}（${product.product_id}）的规格，再加入购物车。`);
         }}
-        aria-label={`Choose options for ${product.title}`}
+        aria-label={`选择${product.title}的规格`}
         className="pointer-events-auto absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-(--ink) text-lg font-semibold leading-none text-(--surface) shadow-(--shadow-sm) transition-all hover:scale-105"
       >
         +
@@ -133,18 +136,24 @@ export function AddButton({
   return (
     <button
       type="button"
+      disabled={disabled || phase !== "idle"}
       onClick={async (event) => {
         event.stopPropagation();
-        if (phase !== "idle") return;
+        if (disabled || adding.current || phase !== "idle") return;
+        adding.current = true;
         const source = event.currentTarget.parentElement ?? event.currentTarget;
         setPhase("busy");
-        const added = (await onAdd(product)) !== false;
+        let added = false;
+        try { added = (await onAdd(product)) !== false; }
+        catch { added = false; }
+        finally { adding.current = false; }
         setPhase(added ? "done" : "error");
         // Animate only after the server confirmed the write.
         if (added) flyToCart(product, source);
         window.setTimeout(() => setPhase("idle"), added ? 1200 : 1600);
       }}
-      aria-label={`Add ${product.title} to cart`}
+      aria-label={`将${product.title}加入购物车`}
+      title={phase === "error" ? "暂时未能加入购物车，请重试。" : "加入购物车"}
       className={`pointer-events-auto absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full text-lg font-semibold leading-none text-(--surface) shadow-(--shadow-sm) transition-all hover:scale-110 hover:bg-(--accent-strong) active:scale-95 ${
         phase === "done" ? "bg-(--ok)" : phase === "error" ? "bg-(--warn)" : "bg-(--ink)"
       } ${phase === "busy" ? "animate-pulse" : ""}`}
@@ -181,7 +190,9 @@ export default function ProductTile({
     >
       <div
         onClick={clickable ? () => onOpen?.(product) : undefined}
-        onKeyDown={clickable ? (event) => event.key === "Enter" && onOpen?.(product) : undefined}
+        onKeyDown={clickable ? (event) => {
+          if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onOpen?.(product); }
+        } : undefined}
         role={clickable ? "button" : undefined}
         tabIndex={clickable ? 0 : undefined}
         className={`flex flex-1 flex-col rounded-2xl focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-(--accent) ${
@@ -195,7 +206,7 @@ export default function ProductTile({
           />
           {product.in_stock === false ? (
             <span className="absolute right-1.5 top-1.5 rounded-full bg-(--ink)/85 px-2 py-0.5 text-[11px] font-medium text-(--surface)">
-              Out of stock
+              暂时缺货
             </span>
           ) : (
             <LowStockChip product={product} className="absolute right-1.5 top-1.5" />
@@ -270,7 +281,7 @@ export function ProductRow({
           <Rating rating={product.rating} />
           {product.in_stock === false ? (
             <span className="rounded-full bg-(--ink)/85 px-2 py-0.5 text-[11px] font-medium text-(--surface)">
-              Out of stock
+              暂时缺货
             </span>
           ) : (
             <LowStockChip product={product} />

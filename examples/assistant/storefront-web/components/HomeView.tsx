@@ -1,76 +1,51 @@
-// Copyright 2026 Anthropic PBC
-// SPDX-License-Identifier: Apache-2.0
-
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Greeting,
-  greeting,
-  HomeSection,
-  type Starter,
-  Starters,
-  useCatalogIndex,
-  useStoreFrame,
-} from "web-shared";
+import { Button, Greeting, greeting, HomeSection, type Starter, Starters, useCatalogIndex, useStoreFrame } from "web-shared";
 import { fetchProducts } from "@/lib/api";
-import type { Product } from "@/lib/types";
 import ProductTile from "./ProductTile";
 
 const STARTERS: Starter[] = [
-  { icon: "search", prompt: "A tent for a first family camping trip, under $250" },
-  { icon: "home", prompt: "Set up a home office in a small spare room for about $800" },
-  { icon: "tag", prompt: "Drip or espresso for busy weekday mornings?" },
-  { icon: "edit", prompt: "Remember: small apartment, no outdoor storage, and a golden retriever" },
+  { icon: "search", prompt: "第一次带家人露营，帮我选一顶 250 美元以内的帐篷" },
+  { icon: "home", prompt: "小房间怎么布置居家办公区？预算 800 美元" },
+  { icon: "tag", prompt: "早晨时间紧，滴滤咖啡机和意式咖啡机怎么选？" },
+  { icon: "spark", prompt: "我家空间不大，还养了狗，想把清洁和收纳一起安排好" },
 ];
 
-/** What the store is featuring: labelled bestseller or new, photographed ones first. */
-function featured(catalog: Record<string, Product>): Product[] {
-  return Object.values(catalog)
-    .filter((product) => product.labels?.some((label) => label === "bestseller" || label === "new") && product.in_stock !== false)
-    .sort((a, b) => Number(Boolean(b.image_url)) - Number(Boolean(a.image_url)))
-    .slice(0, 4);
-}
-
-/** The clock is read after mount, so the prerendered page never disagrees with the browser's day. */
-function useNow(): Date | null {
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => setNow(new Date()), []);
-  return now;
-}
-
-export default function HomeView({ shopperName }: { shopperName: string }) {
-  const { ask } = useStoreFrame();
+export default function HomeView() {
+  const { ask, chat } = useStoreFrame();
   const catalog = useCatalogIndex(fetchProducts);
-  const picks = featured(catalog);
-  const now = useNow();
+  const [now, setNow] = useState<Date | null>(null);
+  const [category, setCategory] = useState("");
+  const [limit, setLimit] = useState(8);
+  useEffect(() => setNow(new Date()), []);
+  const products = Object.values(catalog);
+  const categories = [...new Map(products.map((p) => [p.category ?? "", p.attributes?.category_label ?? p.category ?? ""])).entries()];
+  const picks = products.filter((p) => !category || p.category === category)
+    .sort((a, b) => Number(Boolean(b.image_url)) - Number(Boolean(a.image_url)));
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <Greeting
-        eyebrow={
-          <span className="uppercase tracking-[0.14em]">
-            {now ? now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }) : " "}
-          </span>
-        }
-        title={
-          <h1 className="font-display text-[34px] font-medium leading-[1.12] tracking-[-0.01em] text-(--ink)">
-            {now ? greeting(now) : "Hello"},{" "}
-            <span className="italic text-(--accent-ink)">{shopperName}</span>
-          </h1>
-        }
+        eyebrow={now ? now.toLocaleDateString("zh-CN", { weekday: "long", month: "long", day: "numeric" }) : "欢迎来到 ACME"}
+        title={<h1 className="text-[30px] font-semibold leading-snug tracking-tight text-(--ink)">{now ? greeting(now) : "你好"}，今天想挑点什么？</h1>}
       >
-        Ask about a product, a project, an order, or a return.
+        从一个想法开始，一起挑商品、做比较，也可以把整套计划安排好。
       </Greeting>
       <Starters items={STARTERS} />
-      {picks.length ? (
-        <HomeSection title="Popular right now" subtitle="Bestsellers and new arrivals; open one to ask about it">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {picks.map((product) => (
-              <ProductTile key={product.product_id} product={product} fluid onOpen={(item) => ask(`Tell me about the ${item.title}.`)} />
+      {products.length ? (
+        <HomeSection title="逛逛商品" subtitle={`共 ${products.length} 件商品，点击即可向助手了解详情`}>
+          <div role="group" aria-label="商品分类" className="panel-scroll mb-3 flex gap-2 overflow-x-auto pb-1">
+            {[["", "全部"], ...categories].map(([id, label]) => (
+              <button key={id} type="button" aria-pressed={category === id} className="chip shrink-0 aria-pressed:bg-(--accent-soft) aria-pressed:border-(--accent)" onClick={() => { setCategory(id); setLimit(8); }}>{label}</button>
             ))}
           </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {picks.slice(0, limit).map((product) => <ProductTile key={product.product_id} product={product} fluid onOpen={chat?.ready && !chat.busy ? (item) => ask(`帮我介绍一下${item.title}（${item.product_id}），适合什么需求，有哪些限制？`) : undefined} />)}
+          </div>
+          {picks.length > limit ? <div className="mt-4 text-center"><Button onClick={() => setLimit((n) => n + 12)}>查看更多商品</Button></div> : null}
         </HomeSection>
       ) : null}
+      <p className="text-center text-xs leading-relaxed text-(--ink-soft)">商品、评价与价格走势为虚构展示数据，结算不会下单或扣款。</p>
     </div>
   );
 }

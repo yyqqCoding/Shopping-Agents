@@ -1,134 +1,51 @@
 // Copyright 2026 Anthropic PBC
 // SPDX-License-Identifier: Apache-2.0
 
-"use client";
-
-import { useId } from "react";
-import { formatMoney, useCatalogIndex, safeHandoffs } from "web-shared";
-import { fetchProducts } from "@/lib/api";
-import type { CheckoutPayload, Product } from "@/lib/types";
+import { formatMoney, optionValuesLabel } from "web-shared";
+import type { CheckoutPayload } from "@/lib/types";
 import { STORE_POLICY } from "@/lib/storePolicy";
-import { DeliveryPromise, ProductImage } from "../ProductTile";
+import { ProductImage } from "../ProductTile";
+
+const METHODS = { delivery: "配送", pickup: "门店自提", shipping: "大件货运" };
 
 export default function CheckoutSummary({ payload }: { payload: CheckoutPayload }) {
-  const cart = payload.cart;
-  const handoffs = safeHandoffs(payload.handoffs);
-  // Several summaries can coexist across turns, so the describedby id is per card.
-  const handoffNoteId = useId();
-  // Summary lines carry only title, price, and quantity; the catalog supplies delivery
-  // dates and thumbnails.
-  const catalog = useCatalogIndex(fetchProducts);
-  // The policy says "over" the threshold, so a cart at exactly the threshold is not free.
+  const { cart } = payload;
   const freeShipping = cart.subtotal > STORE_POLICY.freeShippingThreshold;
   return (
     <section data-checkout-card className="rounded-2xl border-2 border-(--accent) bg-(--card) p-4 shadow-(--shadow-sm)">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="font-display text-[18px] font-medium tracking-[-0.01em] text-(--ink)">Ready to check out</h3>
-        <div className="flex items-center gap-1.5">
-          <span className="whitespace-nowrap rounded-full border border-(--line) bg-(--well)/60 px-2.5 py-0.5 text-[11px] font-semibold text-(--ink-soft)">
-            Not charged
-          </span>
-          {payload.fulfillment_method ? (
-            <span className="rounded-full bg-(--accent-soft) px-2.5 py-0.5 text-[13px] font-semibold capitalize text-(--ink)">
-              {payload.fulfillment_method}
-            </span>
-          ) : null}
-        </div>
+        <h3 className="font-display text-[18px] font-medium text-(--ink)">模拟结算摘要</h3>
+        <span className="rounded-full bg-(--well) px-2.5 py-0.5 text-[12px] text-(--ink-soft)">不会扣款</span>
       </div>
       {payload.note ? <p className="mt-1 text-[13px] text-(--ink-soft)">{payload.note}</p> : null}
-      <div className="mt-3 space-y-2 rounded-lg bg-(--well)/60 p-3 text-sm">
-        {cart.items.map((item) => {
-          const product: Product =
-            catalog[item.product_id] ?? {
-              product_id: item.product_id,
-              title: item.title,
-              price: item.price,
-            };
-          return (
-            <div key={item.product_id} className="flex items-center gap-2.5">
-              <ProductImage
-                product={product}
-                className="h-10 w-10 shrink-0 rounded-lg !text-xl"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex justify-between gap-2">
-                  <span className="line-clamp-1 text-(--ink)" title={item.title}>
-                    {item.title} × {item.quantity}
-                  </span>
-                  <span className="shrink-0 text-(--ink)">{formatMoney(item.line_total)}</span>
-                </div>
-                <DeliveryPromise product={product} />
+      <div className="mt-3 space-y-3 rounded-lg bg-(--well)/60 p-3 text-sm">
+        {cart.items.map((item) => (
+          <div key={item.product_id} className="flex items-center gap-2.5">
+            <ProductImage product={item} className="h-10 w-10 shrink-0 rounded-lg !text-xl" />
+            <div className="min-w-0 flex-1">
+              <div className="flex justify-between gap-2">
+                <span className="line-clamp-2 text-(--ink)">{item.title} × {item.quantity}</span>
+                <span className="shrink-0 text-(--ink)">{formatMoney(item.line_total, cart.currency)}</span>
               </div>
+              <p className="text-[12px] text-(--ink-soft)">{optionValuesLabel(item)}</p>
             </div>
-          );
-        })}
-        <div className="flex justify-between border-t border-(--line) pt-1.5 text-(--ink)">
-          <span>Subtotal</span>
-          <span>{formatMoney(cart.subtotal, cart.currency)}</span>
-        </div>
-        <div className="flex justify-between gap-2 text-(--ink)">
-          <span>
-            Shipping{" "}
-            <span className="text-[13px] text-(--ink-soft)">
-              standard · {STORE_POLICY.standardShippingEta}
-            </span>
-          </span>
-          <span className={freeShipping ? "font-medium text-(--ok)" : "text-(--ink)"}>
-            {freeShipping ? "Free" : "Calculated at checkout"}
-          </span>
-        </div>
-        {!freeShipping && STORE_POLICY.freeShippingThreshold - cart.subtotal > 0 ? (
-          <div className="flex justify-between text-[13px] text-(--ink-soft)">
-            <span>
-              Add {formatMoney(STORE_POLICY.freeShippingThreshold - cart.subtotal)} more to
-              unlock free shipping
-            </span>
           </div>
-        ) : null}
-        <div className="flex justify-between text-(--ink)">
-          <span>Tax</span>
-          <span>Calculated at checkout</span>
-        </div>
-        <div className="flex justify-between border-t border-(--line) pt-1.5 text-base font-bold text-(--ink)">
-          <span>Estimated total</span>
+        ))}
+        <div className="flex justify-between border-t border-(--line) pt-2 font-semibold text-(--ink)">
+          <span>商品小计</span>
           <span>{formatMoney(cart.subtotal, cart.currency)}</span>
         </div>
-        <p className="text-[11px] leading-snug text-(--ink-soft)">
-          {freeShipping ? "Before tax" : "Before shipping and tax"}; the final total appears at
-          checkout.
+        {payload.fulfillment_method ? (
+          <div className="flex justify-between text-(--ink-soft)"><span>所选方式</span><span>{METHODS[payload.fulfillment_method]}</span></div>
+        ) : null}
+        <p className="text-[12px] leading-relaxed text-(--ink-soft)">
+          标准配送参考：{freeShipping ? "免运费" : `US$5.99，小计高于 US${STORE_POLICY.freeShippingThreshold} 时免运费`}，约 {STORE_POLICY.standardShippingEta}。
+          商品小计未含其他配送费用或税费。
         </p>
       </div>
-      <p className="mt-2 text-[11px] text-(--ink-soft)">{STORE_POLICY.returnsLine}</p>
-      {handoffs.length ? (
-        // The backend named where payment happens (a hosted checkout URL, or one per seller).
-        <div className="mt-3 flex flex-col gap-2">
-          {handoffs.map((h) => (
-            <a
-              key={h.url}
-              href={h.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-describedby={handoffNoteId}
-              className="w-full rounded-xl bg-(--accent-strong) py-2.5 text-center text-sm font-bold text-(--on-accent) transition hover:brightness-105 active:scale-[0.98]"
-            >
-              {h.label ?? (h.seller ? `Continue to checkout with ${h.seller}` : "Continue to checkout")}
-            </a>
-          ))}
-        </div>
-      ) : (
-        // Disabled so assistive tech is not offered a focusable no-op.
-        <button
-          disabled
-          aria-disabled
-          aria-describedby={handoffNoteId}
-          className="mt-3 w-full cursor-not-allowed rounded-xl bg-(--accent-strong) py-2.5 text-sm font-bold text-(--on-accent) opacity-70"
-          title="Nothing is charged here. Payment happens when you check out."
-        >
-          Continue to checkout
-        </button>
-      )}
-      <p id={handoffNoteId} className="mt-2 text-center text-[11px] text-(--ink-soft)/80">
-        Nothing is charged here. Payment happens when you check out.
+      <p className="mt-2 text-[12px] text-(--ink-soft)">{STORE_POLICY.returnsLine}</p>
+      <p className="mt-3 rounded-lg bg-(--accent-soft) p-2.5 text-center text-[13px] text-(--ink)">
+        这是模拟结算，不会创建订单、扣款或发货。
       </p>
     </section>
   );

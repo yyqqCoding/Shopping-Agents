@@ -14,6 +14,7 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from commerce_common.search import keyword_terms
 from shopping_agent import (
     Cart,
     CartItem,
@@ -25,7 +26,6 @@ from shopping_agent import (
     UserPreferences,
 )
 
-_WORD = re.compile(r"[a-z0-9]+")
 _ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 _IN_FLIGHT_STATUSES = {"processing", "shipped", "delayed"}
 
@@ -189,7 +189,7 @@ def load_users(data_dir: Path) -> dict[str, UserPreferences]:
 
 def preferences_of(users: Mapping[str, UserPreferences], user_id: str) -> UserPreferences:
     """The fixture profile, or a guest profile for an id the fixtures do not carry."""
-    return users.get(user_id) or UserPreferences(user_id=user_id, display_name="Guest")
+    return users.get(user_id) or UserPreferences(user_id=user_id, display_name="访客")
 
 
 def load_orders(data_dir: Path) -> list[tuple[str, Order]]:
@@ -247,7 +247,7 @@ def redate_in_flight_orders(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def tokens(text: str) -> list[str]:
-    return _WORD.findall(text.lower())
+    return keyword_terms(text)
 
 
 def stem(token: str) -> str:
@@ -270,14 +270,20 @@ def keyword_score(
             (
                 weight
                 for name, weight in weights.items()
-                if any(c in stemmed_fields[name] for c in candidates)
+                if any(
+                    c in stemmed_fields[name]
+                    or (len(c) == 1 and "\u3400" <= c <= "\u9fff" and c in fields[name])
+                    for c in candidates
+                )
             ),
             default=0.0,
         )
     return score
 
 
-def within_price_and_rating(product: ProductDetails, filters: SearchFilters) -> bool:
+def within_price_and_rating(product: Product, filters: SearchFilters) -> bool:
+    if filters.in_stock is not None and product.in_stock != filters.in_stock:
+        return False
     if filters.min_price is not None and product.price < filters.min_price:
         return False
     if filters.max_price is not None and product.price > filters.max_price:
@@ -387,7 +393,9 @@ def search_help(policies: Iterable[Policy], query: str, limit: int = 3) -> list[
         return []
     scored = []
     for policy in policies:
-        heading_hits = len(query_terms & _help_terms(f"{policy.title} {policy.category}"))
+        heading_hits = len(
+            query_terms & _help_terms(f"{policy.title} {policy.category} {policy.policy_id}")
+        )
         body_hits = len(query_terms & _help_terms(policy.content))
         if points := 2 * heading_hits + body_hits:
             scored.append((points, policy))

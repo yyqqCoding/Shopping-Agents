@@ -5,7 +5,6 @@
 
     python scripts/run_demo.py                  # API :8004 + web :3004
     python scripts/run_demo.py --api-only       # just the API
-    python scripts/run_demo.py --fresh-memory   # forget what earlier runs remembered
 
 Boots uvicorn and the Next.js dev server, waits until they answer, prints the URLs, and
 stops everything on Ctrl-C. Python packages and the examples/ npm workspace are installed
@@ -42,7 +41,6 @@ NEXT = EXAMPLES_DIR / "node_modules" / ".bin" / "next"
 API_PORT = 8004
 WEB_PORT = 3004
 STORE = "ACME"
-MEMORY_FILES = ("data/.memory-store.json", "data/.memory-seeded.json")
 
 PYTHON_MODULES = (
     "commerce_common",
@@ -177,21 +175,14 @@ def start_api(port: int, federated: bool) -> subprocess.Popen:
 
 def start_web(port: int, api_port: int, prod: bool) -> subprocess.Popen:
     app_dir = DEMO_DIR / "storefront-web"
-    env = {**os.environ, "NEXT_PUBLIC_API_URL": f"http://localhost:{api_port}"}
+    env = {
+        **os.environ,
+        "NEXT_PUBLIC_API_URL": "",
+        "API_INTERNAL_URL": f"http://127.0.0.1:{api_port}",
+    }
     if prod:
         subprocess.run([str(NEXT), "build"], cwd=app_dir, check=True, env=env)
     return spawn([str(NEXT), "start" if prod else "dev", "--port", str(port)], app_dir, env)
-
-
-def reset_persisted_memory() -> str:
-    removed = []
-    for relative in MEMORY_FILES:
-        path = DEMO_DIR / relative
-        if path.exists():
-            path.unlink()
-            removed.append(relative)
-    names = ", ".join(removed) or "nothing"
-    return f"{DIM}--fresh-memory: removed {names}; booting from the seed.{RESET}"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -210,11 +201,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="preferred API port (with --web-only: its port)",
     )
     parser.add_argument("--no-reuse", action="store_true", help="always boot a fresh API")
-    parser.add_argument(
-        "--fresh-memory",
-        action="store_true",
-        help="delete the persisted memory files first (implies --no-reuse)",
-    )
     parser.add_argument("--no-install", action="store_true", help="fail instead of installing")
     parser.add_argument("--prod", action="store_true", help="next build + start instead of dev")
     parser.add_argument(
@@ -236,11 +222,6 @@ def main() -> int:
 
     api_port = args.api_port if args.api_port is not None else API_PORT
     run_api, run_web = not args.web_only, not args.api_only
-
-    if args.fresh_memory:
-        args.no_reuse = True
-        if run_api:
-            print(reset_persisted_memory())
 
     web_port = WEB_PORT
     reuse_api = False

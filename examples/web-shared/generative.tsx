@@ -9,10 +9,10 @@ export interface GenerativeBlockProps {
   status: UISlotStatus;
 }
 
-export function UnknownBlock({ component }: { component: string }) {
+export function UnknownBlock({ component: _component }: { component: string }) {
   return (
     <p className="rounded-(--radius) border border-(--line) bg-(--card) px-4 py-3 text-[13px] text-(--ink-soft)">
-      This page has no view for “{component}” yet.
+      这张卡片暂时无法显示，可以继续向助手提问。
     </p>
   );
 }

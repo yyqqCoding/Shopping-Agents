@@ -4,7 +4,7 @@ The shopping agent's turn loop on the Messages API. `ShoppingAgent` builds the s
 prompt and tool array once, and on each turn prefetches the profile, cart, and memory
 facts, streams the model, executes tool calls concurrently through
 `shopping_agent.executor`, and yields events for the host to render. The demo API is a
-host application around it (`examples/demo_common/storefront.py`).
+host application around it (`examples/demo_common/experience.py`).
 
 | Module | Holds |
 |---|---|
@@ -65,3 +65,21 @@ The gates themselves (fencing, provenance, caps, memory validation) are in
 Credentials: the default client reads `ANTHROPIC_API_KEY` (or a token and base URL) from
 the environment. Tests run without any: `pytest shopping-agent/runtime-messages-api/tests`
 scripts the model with `commerce_common.testing.FakeClient`.
+
+## Durable hosts
+
+Pass `archive=[]` containing the new user message and a persisted
+`commerce_common.context.WorkingContext` as keyword arguments to `stream_turn`.
+`archive` receives copies of new raw assistant messages and tool results before any
+compaction. Persist it as one turn, plus the final display fragments and the latest
+working messages/context. Send completion to the browser only after that transaction.
+
+Before every model request, `fit_context` checks the input budget and summarizes older
+whole exchanges while retaining recent tool-use/result pairs. A failed summary may use
+a smaller request-only copy without changing the checkpoint. If no safe input fits, it
+raises `ContextBudgetExceeded`. A caller that omits `working_context` keeps its original
+messages; its temporary summary cannot silently discard history between turns.
+
+The durable demo captures `MemoryWriteVersion` at turn start and queues memory extraction
+by turn and source order. It does not also call `update_memory`; that convenience method
+remains for hosts without a durable job runner.

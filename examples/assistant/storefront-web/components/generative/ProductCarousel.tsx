@@ -45,11 +45,11 @@ function PriceIntelligenceRow({ intel }: { intel: PriceIntelligence }) {
         <div className="text-[13px] font-semibold text-(--ink)">{intel.verdict}</div>
         <div className="text-[11px] text-(--ink-soft)">
           {intel.position === "low"
-            ? "Sitting near the low end of its own range"
+            ? "接近模拟区间低位"
             : intel.position === "high"
-              ? "Sitting near the high end of its own range"
-              : "Sitting in the typical band of its own range"}
-          {" "}· last {intel.days} days
+              ? "接近模拟区间高位"
+              : "位于模拟常规区间"}
+          {" "}· 模拟 {intel.days} 天走势
         </div>
       </div>
     </div>
@@ -60,14 +60,14 @@ function ReviewAspectsRow({ synthesis }: { synthesis: ReviewAspects }) {
   return (
     <div data-review-aspects className="mt-2">
       <div className="text-[11px] font-semibold uppercase tracking-wide text-(--ink-soft)">
-        From {synthesis.review_count.toLocaleString()} customer reviews
+        基于 {synthesis.review_count.toLocaleString("zh-CN")} 条模拟评价
       </div>
       <div className="mt-1.5 flex flex-wrap gap-1.5">
         {synthesis.aspects.map((aspect) => (
           <div
             key={aspect.name}
             className="rounded-lg border border-(--line) bg-(--card) px-2 py-1"
-            title={`${aspect.name}: ${aspect.positive_pct}% positive across ${aspect.mentions.toLocaleString()} mentions`}
+            title={`${aspect.name}：${aspect.mentions.toLocaleString("zh-CN")} 次提及，正面占比 ${aspect.positive_pct}%`}
           >
             <div className="flex items-baseline gap-1.5 text-[13px]">
               <span className="font-medium text-(--ink)">{aspect.name}</span>
@@ -79,7 +79,7 @@ function ReviewAspectsRow({ synthesis }: { synthesis: ReviewAspects }) {
                 {aspect.positive_pct}%
               </span>
               <span className="text-[11px] text-(--ink-soft)">
-                {aspect.mentions.toLocaleString()} mentions
+                {aspect.mentions.toLocaleString("zh-CN")} 次提及
               </span>
             </div>
             <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-(--well)">
@@ -99,10 +99,10 @@ function ReviewAspectsRow({ synthesis }: { synthesis: ReviewAspects }) {
 
 /** The variants of a product with options; picking one hands the add to the assistant. */
 function VariantList({ family, variants }: { family: Product; variants: Product[] }) {
-  const { ask } = useStoreFrame();
+  const { ask, chat } = useStoreFrame();
   const pricesDiffer = variants.some((variant) => variant.price !== variants[0]?.price);
   return (
-    <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Options">
+    <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="可选规格">
       {variants.map((variant) => {
         const label = optionValuesLabel(variant);
         const available = variant.in_stock !== false;
@@ -110,8 +110,8 @@ function VariantList({ family, variants }: { family: Product; variants: Product[
           <li key={variant.product_id}>
             <button
               type="button"
-              disabled={!available}
-              onClick={() => ask(`Add the ${family.title} in ${label} (${variant.product_id}) to my cart.`)}
+              disabled={!available || !!chat && (!chat.ready || chat.busy)}
+              onClick={() => ask(`把${family.title}的${label}规格（${variant.product_id}）加入购物车。`)}
               className="rounded-full border border-(--line) bg-(--card) px-2.5 py-1 text-[12px] text-(--ink) transition-colors hover:border-(--ink) disabled:cursor-not-allowed disabled:text-(--ink-soft)/70 disabled:line-through"
             >
               {label}
@@ -136,15 +136,19 @@ function ProductDetail({
   onClose: () => void;
 }) {
   const [details, setDetails] = useState<ProductDetails | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     let mounted = true;
+    setDetails(null);
+    setFailed(false);
     void fetchProduct(product.product_id).then((value) => {
-      if (mounted) setDetails(value);
+      if (mounted) { setDetails(value); setFailed(value === null); }
     });
     return () => {
       mounted = false;
     };
-  }, [product.product_id]);
+  }, [product.product_id, retry]);
 
   const full = details ?? product;
   const specs = details?.specs ?? {};
@@ -168,7 +172,7 @@ function ProductDetail({
                 <Rating rating={full.rating} count={full.review_count} />
                 {full.in_stock === false ? (
                   <span className="rounded-full bg-(--ink)/85 px-2 py-0.5 text-[11px] font-medium text-(--surface)">
-                    Out of stock
+                    暂时缺货
                   </span>
                 ) : null}
               </div>
@@ -176,7 +180,7 @@ function ProductDetail({
             </div>
             <button
               onClick={onClose}
-              aria-label="Collapse details"
+              aria-label="收起详情"
               className="shrink-0 rounded-md px-1.5 text-base leading-none text-(--ink-soft) hover:text-(--ink)"
             >
               ×
@@ -188,8 +192,10 @@ function ProductDetail({
       {reason ? (
         <p className="mt-2 text-[13px] leading-snug text-(--ink)">{reason}</p>
       ) : null}
-      {details === null ? (
-        <p className="mt-2 animate-pulse text-[13px] text-(--ink-soft)">Loading details…</p>
+      {failed ? (
+        <p role="status" className="mt-2 text-[13px] text-(--warn)">详情暂时无法读取。<button type="button" className="ml-2 underline" onClick={() => setRetry((n) => n + 1)}>重试</button></p>
+      ) : details === null ? (
+        <p className="mt-2 animate-pulse text-[13px] text-(--ink-soft)">正在加载详情…</p>
       ) : (
         <div className="ac-reveal">
           {details.price_intelligence ? (
@@ -325,7 +331,7 @@ export default function ProductCarousel({
             />
             <button
               onClick={() => nudge(-1)}
-              aria-label="Scroll to previous products"
+              aria-label="查看前面的商品"
               className="absolute left-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-(--line) bg-(--card)/90 text-sm text-(--ink) shadow-md backdrop-blur transition hover:border-(--accent) active:scale-90"
             >
               ‹
@@ -340,7 +346,7 @@ export default function ProductCarousel({
             />
             <button
               onClick={() => nudge(1)}
-              aria-label="Scroll to more products"
+              aria-label="查看更多商品"
               className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-(--line) bg-(--card)/90 text-sm text-(--ink) shadow-md backdrop-blur transition hover:border-(--accent) active:scale-90"
             >
               ›

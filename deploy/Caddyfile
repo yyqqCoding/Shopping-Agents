@@ -1,0 +1,22 @@
+{$SHOPPING_DOMAIN} {
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy same-origin
+    }
+    handle /api/* {
+        request_body {
+            max_size 64KB
+        }
+        reverse_proxy api:8004 {
+            flush_interval -1
+            transport http {
+                response_header_timeout 45s
+                read_timeout 20m
+            }
+        }
+    }
+    handle {
+        encode zstd gzip
+        reverse_proxy web:3004
+    }
+}

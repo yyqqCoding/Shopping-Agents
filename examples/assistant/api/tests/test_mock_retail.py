@@ -20,7 +20,7 @@ def test_catalog_loads_and_validates(backend):
     assert len(backend.products) >= 50
     assert backend.store_name == "ACME"
     sample = backend.products["AR-1201"]
-    assert sample.brand == "ACME Basecamp"
+    assert sample.brand == "ACME 营地"
     assert sample.long_description  # hero products carry a long description
 
 
@@ -47,13 +47,13 @@ async def test_delivery_promises_stamped(backend):
     for product in backend.products.values():
         promise = product.attributes.get("delivery")
         if product.in_stock:
-            assert promise is not None and promise.startswith("Get it by ")
+            assert promise == "标准配送约 3–5 个工作日"
         else:
             assert promise is None
 
     # The promise is kept out of search scoring.
     sample = next(p for p in backend.products.values() if p.in_stock)
-    assert "Get it by" not in backend._searchable_text(sample)["attributes"]
+    assert "标准配送" not in backend._searchable_text(sample)["attributes"]
 
 
 def test_memory_seed_is_schema_valid():
@@ -107,11 +107,11 @@ async def test_fulfillment_options_follow_the_shipping_policy(backend, session):
     shipping = next(p for p in backend._policies if p.policy_id == "shipping").content
     for term in (
         f"${STANDARD_SHIPPING.fee}",
-        f"free over ${FREE_SHIPPING_OVER}",
-        standard.eta.split(" (")[0],
-        express.eta.split(" (")[0],
+        f"严格高于 US${FREE_SHIPPING_OVER}",
+        standard.eta.split("（")[0],
+        express.eta.split("（")[0],
         f"${express.fee}",
-        "freight",
+        "货运",
     ):
         assert term in shipping, term
 
@@ -119,14 +119,14 @@ async def test_fulfillment_options_follow_the_shipping_policy(backend, session):
 def test_pickup_eta_stays_inside_store_hours():
     eta = MockRetail._pickup_eta
     # Two hours of prep, rounded up to the hour.
-    assert eta(datetime(2026, 7, 14, 13, 0)) == "today by 3 PM"
-    assert eta(datetime(2026, 7, 14, 13, 20)) == "today by 4 PM"
+    assert eta(datetime(2026, 7, 14, 13, 0)) == "今天 15:00 前"
+    assert eta(datetime(2026, 7, 14, 13, 20)) == "今天 16:00 前"
     # Before opening, the two hours count from the 9 AM open.
-    assert eta(datetime(2026, 7, 14, 6, 30)) == "today by 11 AM"
+    assert eta(datetime(2026, 7, 14, 6, 30)) == "今天 11:00 前"
     # 19:00 plus two hours lands on the 9 PM close.
-    assert eta(datetime(2026, 7, 14, 19, 0)) == "today by 9 PM"
-    assert eta(datetime(2026, 7, 14, 19, 30)) == "tomorrow morning"
-    assert eta(datetime(2026, 7, 14, 23, 0)) == "tomorrow morning"
+    assert eta(datetime(2026, 7, 14, 19, 0)) == "今天 21:00 前"
+    assert eta(datetime(2026, 7, 14, 19, 30)) == "明天上午"
+    assert eta(datetime(2026, 7, 14, 23, 0)) == "明天上午"
 
 
 async def test_a_family_is_found_by_its_option_values_and_its_variants_stay_out_of_listings(
@@ -148,7 +148,8 @@ async def test_details_resolve_a_family_and_a_variant(backend, session):
     variant = await backend.get_product_details(session, "ar-1606-king-blush")
     assert variant is not None and variant.variant_of == "AR-1606"
     assert variant.in_stock is False and variant.price == 37.0
-    assert backend.listing_of("AR-1606-KING-BLUSH") is family
+    assert backend.listing_of("AR-1606-KING-BLUSH").product_id == family.product_id
+    assert "模拟评价摘要" in family.specs and "模拟价格说明" in variant.specs
 
 
 async def test_an_order_line_for_a_variant_names_its_choice(backend, session):

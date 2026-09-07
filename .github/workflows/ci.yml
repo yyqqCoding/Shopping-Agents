@@ -26,6 +26,8 @@ jobs:
         run: ruff check .
       - name: Format
         run: ruff format --check .
+      - name: Catalog validation
+        run: python scripts/prepare_catalog.py --check
       - name: Unit tests
         run: pytest -q
 
@@ -77,5 +79,10 @@ jobs:
           cache-dependency-path: examples/package-lock.json
       - name: Install
         run: npm ci
+      - name: Identity and history tests
+        run: node --import ./web-shared/tests/register.mjs --test web-shared/tests/*.test.mjs
       - name: Build
+        env:
+          SHOPPING_STANDALONE: "1"
+          NEXT_TELEMETRY_DISABLED: "1"
         run: npm run build

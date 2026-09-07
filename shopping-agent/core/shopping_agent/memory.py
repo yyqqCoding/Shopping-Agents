@@ -23,9 +23,10 @@ SHOPPING_MEMORY_EXTRACTION_PROMPT = MEMORY_EXTRACTION_TEMPLATE.format(
         'lines to stay under 90 a month in total" tells them everything'
     ),
     live_key_rule=(
-        "Keep the customer's one live undertaking (a trip, a room, an event) as a single fact "
-        'under the key "current_project", naming the occasion, who it is for, and its budget; '
-        "a new undertaking replaces it."
+        "A temporary task, its budget, dates, recipient and candidate products belong only "
+        "to the current conversation, never to a current_project fact. A recipient's "
+        "preference is not the customer's own preference. Do not record a fact the customer "
+        "asked to forget, even if they repeat it while requesting deletion."
     ),
     excluded=(
         "anything that came from listings, results, or the store's own terms; the mechanics of "

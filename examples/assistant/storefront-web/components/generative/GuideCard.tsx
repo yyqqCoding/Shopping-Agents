@@ -24,7 +24,7 @@ export default function GuideCard({ payload }: { payload: GuidePayload }) {
         </div>
       ) : null}
       {payload.sources?.length ? (
-        <p className="mt-3 break-all text-[11px] text-(--ink-soft)/80">Sources: {payload.sources.join(" · ")}</p>
+        <p className="mt-3 break-all text-[11px] text-(--ink-soft)/80">参考来源： {payload.sources.join(" · ")}</p>
       ) : null}
     </section>
   );

@@ -3,7 +3,7 @@
 
 "use client";
 
-import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useState } from "react";
+import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatChangePct } from "./format";
 import { Icon, type IconName } from "./icons";
@@ -388,7 +388,7 @@ export function Sheet({
   onClose,
   footer,
   children,
-  closeLabel = "Close",
+  closeLabel = "关闭",
 }: {
   title: ReactNode;
   detail?: ReactNode;
@@ -398,23 +398,27 @@ export function Sheet({
   closeLabel?: string;
 }) {
   const [host, setHost] = useState<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  useEffect(() => setHost(document.body), []);
   useEffect(() => {
-    setHost(document.body);
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    if (!host || !dialogRef.current) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const dialog = dialogRef.current;
+    dialog.showModal();
+    return () => { dialog.close(); opener?.focus(); };
+  }, [host]);
   if (!host) return null;
   return createPortal(
-    <>
-      <div onClick={onClose} aria-hidden className="fixed inset-0 z-40 bg-black/30" />
+    <dialog
+      ref={dialogRef}
+      aria-labelledby={titleId}
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+      onKeyDown={(event) => { if (event.key === "Escape") event.stopPropagation(); }}
+      className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-transparent p-0 backdrop:bg-black/30"
+    >
       <aside
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
         className="ac-slide-in-right fixed inset-y-0 right-0 z-50 flex w-[min(96vw,468px)] flex-col overflow-hidden bg-(--card) shadow-(--shadow-lg) sm:inset-y-2.5 sm:right-2.5 sm:rounded-[18px]"
       >
         <div className="flex items-center gap-2 border-b border-(--line) py-3 pl-[18px] pr-3">
@@ -427,7 +431,7 @@ export function Sheet({
         <div className="panel-scroll flex flex-1 flex-col gap-4 overflow-y-auto p-[18px]">{children}</div>
         {footer ? <div className="flex items-center gap-2 border-t border-(--line) px-[18px] py-3">{footer}</div> : null}
       </aside>
-    </>,
+    </dialog>,
     host,
   );
 }

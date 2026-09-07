@@ -3,16 +3,11 @@
 
 "use client";
 
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityButton } from "../ActivityButton";
-import type { AgentApi } from "../api";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
 import { Composer } from "../Composer";
 import { Icon, type IconName } from "../icons";
-import { Inspector } from "../Inspector";
 import type { AgentTurn } from "../turn";
-import { Avatar } from "../ui";
 import { FrameContext } from "./frame";
-import { AccountSheet, type Profile } from "./home";
 
 export interface StoreView<V extends string> {
   id: V;
@@ -34,10 +29,8 @@ export function StorePage({ children }: { children: ReactNode }) {
 }
 
 /**
- * The storefronts' frame: an app bar with the store, its views, Activity, the bag, and the
- * signed-in shopper; the page with the composer docked under it; the bag panel, docked from `xl`
- * and a drawer below; and the two sheets the bar opens (the shopper's, and Activity). Every color
- * comes from the app's tokens.
+ * The storefront frame carries navigation, conversation controls, the composer and
+ * the cart. The cart is docked from `xl` and opens as a drawer on smaller screens.
  */
 export function StoreShell<V extends string>({
   brand,
@@ -45,18 +38,14 @@ export function StoreShell<V extends string>({
   view,
   onViewChange,
   chat,
-  api,
   assistantName,
-  shopper,
-  profiles,
-  profileId,
-  onSwitchProfile,
   bag,
   panel,
   panelOpen,
   onPanelOpenChange,
   placeholder,
   banner,
+  headerActions,
   children,
 }: {
   brand: ReactNode;
@@ -64,13 +53,8 @@ export function StoreShell<V extends string>({
   view: V;
   onViewChange: (view: V) => void;
   chat: AgentTurn;
-  api: AgentApi;
   assistantName: string;
-  shopper: { name: string; tier?: string };
-  /** The demo's profiles, when the vertical has more than one to switch between. */
-  profiles?: Profile[];
-  profileId?: string;
-  onSwitchProfile?: (id: string) => void;
+  headerActions?: ReactNode;
   /** `count` is what the bag holds; `noun` names it ("item", "booking"); `figure` is a running total; `extra` a live badge. */
   bag: { label: string; count: number; noun: string; figure?: string | null; extra?: ReactNode };
   panel: ReactNode;
@@ -81,8 +65,6 @@ export function StoreShell<V extends string>({
   banner?: ReactNode;
   children: ReactNode;
 }) {
-  const [activityOpen, setActivityOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
   const bagButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const home = views[0].id;
@@ -105,11 +87,22 @@ export function StoreShell<V extends string>({
 
   // The drawer takes focus when it opens, gives it back when it closes, and closes on Escape.
   useEffect(() => {
-    if (!panelOpen) return;
+    if (!panelOpen || window.matchMedia("(min-width: 1280px)").matches) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : bagButtonRef.current;
     panelRef.current?.querySelector<HTMLElement>("button")?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onPanelOpenChange(false);
+      if (event.key === "Tab" && panelRef.current) {
+        const controls = [...panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), [tabindex="0"]')]
+          .filter((element) => element.getClientRects().length);
+        const first = controls[0];
+        const last = controls.at(-1);
+        if (event.shiftKey && (document.activeElement === first || !panelRef.current.contains(document.activeElement))) {
+          event.preventDefault(); last?.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !panelRef.current.contains(document.activeElement))) {
+          event.preventDefault(); first?.focus();
+        }
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -123,7 +116,7 @@ export function StoreShell<V extends string>({
       <div className="flex h-dvh flex-col text-(--ink)">
         <header className="flex h-[58px] shrink-0 items-center gap-2 border-b border-(--line) bg-(--chrome) px-3 sm:gap-5 sm:px-5">
           <div className="flex shrink-0 items-center">{brand}</div>
-          <nav className="flex min-w-0 items-center gap-1" aria-label="Views">
+          <nav className="flex min-w-0 items-center gap-1" aria-label="页面导航">
             {views.map((item) => {
               const active = item.id === view;
               return (
@@ -149,16 +142,12 @@ export function StoreShell<V extends string>({
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <ActivityButton
-              streaming={chat.streaming}
-              newMemoryCount={chat.newMemoryKeys.size}
-              onClick={() => setActivityOpen(true)}
-            />
+            {headerActions}
             <button
               ref={bagButtonRef}
               type="button"
               onClick={() => onPanelOpenChange(true)}
-              aria-label={`Open ${bag.label.toLowerCase()}, ${bag.count} ${bag.noun}${bag.count === 1 ? "" : "s"}`}
+              aria-label={`打开${bag.label}，共 ${bag.count} ${bag.noun}`}
               className="flex h-[34px] items-center gap-2 rounded-full bg-(--ink) pl-3 pr-1.5 text-[13px] font-semibold text-(--surface) transition hover:brightness-110 xl:hidden"
             >
               <Icon name="bag" size={16} />
@@ -171,20 +160,6 @@ export function StoreShell<V extends string>({
                 className="ac-pop grid h-[22px] min-w-[22px] place-items-center rounded-full bg-(--surface) px-1 text-[11.5px] font-bold tabular-nums text-(--ink)"
               >
                 {bag.count}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setAccountOpen(true)}
-              aria-label={`${shopper.name}: profile and memory`}
-              className="flex items-center gap-2.5 rounded-full py-0.5 pl-0.5 pr-1 text-left transition-colors hover:bg-(--well)/60 md:pr-3"
-            >
-              <Avatar name={shopper.name} />
-              <span className="hidden min-w-0 md:block">
-                <span className="block truncate text-[13px] font-semibold leading-tight">{shopper.name}</span>
-                {shopper.tier ? (
-                  <span className="block truncate text-[11.5px] leading-tight text-(--ink-soft)">{shopper.tier}</span>
-                ) : null}
               </span>
             </button>
           </div>
@@ -203,7 +178,7 @@ export function StoreShell<V extends string>({
                 send={ask}
                 ready={chat.ready}
                 busy={chat.busy}
-                label={`Message ${assistantName}`}
+                label={`向${assistantName}提问`}
                 placeholder={placeholder}
                 className="mx-auto max-w-[760px]"
               />
@@ -230,28 +205,6 @@ export function StoreShell<V extends string>({
             {panel}
           </aside>
         </div>
-        {accountOpen ? (
-          <AccountSheet
-            name={shopper.name}
-            detail={shopper.tier}
-            api={api}
-            profiles={profiles}
-            profileId={profileId}
-            onSwitchProfile={onSwitchProfile}
-            onClose={() => setAccountOpen(false)}
-          />
-        ) : null}
-        {activityOpen ? (
-          <Inspector
-            turnCount={chat.turnCount}
-            streaming={chat.streaming}
-            trace={chat.trace}
-            memory={chat.memory}
-            newMemoryKeys={chat.newMemoryKeys}
-            memoryTitle={`What ${assistantName} knows`}
-            onClose={() => setActivityOpen(false)}
-          />
-        ) : null}
       </div>
     </FrameContext.Provider>
   );

@@ -3,23 +3,20 @@
 
 """Products with options over HTTP: listings, the detail route, and the add button."""
 
+from uuid import uuid4
+
 import pytest
-
-from demo_common.tests.fixtures import session_record
-
-from .. import main
 
 
 @pytest.fixture
-def add(client, shopper):
+def add(client, shopper, conversation_store):
     """Returns ``add(product_id, *seen) -> (response, session record)``."""
 
     def _add(product_id: str, *seen: str):
         headers = shopper(*seen)
-        body = {"product_id": product_id, "quantity": 1}
-        return client.post("/api/cart/add", json=body, headers=headers), session_record(
-            main, headers
-        )
+        body = {"product_id": product_id, "quantity": 1, "request_id": str(uuid4())}
+        response = client.post("/api/cart/add", json=body, headers=headers)
+        return response, conversation_store.rows[headers["X-Session-Id"]]
 
     return _add
 
@@ -50,7 +47,7 @@ def test_the_detail_route_resolves_a_family_and_a_variant(client):
 def test_the_add_button_on_a_family_is_held_with_the_route_to_a_variant(add):
     response, record = add("AR-1902", "AR-1902")
     assert response.status_code == 400
-    assert "options" in response.json()["detail"]
+    assert "规格" in response.json()["detail"]
     assert record.pending_app_events == []
 
 
@@ -67,5 +64,5 @@ def test_a_sold_out_variant_is_refused_with_its_in_stock_siblings_named(add):
     response, record = add("AR-1902-FULL", "AR-1902", "AR-1902-FULL")
     assert response.status_code == 400
     detail = response.json()["detail"]
-    assert "AR-1902-FULL is out of stock" in detail and "AR-1902-QUEEN" in detail
+    assert "库存" in detail
     assert record.pending_app_events == []

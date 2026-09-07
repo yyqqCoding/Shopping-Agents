@@ -10,9 +10,11 @@ from commerce_common.config import BaseAgentConfig
 from commerce_common.fencing import Fence
 from commerce_common.memory import (
     MEMORY_DISABLED_TEXT,
+    MEMORY_WRITE_VERSION,
     InMemoryMemoryStore,
     MemoryRuntime,
     MemoryWriteFilter,
+    MemoryWriteVersion,
     RetentionMemoryStore,
 )
 from commerce_common.turn import session_tag
@@ -101,10 +103,10 @@ def test_build_rejects_a_store_missing_part_of_the_contract():
             pass
 
     with pytest.raises(
-        TypeError, match="PartialStore does not implement MemoryStore.purge_generation"
+        TypeError, match="PartialStore does not implement MemoryStore.upsert_if_current"
     ):
         runtime(PartialStore())
-    with pytest.raises(TypeError, match="MemoryStore.purge_generation"):
+    with pytest.raises(TypeError, match="MemoryStore.upsert_if_current"):
         runtime(PartialStore(), memory_retention_days=30)
     assert runtime(InMemoryMemoryStore()).enabled
 
@@ -122,3 +124,19 @@ async def test_extraction_failure_returns_nothing_and_logs_the_exception(caplog)
     assert session_tag("sess-9") in record.getMessage()
     assert "sess-9" not in record.getMessage()
     assert record.exc_info is not None and isinstance(record.exc_info[1], RuntimeError)
+
+
+async def test_forget_deletes_only_the_current_user_and_old_direct_saves_cannot_undo_clear():
+    store = InMemoryMemoryStore()
+    live = runtime(store)
+    for user in ("a", "b"):
+        await live.save(user, "s", {"key": "material", "value": "偏好棉质"})
+    assert not (await live.forget("a", {"key": "material"})).is_error
+    assert await store.get_facts("a") == [] and len(await store.get_facts("b")) == 1
+    token = MEMORY_WRITE_VERSION.set(MemoryWriteVersion("b", 0, 1))
+    try:
+        await live.forget("b", {"all": True})
+        result = await live.save("b", "s", {"key": "material", "value": "偏好棉质"})
+    finally:
+        MEMORY_WRITE_VERSION.reset(token)
+    assert result.is_error and await store.get_facts("b") == []

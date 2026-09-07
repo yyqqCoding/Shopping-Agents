@@ -24,7 +24,7 @@ def test_low_stock_not_stamped_above_threshold_or_out_of_stock(backend):
 def test_stamped_attributes_kept_out_of_search_scoring(backend):
     text = backend._searchable_text(backend.products["AR-2102"])
     assert "low_stock" not in text["attributes"]
-    assert "Get it by" not in text["attributes"]
+    assert "标准配送" not in text["attributes"]
 
 
 # -- price intelligence ----------------------------------------------------------------
@@ -50,9 +50,9 @@ def test_price_intelligence_verdict_matches_position(backend):
         intel = backend.price_intelligence(product_id)
         assert intel is not None
         wording = {
-            "low": "near this item's 90-day low",
-            "typical": "typical price",
-            "high": "above this item's typical price",
+            "low": "低位",
+            "typical": "常规区间",
+            "high": "高位",
         }[intel["position"]]
         assert wording in intel["verdict"]
 

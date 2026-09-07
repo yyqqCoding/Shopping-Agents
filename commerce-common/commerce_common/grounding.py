@@ -10,6 +10,7 @@ without tool choice prefetch it. The lexicons are config; this module only match
 from __future__ import annotations
 
 import re
+import unicodedata
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -20,14 +21,17 @@ _PERCENT_LITERAL = re.compile(r"\d+\s?%")
 
 
 def matches_any(text: str, needles: Sequence[str]) -> bool:
-    """Case-insensitive whole-word (or whole-phrase) match; ``?`` matches literally."""
-    lowered = text.lower()
+    """Latin word boundaries, Chinese substring matching, and literal question marks."""
+    lowered = unicodedata.normalize("NFKC", text).lower()
     for needle in needles:
-        cleaned = needle.lower().strip()
+        cleaned = unicodedata.normalize("NFKC", needle).lower().strip()
         if not cleaned:
             continue
         if cleaned == "?":
             if "?" in lowered:
+                return True
+        elif any("\u3400" <= char <= "\u9fff" for char in cleaned):
+            if cleaned in lowered:
                 return True
         elif re.search(rf"\b{re.escape(cleaned)}\b", lowered):
             return True
@@ -48,6 +52,7 @@ def matches_terms_and_cues(
 
 def find_token(text: str, patterns: Sequence[str]) -> str | None:
     """The longest match of any pattern in the text (case-insensitive), or None."""
+    text = unicodedata.normalize("NFKC", text)
     token: str | None = None
     for pattern in patterns if text else ():
         match = re.search(pattern, text, re.IGNORECASE)

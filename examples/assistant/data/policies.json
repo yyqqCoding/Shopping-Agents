@@ -2,69 +2,69 @@
   "policies": [
     {
       "policy_id": "returns",
-      "title": "Returns & refunds",
+      "title": "退货与退款",
       "category": "returns",
-      "content": "Most items can be returned within 30 days of delivery in original condition for a full refund to the original payment method. Opened electronics can be returned within 15 days. Mattresses, bedding, and personal-care items must be unopened. Refunds post within 5 business days of the return arriving at our warehouse. ACME Subscription members get free return pickup; otherwise drop off at any ACME location or use the prepaid label in your order page."
+      "content": "多数商品在送达后 30 天内保持原始状态可以申请退货，退款退回原支付方式。已拆封的电子产品退货期为 15 天。床品和个人护理用品须未拆封；床垫以具体商品的试睡条款为准。退回商品抵达仓库后，退款预计在 5 个工作日内处理。AR-1902 床垫标示 100 晚试睡，退回时须保持清洁、无损坏，试睡条款优先于普通退货期。以上为演示政策，本站不产生真实订单。"
     },
     {
       "policy_id": "shipping",
-      "title": "Shipping options & timelines",
+      "title": "配送方式、运费与时效",
       "category": "shipping",
-      "content": "Standard shipping is $5.99, free over $49, and arrives in 3-5 business days. Express arrives in 2 business days and is free for ACME Subscription members on orders over $49, otherwise $9.99. Same-day delivery is available on eligible items in select areas when ordered before 2pm. Oversized items ship freight and include a scheduled delivery window."
+      "content": "标准配送为 US$5.99，商品小计严格高于 US$49 时免标准运费，预计 3–5 个工作日送达。加急配送为 US$9.99，预计 2 个工作日。家具等符合条件的大件提供货运选项，费用 US$29，预计 5–7 个工作日。门店自提免费，营业时间为 09:00–21:00，通常需要约两小时准备。所有报价均为模拟履约选项，本站不实际发货。"
     },
     {
       "policy_id": "price-match",
-      "title": "Price match promise",
+      "title": "同款商品差价规则",
       "category": "pricing",
-      "content": "If you find an identical, in-stock item at a lower price from a major retailer within 14 days of purchase, we will match it and refund the difference. Marketplace sellers, clearance, and doorbuster prices are excluded. Contact support with a link to the competing listing."
+      "content": "演示政策允许在购买后 14 天内，凭同款、同规格且有库存商品的较低报价申请差价比较。清仓价、限量抢购价和第三方卖家报价不适用。商品页面的价格走势图是离线生成的模拟数据，不能作为真实外部价格凭证。"
     },
     {
       "policy_id": "warranty",
-      "title": "Warranties & protection plans",
+      "title": "保修与保障范围",
       "category": "warranty",
-      "content": "Manufacturer warranties apply to most products; the duration is listed on the product page under specs. ACME Protect plans extend coverage to 3 years and cover accidental damage on electronics. Claims are handled in-app and most replacements ship within 2 business days of approval."
+      "content": "保修时间与适用范围以商品详情和模拟保障条款为准。ACME 保障方案可将符合条件的电子商品保障延长至 3 年，并按条款覆盖部分意外损坏。本体验站不受理实际维修或保修申请，也不销售保障方案。"
     },
     {
       "policy_id": "membership",
-      "title": "ACME Subscription membership",
+      "title": "ACME 体验会员方案",
       "category": "membership",
-      "content": "ACME Subscription costs $79/year and includes free express shipping over $49, free return pickup, early access to seasonal sales, and 2% back in store credit. You can cancel anytime and we will prorate the unused portion. There is a 14-day free trial for new members."
+      "content": "虚构的 ACME 会员方案定价为每年 US$79，方案说明包含符合条件订单的配送权益、退货上门取件及店内积分。体验站不开放购买会员或订阅，匿名用户的配送报价按普通规则计算。"
     },
     {
       "policy_id": "gift-cards",
-      "title": "Gift cards",
+      "title": "礼品卡使用说明",
       "category": "payments",
-      "content": "Digital gift cards are delivered by email within minutes and never expire. Physical gift cards ship free. Gift cards cannot be redeemed for cash except where required by law, and cannot be used to buy other gift cards. Check your balance any time in the app under Payments."
+      "content": "虚构的 ACME 礼品卡可用于购买符合条件的商品，不得用于购买另一张礼品卡，也不提供兑换现金功能。本体验站不出售、发送或核销真实礼品卡。"
     },
     {
       "policy_id": "order-changes",
-      "title": "Changing or cancelling an order",
+      "title": "修改或取消订单",
       "category": "orders",
-      "content": "Orders can be modified or cancelled within 30 minutes of being placed from the order page. After that, items that have not entered the packing process can still be cancelled — contact support. Once an order has shipped, use the return process instead. Address changes after shipping are handled by the carrier and are not guaranteed."
+      "content": "演示政策规定，下单后 30 分钟内可以申请修改或取消，超过时限则取决于商品是否开始打包。已发货商品需要按退货流程处理，发货后无法保证修改地址。本体验站的结算只生成摘要，不会创建真实订单。"
     },
     {
       "policy_id": "damaged-items",
-      "title": "Damaged or missing items",
+      "title": "商品损坏或缺件",
       "category": "returns",
-      "content": "If an item arrives damaged or an order is missing items, report it within 7 days from the order page with a photo. We will send a replacement or refund the affected items — no need to return the damaged product unless we send a pickup label. Porch theft claims are reviewed case by case after the carrier confirms delivery."
+      "content": "演示政策要求在送达后 7 天内报告损坏或缺件，并提供问题说明与图片。确认后可对受影响商品安排补发或退款。本体验站没有实际发货，因此不会创建售后工单或要求用户上传真实订单资料。"
     },
     {
       "policy_id": "guide-tents",
-      "title": "Buying guide: choosing a tent",
+      "title": "选购指南：如何选择露营帐篷",
       "category": "guide",
-      "content": "A tent's person rating counts sleepers packed shoulder to shoulder, so for comfort size up by one from your head count, and by two if gear or a dog sleeps inside. Decide next how the tent travels: carried in on foot, every gram matters and a low, compact backpacking tent wins; driven to the site, weight barely matters and standing height and floor space matter far more. A 3-season rating covers spring through autumn camping; only winter trips need more. Freestanding tents pitch anywhere and move easily once up; a first tent should pitch in ten minutes or less, and it is worth practising once at home."
+      "content": "帐篷标称人数通常按较紧凑的睡眠空间计算。希望舒适时可比人数多选一个位置，有狗或大件装备住在帐内时需要更多空间。徒步背负优先考虑重量和收纳体积，自驾露营则更适合站立高度和地面空间充足的家庭帐篷。三季帐篷适合春夏秋常规露营，不适用于冬季高海拔环境。初次露营可优先选择十分钟左右能完成搭建的结构，并在出行前练习。"
     },
     {
       "policy_id": "guide-home-coffee",
-      "title": "Buying guide: drip or espresso at home",
+      "title": "选购指南：滴滤咖啡还是意式咖啡",
       "category": "guide",
-      "content": "A drip coffee maker brews a full pot with almost no effort or technique, needs only a rinse between uses, and suits households that drink several cups through the morning. An espresso machine makes concentrated shots and steamed-milk drinks, but each cup takes a few minutes of hands-on work, the machine wants regular descaling and a spot of permanent counter space, and it rewards fresh beans and a little practice. Choose drip if convenience and volume come first; choose espresso only if milk drinks or the ritual itself are the point. Programmable timers and thermal carafes matter more for drip than any brewing spec."
+      "content": "滴滤咖啡机适合早晨需要多杯咖啡、希望减少手动操作的家庭，一次可冲煮整壶，预约功能有助于节省时间。意式咖啡机适合喜欢浓缩咖啡和奶咖、愿意练习萃取的人，每杯需要更多操作，也需要清洁蒸汽棒和定期除垢。先按饮用习惯选择，再确认磨豆机、滤纸和台面空间等配套条件，不要只按压力参数判断咖啡品质。"
     },
     {
       "policy_id": "guide-desk-ergonomics",
-      "title": "Buying guide: a desk setup that stays comfortable",
+      "title": "选购指南：小空间办公桌搭配",
       "category": "guide",
-      "content": "Fix things in this order, because each step matters more than the next. First, the seat: a chair with adjustable lumbar support and adjustable arm height does more for a long day than anything else on the desk. Second, screen height: the top of the screen should sit at about eye level, which a monitor arm or a laptop stand plus a separate keyboard achieves cheaply. Third, and only after those two, a sit-stand desk lets you change posture through the day; look for memory presets so switching is a single tap, and check the height range reaches both your seated and standing elbow height. Lighting and a separate keyboard are inexpensive finishing touches."
+      "content": "先处理座椅和屏幕高度，再考虑升降桌。可调腰托与扶手有助于适配桌面，屏幕上沿大致与视线平齐，笔记本可搭配支架和独立键盘。升降桌的高度范围应覆盖坐姿与站姿时的手肘高度，预设按钮便于切换。台灯和理线用品可作为最后的补充。预算紧张时，优先改善每天使用最久的部件。"
     }
   ]
 }

@@ -6,6 +6,8 @@ tool contracts, and gates on top; the runtime imports both. One module per mecha
 | Module | Holds |
 |---|---|
 | `config.py` | `BaseAgentConfig`: identity, models, budgets, capabilities, memory, caps |
+| `context.py` | `WorkingContext`, whole-exchange budgeting, fenced summaries and a request-only fallback; raw archives are never rewritten |
+| `search.py` | Chinese character pairs and normalized Latin keywords shared by catalog, policy and memory lookup |
 | `fencing.py` | `Fence`: sanitizing and fencing text the model reads as data; chip hygiene |
 | `memory.py` | `MemoryStore` contract, write filter, `validate_fact`, extraction, `MemoryRuntime` |
 | `skills.py` | `SkillRegistry`: loads `SKILL.md` directories and renders the prompt index |
@@ -23,3 +25,9 @@ Extras: `[examples]` adds what the demo host imports, and `requirements-dev.txt`
 the test tools.
 
 Tests: `pytest commerce-common/tests`.
+
+Durable memory adapters implement `upsert_if_current`: the purge version check and
+write must be atomic, and a supplied source order must not overwrite a newer fact or
+deletion. `MemoryWriteVersion` also protects tools executing inside a durable turn.
+The JSON and in-memory adapters are for single-process use; they do not implement
+distributed ordering. The Supabase adapter is in `examples/demo_common/persistence.py`.

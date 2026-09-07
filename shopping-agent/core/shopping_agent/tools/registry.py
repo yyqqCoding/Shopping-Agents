@@ -33,6 +33,7 @@ def _filters_schema() -> dict[str, Any]:
             "min_price": {"type": "number", "description": "Lowest acceptable price."},
             "max_price": {"type": "number", "description": "Price ceiling the customer stated."},
             "min_rating": {"type": "number", "description": "Lowest acceptable average rating."},
+            "in_stock": {"type": "boolean", "description": "Only items with this availability."},
             "attributes": {
                 "type": "object",
                 "description": 'Attribute or option filters as key/value pairs, e.g. {"material": "wool"}.',
@@ -303,6 +304,22 @@ def build_tools(
                     },
                 },
                 "required": ["key", "value"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "forget_memory",
+            "description": (
+                "Delete a saved fact only when the customer explicitly asks to forget it. "
+                "Use an existing key from the context or recall_memories. Set all=true "
+                "only when they ask to forget all saved facts. Never claim deletion before success."
+            ),
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "key": {"type": "string", "maxLength": 64},
+                    "all": {"type": "boolean"},
+                },
                 "additionalProperties": False,
             },
         },
@@ -584,7 +601,7 @@ def build_tools(
                 "Give the turn its 1-4 chips; it ends the reply. Call it in the same round "
                 "as the turn's last component, without waiting for that component's result. "
                 "Alone, after the text, only on a turn with no component (a terms answer, a "
-                "clarifying question, a confirmed add or save)."
+                "clarifying question or a confirmed cart change)."
             ),
             "input_schema": {
                 "type": "object",

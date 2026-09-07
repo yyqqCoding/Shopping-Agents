@@ -79,6 +79,10 @@ class BaseAgentConfig(BaseModel):
     max_search_results: int = Field(default=8, ge=1, le=25)
     max_fenced_chars: int = MAX_FENCED_CHARS
     compact_history_above_tokens: int = Field(default=100_000, ge=0)
+    context_window_tokens: int = Field(default=131072, ge=8192)
+    context_reserve_tokens: int = Field(default=4096, ge=1024)
+    context_recent_turns: int = Field(default=4, ge=1, le=20)
+    context_summary_timeout_s: float = Field(default=25.0, gt=0)
 
     def absent_tools(self) -> frozenset[str]:
         """Names the role's `build_tools` leaves out for systems the deployment switches

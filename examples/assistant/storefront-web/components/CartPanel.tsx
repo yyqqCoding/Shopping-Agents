@@ -19,19 +19,19 @@ function FreeShippingMeter({ subtotal }: { subtotal: number }) {
     <div data-free-shipping-meter className="mb-3">
       <div className={`text-[13px] ${free ? "font-semibold text-(--ok)" : "text-(--ink-2)"}`}>
         {free ? (
-          <>Free shipping on this order ✓</>
+          <>这份购物车已享标准免运费 ✓</>
         ) : remaining > 0 ? (
           <>
-            <span className="font-bold text-(--ink)">{formatMoney(remaining)}</span> away from free shipping
+            还差 <span className="font-bold text-(--ink)">{formatMoney(remaining + 0.01)}</span> 享标准免运费
           </>
         ) : (
-          <>Anything more ships free</>
+          <>再增加商品金额即可免标准运费</>
         )}
       </div>
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-(--well)">
         <div className={`h-full rounded-full transition-[width] duration-500 ease-out ${free ? "bg-(--ok)" : "bg-(--accent)"}`} style={{ width: `${pct}%` }} />
       </div>
-      {!free ? <div className="mt-1 text-[11.5px] text-(--ink-soft)">Standard shipping is free on orders over {formatMoney(threshold)}.</div> : null}
+      {!free ? <div className="mt-1 text-[11.5px] text-(--ink-soft)">商品小计高于 {formatMoney(threshold)}，标准配送免运费。</div> : null}
     </div>
   );
 }
@@ -67,24 +67,24 @@ export default function CartPanel({ cart, checkoutStaged = false }: { cart: Cart
 
   return (
     <BagPanel
-      title="Cart"
+      title="购物车"
       count={plural(count, "item")}
       isEmpty={items.length === 0}
       empty={
         <>
-          Nothing in the cart yet.
+          {cart === null ? "购物车暂未加载。" : "购物车还是空的。"}
           <br />
-          Ask ACME Assistant for anything in the store.
+          告诉助手你的需求，一起挑些合适的商品。
         </>
       }
       footer={
         <>
           {items.length ? <FreeShippingMeter subtotal={cart?.subtotal ?? 0} /> : null}
-          <TotalRow label={count ? `Subtotal · ${plural(count, "item")}` : "Subtotal"} value={formatMoney(cart?.subtotal ?? 0, cart?.currency)} />
-          <CheckoutButton staged={checkoutStaged} disabled={items.length === 0} prompt="Check out my cart." />
+          <TotalRow label={count ? `商品小计 · ${plural(count, "item")}` : "商品小计"} value={formatMoney(cart?.subtotal ?? 0, cart?.currency)} />
+          <CheckoutButton staged={checkoutStaged} disabled={items.length === 0} prompt="帮我整理购物车的结算摘要。" />
           {items.length ? (
             <div className="mt-2.5 flex justify-center">
-              <AskLink label="Ask about this cart" prompt="Look over my cart: anything missing or worth swapping?" />
+              <AskLink label="帮我检查搭配" prompt="帮我检查购物车，有没有遗漏或更合适的替换？" />
             </div>
           ) : null}
         </>
@@ -106,7 +106,7 @@ export default function CartPanel({ cart, checkoutStaged = false }: { cart: Cart
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="text-[14px] font-bold tabular-nums text-(--ink)">{formatMoney(item.line_total)}</div>
-                    {item.quantity > 1 ? <div className="text-[11px] text-(--ink-soft)">{formatMoney(item.price)} each</div> : null}
+                    {item.quantity > 1 ? <div className="text-[11px] text-(--ink-soft)">每件 {formatMoney(item.price)}</div> : null}
                   </div>
                 </div>
                 <DeliveryPromise product={product} className="mt-0.5" />
@@ -115,10 +115,10 @@ export default function CartPanel({ cart, checkoutStaged = false }: { cart: Cart
                     quantity={item.quantity}
                     itemTitle={lineName(item)}
                     onChange={(quantity) =>
-                      ask(quantity < 1 ? `Remove the ${lineName(item)} from my cart.` : `Change the ${lineName(item)} quantity to ${quantity}.`)
+                      ask(quantity < 1 ? `把${lineName(item)}从购物车移除。` : `把${lineName(item)}的数量改为 ${quantity}。`)
                     }
                   />
-                  <RemoveLink itemTitle={lineName(item)} onClick={() => ask(`Remove the ${lineName(item)} from my cart.`)} />
+                  <RemoveLink itemTitle={lineName(item)} onClick={() => ask(`把${lineName(item)}从购物车移除。`)} />
                 </div>
               </div>
             </li>

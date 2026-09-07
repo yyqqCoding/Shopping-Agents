@@ -105,7 +105,7 @@ async def test_retention_passes_delete_clear_and_purge_generation_through(store,
     await store.upsert_facts("u-1", [fact("fresh", days_old=10), fact("stale", days_old=400)])
     assert await retained.delete_fact("u-1", "fresh")
     await retained.clear("u-1")
-    assert await store.get_facts("u-1") == [] and await retained.purge_generation("u-1") == 1
+    assert await store.get_facts("u-1") == [] and await retained.purge_generation("u-1") == 2
 
 
 def test_with_retention_wraps_once_with_the_configured_window():
@@ -117,3 +117,22 @@ def test_with_retention_wraps_once_with_the_configured_window():
     assert rewrapped.inner is inner and rewrapped.retention == timedelta(days=7)
     with pytest.raises(ValueError):
         RetentionMemoryStore(inner, timedelta(0))
+
+
+async def test_chinese_preferences_are_recalled_by_topic_without_crossing_users(store):
+    await store.upsert_facts(
+        "a", [fact("material", "长期偏好棉质，避免羊毛"), fact("color", "倾向蓝色")]
+    )
+    await store.upsert_facts("b", [fact("material", "偏好羊毛")])
+    assert [f.key for f in await store.search_facts("a", "棉质")] == ["material"]
+    assert [f.value for f in await store.search_facts("b", "羊毛")] == ["偏好羊毛"]
+
+
+async def test_retention_keeps_the_atomic_clear_guard_on_conditional_writes(store, retained):
+    version = await retained.purge_generation("u-1")
+    await retained.clear("u-1")
+    assert (
+        await retained.upsert_if_current("u-1", [fact("new")], generation=version, source_order=1)
+        == []
+    )
+    assert await store.get_facts("u-1") == []

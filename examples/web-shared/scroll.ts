@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 /** Px from the bottom within which the reader still counts as following. */
 const STICK_PX = 96;
@@ -18,7 +18,8 @@ export function useStickToBottom(
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef(true);
   const programmaticUntil = useRef(0);
-  const previousCount = useRef(0);
+  const previousItems = useRef<readonly unknown[]>([]);
+  const previousHeight = useRef(0);
   const [stuck, setStuck] = useState(true);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
@@ -37,14 +38,25 @@ export function useStickToBottom(
 
   // A send appends items and gets one smooth scroll; per-delta updates scroll instantly so
   // animations do not pile up.
-  useEffect(() => {
-    const appended = items.length !== previousCount.current;
-    previousCount.current = items.length;
+  useLayoutEffect(() => {
+    const previous = previousItems.current;
+    const node = scrollRef.current;
+    const prepended = previous.length > 0 && items.length > previous.length && items.indexOf(previous[0]) > 0;
+    const appended = items.length !== previous.length;
+    previousItems.current = items;
+    if (prepended && node) {
+      node.scrollTop += node.scrollHeight - previousHeight.current;
+      previousHeight.current = node.scrollHeight;
+      stickRef.current = false;
+      setStuck(false);
+      return;
+    }
     if (appended) {
       stickRef.current = true;
       setStuck(true);
     }
     if (stickRef.current && (busy || !onlyWhileBusy)) scrollToBottom(appended ? "smooth" : "auto");
+    previousHeight.current = node?.scrollHeight ?? 0;
   }, [items, busy, onlyWhileBusy, scrollToBottom]);
 
   const onScroll = useCallback(() => {
@@ -56,5 +68,5 @@ export function useStickToBottom(
     setStuck(stick);
   }, []);
 
-  return { scrollRef, onScroll, showLatest: busy && !stuck, jumpToLatest };
+  return { scrollRef, onScroll, showLatest: !stuck, jumpToLatest };
 }

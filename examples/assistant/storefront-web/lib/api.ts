@@ -4,17 +4,20 @@
 import { AgentApi } from "web-shared";
 import type { CartPayload, Product, ProductDetails } from "./types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8004";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export const api = new AgentApi(API_URL, "/api");
 
-export const UNREACHABLE =
-  "Couldn't reach the assistant API on port 8004. Start it with " +
-  "`uvicorn assistant.api.main:app --app-dir examples --port 8004` and try again.";
+export const UNREACHABLE = "暂时无法连接购物助手，请稍后重试。";
 
 export async function fetchProducts(): Promise<Product[] | null> {
-  const data = await api.get<{ products: Product[] }>("/products", { limit: "100" });
-  return data?.products ?? null;
+  const products: Product[] = [];
+  for (let offset = 0; ; offset += 100) {
+    const data = await api.get<{ products: Product[]; has_more: boolean }>("/products", { limit: "100", offset: String(offset) });
+    if (!data) return null;
+    products.push(...data.products);
+    if (!data.has_more) return products;
+  }
 }
 
 export function fetchProduct(productId: string): Promise<ProductDetails | null> {
@@ -22,6 +25,15 @@ export function fetchProduct(productId: string): Promise<ProductDetails | null> 
 }
 
 export async function addToCart(productId: string, quantity = 1): Promise<CartPayload | null> {
-  const data = await api.post<{ cart: CartPayload }>("/cart/add", { product_id: productId, quantity });
-  return data?.cart ?? null;
+  if (!api.session) return null;
+  const key = `acme.cart-request:${api.session}:${productId}:${quantity}`;
+  const requestId = sessionStorage.getItem(key) || crypto.randomUUID();
+  sessionStorage.setItem(key, requestId);
+  try {
+    const data = await api.requestOrThrow<{ cart: CartPayload }>("/cart/add", {
+      method: "POST", body: JSON.stringify({ product_id: productId, quantity, request_id: requestId }),
+    });
+    sessionStorage.removeItem(key);
+    return data.cart;
+  } catch { return null; }
 }

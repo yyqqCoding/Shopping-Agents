@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/api.Dockerfile
+    env_file: ../.env
+    environment:
+      DEMO_ALLOWED_HOSTS: "${SHOPPING_DOMAIN:?Set SHOPPING_DOMAIN},api"
+      DEMO_LOG_LEVEL: INFO
+    expose: ["8004"]
+    restart: unless-stopped
+    stop_grace_period: 40s
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8004/api/config', timeout=5)"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    expose: ["3004"]
+    restart: unless-stopped
+  proxy:
+    image: caddy:2-alpine
+    environment:
+      SHOPPING_DOMAIN: "${SHOPPING_DOMAIN:?Set SHOPPING_DOMAIN}"
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
+    restart: unless-stopped
+volumes:
+  caddy_data:
+  caddy_config:

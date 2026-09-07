@@ -33,7 +33,7 @@ export function ActivityLine({ item }: { item: AssistantChatItem }) {
   }
   if (item.segments.length) return null;
   return (
-    <div role="status" aria-label="Working" className="flex flex-col gap-2">
+    <div role="status" aria-label="正在回复" className="flex flex-col gap-2">
       <div className="ac-skeleton h-4 w-3/5 rounded" />
       <div className="ac-skeleton h-4 w-2/5 rounded" />
     </div>
@@ -94,7 +94,7 @@ export function LatestPill({ onClick }: { onClick: () => void }) {
         onClick={onClick}
         className="pointer-events-auto rounded-full border border-(--line) bg-(--card) px-3.5 py-1.5 text-[13px] font-semibold text-(--ink) shadow-md transition hover:border-(--accent)"
       >
-        ↓ Latest
+        ↓ 最新回复
       </button>
     </div>
   );

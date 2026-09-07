@@ -1,118 +1,202 @@
 // Copyright 2026 Anthropic PBC
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AgentEvent, MemoryFact, Order } from "./protocol";
+import { AnonymousIdentity, ApiError, browserLock } from "./identity";
+import type { AgentEvent, Conversation, MemoryFact, Order, StoredTurn } from "./protocol";
+export { ApiError } from "./identity";
 
-const SESSION_HEADER = "X-Session-Id";
+export interface PendingChat { requestId: string; message: string; failure?: string; }
 
-/**
- * The client the web app uses; the cart, orders, and memory reads live here too. The
- * session token travels only in the session header. Reads return null on any failure
- * so callers keep their last good state.
- */
 export class AgentApi {
   session: string | null = null;
   readonly base: string;
+  private identity: AnonymousIdentity | null = null;
+  private bootstrap: Promise<string> | null = null;
+  private userId: string | null = null;
 
-  /** `root` is the API's URL; `prefix` the role's route prefix ("/api", "/api/merchant"). */
-  constructor(
-    readonly root: string,
-    prefix: string,
-  ) {
+  constructor(readonly root: string, prefix: string) {
     this.base = `${root}${prefix}`;
   }
 
-  /** Files the API serves by path ("/products/AR-1002.webp"). */
-  assetUrl(path: string | null | undefined): string | null {
-    if (!path) return null;
-    return path.startsWith("/") ? `${this.root}${path}` : path;
+  /** Product images are served by the web origin, not the API origin. */
+  assetUrl(path: string | null | undefined): string | null { return path || null; }
+
+  async initialize(): Promise<string> {
+    if (!this.bootstrap) {
+      this.bootstrap = (async () => {
+        const config = await this.requestOrThrow<{ supabase_url: string; supabase_key: string }>("/config");
+        this.identity = new AnonymousIdentity(config.supabase_url, config.supabase_key);
+        const credential = await this.identity.credential();
+        this.userId = credential.user.id;
+        return this.userId;
+      })().catch((error) => { this.bootstrap = null; throw error; });
+    }
+    return this.bootstrap;
   }
 
-  headers(json = false): Record<string, string> {
+  private async headers(json = false, sessionId = this.session, authenticated = true): Promise<Record<string, string>> {
     const headers: Record<string, string> = {};
-    if (this.session) headers[SESSION_HEADER] = this.session;
+    if (authenticated && sessionId) headers["X-Session-Id"] = sessionId;
     if (json) headers["Content-Type"] = "application/json";
+    if (authenticated && this.identity) headers.Authorization = `Bearer ${(await this.identity.credential()).access_token}`;
     return headers;
+  }
+
+  async requestOrThrow<T>(path: string, init: RequestInit = {}): Promise<T> {
+    const publicPath = /^\/(?:config|health|products)(?:[/?]|$)/.test(path);
+    const headers = { ...await this.headers(Boolean(init.body), this.session, !publicPath), ...init.headers };
+    let response: Response;
+    try {
+      response = await fetch(`${this.base}${path}`, {
+        ...init,
+        signal: init.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000),
+        headers,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") throw error;
+      throw new ApiError(0, "暂时无法连接服务，请稍后重试。");
+    }
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new ApiError(response.status, typeof data.detail === "string" ? data.detail : "请求未完成，请稍后重试。");
+    }
+    return await response.json() as T;
   }
 
   async get<T>(path: string, params?: Record<string, string>): Promise<T | null> {
     const query = params && Object.keys(params).length ? `?${new URLSearchParams(params)}` : "";
-    return this.request<T>(`${path}${query}`, { headers: this.headers() });
+    try { return await this.requestOrThrow<T>(`${path}${query}`); } catch { return null; }
   }
 
-  async post<T>(path: string, body?: unknown): Promise<T | null> {
-    return this.send<T>("POST", path, body);
-  }
-
-  async patch<T>(path: string, body: unknown): Promise<T | null> {
-    return this.send<T>("PATCH", path, body);
-  }
-
-  async delete<T>(path: string, body?: unknown): Promise<T | null> {
-    return this.send<T>("DELETE", path, body);
-  }
+  async post<T>(path: string, body?: unknown): Promise<T | null> { return this.send<T>("POST", path, body); }
+  async patch<T>(path: string, body: unknown): Promise<T | null> { return this.send<T>("PATCH", path, body); }
+  async delete<T>(path: string, body?: unknown): Promise<T | null> { return this.send<T>("DELETE", path, body); }
 
   private async send<T>(method: string, path: string, body?: unknown): Promise<T | null> {
-    return this.request<T>(path, {
-      method,
-      headers: this.headers(body !== undefined),
-      body: body === undefined ? undefined : JSON.stringify(body),
+    try {
+      return await this.requestOrThrow<T>(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
+    } catch { return null; }
+  }
+
+  listConversations(offset = 0): Promise<{ conversations: Conversation[]; has_more: boolean }> {
+    return this.requestOrThrow(`/conversations?offset=${offset}&limit=30`);
+  }
+
+  fetchHistory(id: string, before?: number, signal?: AbortSignal): Promise<{ turns: StoredTurn[]; has_more: boolean }> {
+    const query = new URLSearchParams({ limit: "30" });
+    if (before) query.set("before", String(before));
+    return this.requestOrThrow(`/conversations/${encodeURIComponent(id)}/turns?${query}`, { signal });
+  }
+
+  fetchTurn(id: string, requestId: string, signal?: AbortSignal): Promise<StoredTurn> {
+    return this.requestOrThrow(`/conversations/${encodeURIComponent(id)}/turns/${encodeURIComponent(requestId)}`, { signal });
+  }
+
+  pendingChat(id: string): PendingChat | null {
+    const raw = sessionStorage.getItem(`${this.selectionKey}:${id}:turn`);
+    return raw ? JSON.parse(raw) as PendingChat : null;
+  }
+
+  prepareChat(id: string, message: string): PendingChat {
+    const pending = this.pendingChat(id);
+    if (pending) {
+      if (pending.message !== message) throw new Error("请先确认上一条消息的处理结果。");
+      return pending;
+    }
+    const request = { requestId: crypto.randomUUID(), message };
+    sessionStorage.setItem(`${this.selectionKey}:${id}:turn`, JSON.stringify(request));
+    return request;
+  }
+
+  clearPendingChat(id: string, requestId: string): void {
+    if (this.pendingChat(id)?.requestId === requestId) sessionStorage.removeItem(`${this.selectionKey}:${id}:turn`);
+  }
+
+  notePendingError(id: string, requestId: string, failure: string): void {
+    const pending = this.pendingChat(id);
+    if (pending?.requestId === requestId) sessionStorage.setItem(`${this.selectionKey}:${id}:turn`, JSON.stringify({ ...pending, failure }));
+  }
+
+  private get selectionKey(): string { return `acme.conversation:${this.userId}`; }
+
+  selectConversation(id: string): void {
+    this.session = id;
+    sessionStorage.setItem(this.selectionKey, id);
+    localStorage.setItem(this.selectionKey, id);
+  }
+
+  async createConversation(initial = false): Promise<Conversation> {
+    await this.initialize();
+    const pendingKey = `${this.selectionKey}:${initial ? "initial" : "pending"}`;
+    const storage = initial ? localStorage : sessionStorage;
+    const requestId = storage.getItem(pendingKey) || crypto.randomUUID();
+    storage.setItem(pendingKey, requestId);
+    const result = await this.requestOrThrow<{ conversation: Conversation }>("/conversations", {
+      method: "POST", body: JSON.stringify({ request_id: requestId }),
+    });
+    this.selectConversation(result.conversation.id);
+    if (!initial) storage.removeItem(pendingKey);
+    return result.conversation;
+  }
+
+  async restoreConversation(): Promise<string> {
+    const userId = await this.initialize();
+    return browserLock(`acme.first-conversation:${userId}`, async () => {
+      const chosen = sessionStorage.getItem(this.selectionKey) || localStorage.getItem(this.selectionKey);
+      if (chosen) {
+        try {
+          await this.fetchHistory(chosen);
+          this.selectConversation(chosen);
+          return chosen;
+        } catch (error) {
+          if (!(error instanceof ApiError) || error.status !== 404) throw error;
+        }
+      }
+      const { conversations } = await this.listConversations();
+      const id = conversations[0]?.id ?? (await this.createConversation(true)).id;
+      this.selectConversation(id);
+      return id;
     });
   }
 
-  private async request<T>(path: string, init: RequestInit): Promise<T | null> {
-    try {
-      const response = await fetch(`${this.base}${path}`, init);
-      if (!response.ok) return null;
-      return (await response.json()) as T;
-    } catch {
-      return null;
-    }
-  }
-
-  /** A storefront passes its profile as `{ user_id }` and gets the shopper's name back; a merchant session names its operator. */
-  async startSession(body?: Record<string, unknown>): Promise<{ sessionId: string; operator?: string; shopper?: { name: string; tier?: string } } | null> {
-    const data = await this.post<{ session_id: string; operator?: string; name?: string | null; tier?: string | null }>("/session", body);
-    if (!data?.session_id) return null;
-    const shopper = data.name ? { name: data.name, tier: data.tier ?? undefined } : undefined;
-    return { sessionId: data.session_id, operator: data.operator, shopper };
+  async startSession(): Promise<{ sessionId: string }> {
+    return { sessionId: await this.restoreConversation() };
   }
 
   async fetchMemory(): Promise<MemoryFact[] | null> {
-    const data = await this.get<{ facts?: MemoryFact[] }>("/memory");
-    return data ? (data.facts ?? []) : null;
+    return (await this.get<{ facts: MemoryFact[] }>("/memory"))?.facts ?? null;
   }
-
-  /** The corrected fact, or null when the store refused the value. */
   async editMemoryFact(key: string, value: string): Promise<MemoryFact | null> {
-    const data = await this.patch<{ fact: MemoryFact }>("/memory", { key, value });
-    return data?.fact ?? null;
+    return (await this.patch<{ fact: MemoryFact }>("/memory", { key, value }))?.fact ?? null;
   }
-
   async forgetMemoryFact(key: string): Promise<boolean> {
-    return (await this.delete<{ ok: boolean }>("/memory", { key })) !== null;
+    return (await this.delete<{ ok: boolean }>("/memory", { key }))?.ok ?? false;
   }
+  fetchCart<T>(): Promise<T | null> { return this.get<T>("/cart"); }
+  async fetchOrders(): Promise<Order[] | null> { return (await this.get<{ orders: Order[] }>("/orders"))?.orders ?? null; }
 
-  /** The bag as the vertical's API shapes it (lines, count, subtotal, plus its own extras). */
-  async fetchCart<T>(): Promise<T | null> {
-    return this.get<T>("/cart");
-  }
-
-  /** The signed-in customer's orders, newest first. */
-  async fetchOrders(): Promise<Order[] | null> {
-    const data = await this.get<{ orders: Order[] }>("/orders");
-    return data?.orders ?? null;
-  }
-
-  /** Throws when the request itself fails. */
-  async *chatStream(message: string): AsyncGenerator<AgentEvent> {
-    const response = await fetch(`${this.base}/chat`, {
-      method: "POST",
-      headers: this.headers(true),
-      body: JSON.stringify({ message }),
-    });
-    if (!response.ok || !response.body) throw new Error(`chat request failed: ${response.status}`);
-    yield* readEventStream(response.body);
+  async *chatStream(message: string, requestId: string, sessionId: string, signal: AbortSignal): AsyncGenerator<AgentEvent> {
+    const headers = await this.headers(true, sessionId);
+    let response: Response;
+    try {
+      response = await fetch(`${this.base}/chat`, {
+        method: "POST", headers,
+        body: JSON.stringify({ message, request_id: requestId }), signal,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") throw error;
+      throw new ApiError(0, "连接暂时中断，请确认本轮处理结果后重试。");
+    }
+    if (!response.ok || !response.body) {
+      const data = await response.json().catch(() => ({}));
+      throw new ApiError(response.status, typeof data.detail === "string" ? data.detail : "回复暂时不可用，请稍后重试。");
+    }
+    let settled = false;
+    for await (const event of readEventStream(response.body)) {
+      if (event.type === "turn_complete" || event.type === "error") settled = true;
+      yield event;
+    }
+    if (!settled) throw new Error("连接中断，请刷新历史确认本轮结果，避免重复操作。");
   }
 }
 
@@ -121,7 +205,7 @@ async function* readEventStream(body: ReadableStream<Uint8Array>): AsyncGenerato
   const decoder = new TextDecoder();
   let buffer = "";
   let eventType: string | null = null;
-  while (true) {
+  try { while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
@@ -141,5 +225,8 @@ async function* readEventStream(body: ReadableStream<Uint8Array>): AsyncGenerato
         eventType = null;
       }
     }
+  } } finally {
+    await reader.cancel().catch(() => {});
+    reader.releaseLock();
   }
 }

@@ -4,6 +4,8 @@
 """The mechanisms the shopping agent builds on. Import from the submodules:
 
 ``config``            ``BaseAgentConfig`` and the model defaults
+``context``           bounded working context and conversation summaries
+``search``            Chinese and Latin keyword tokenization
 ``types``             ``MemoryFact``, ``MemoryCategory``, ``ClockContext``
 ``fencing``           ``Fence``, chip and display-text hygiene
 ``memory``            ``MemoryStore``, the write filter, extraction, ``MemoryRuntime``

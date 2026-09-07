@@ -34,12 +34,12 @@ function BudgetBar({ steps }: { steps: PlanPayload["steps"] }) {
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-(--ink-soft)">
         <span>
-          Planned picks <span className="font-semibold text-(--ink)">{formatMoney(total)}</span>
-          {steps.some((step) => step.products.length > 1) ? " (cheapest option per step)" : ""}
+          搭配合计 <span className="font-semibold text-(--ink)">{formatMoney(total)}</span>
+          {steps.some((step) => step.products.length > 1) ? "（每步按最低价选项计算）" : ""}
         </span>
         {withoutItems > 0 ? (
           <span>
-            {withoutItems} step{withoutItems === 1 ? "" : "s"} with no items to show
+            {withoutItems} 个步骤无需商品或尚无可用商品
           </span>
         ) : null}
       </div>
@@ -82,7 +82,7 @@ export default function PlanChecklist({
                   ))}
                 </div>
               ) : partial ? null : (
-                <div className="mt-1 text-[13px] text-(--ink-soft)/80">No items to show for this step.</div>
+                <div className="mt-1 text-[13px] text-(--ink-soft)/80">此步骤暂未关联商品。</div>
               )}
             </div>
           </li>

@@ -77,6 +77,8 @@ export function productTileClass(productId: string): string {
 const STAMPED_ATTRIBUTES = new Set(["delivery", "low_stock"]);
 
 export function attributeChips(product: { attributes?: Record<string, string> }): string[] {
+  const highlights = [product.attributes?.highlight_1, product.attributes?.highlight_2].filter((value): value is string => Boolean(value));
+  if (highlights.length) return highlights;
   return Object.entries(product.attributes ?? {})
     .filter(([key]) => !STAMPED_ATTRIBUTES.has(key))
     .map(([key, value]) => {

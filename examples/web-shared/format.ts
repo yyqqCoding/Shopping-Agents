@@ -11,7 +11,7 @@ export function formatMoney(
   const key = `${currency}:${options.whole ? 0 : 2}`;
   let formatter = moneyFormatters.get(key);
   if (!formatter) {
-    formatter = new Intl.NumberFormat("en-US", {
+    formatter = new Intl.NumberFormat("zh-CN", {
       style: "currency",
       currency,
       maximumFractionDigits: options.whole ? 0 : 2,
@@ -21,7 +21,7 @@ export function formatMoney(
   return formatter.format(value);
 }
 
-const plain = new Intl.NumberFormat("en-US");
+const plain = new Intl.NumberFormat("zh-CN");
 
 export function formatNumber(value: number): string {
   return plain.format(value);
@@ -46,7 +46,7 @@ const ISO_DAY = /\d{4}-\d{2}-\d{2}/g;
 function dayLabel(value: string): string {
   const date = parseDate(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric", year: "numeric" });
 }
 
 /** "Jun 24, 2026"; dates inside a trailing note ("(revised from ...)") are formatted too. */
@@ -61,7 +61,7 @@ export function formatDayMonth(value: string | null | undefined): string {
   if (!value) return "";
   const date = parseDate(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return date.toLocaleDateString("zh-CN", { month: "short", day: "numeric" });
 }
 
 /** "Fri, Aug 21", or "Fri, Jan 2, 2027" outside the current year. */
@@ -70,12 +70,13 @@ export function formatWeekday(value: string | null | undefined): string {
   const date = parseDate(value);
   if (Number.isNaN(date.getTime())) return value;
   const year = date.getFullYear() === new Date().getFullYear() ? undefined : "numeric";
-  return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year });
+  return date.toLocaleDateString("zh-CN", { weekday: "short", month: "short", day: "numeric", year });
 }
 
 /** "1 order", "3 orders". */
 export function plural(count: number, one: string, many = `${one}s`): string {
-  return `${formatNumber(count)} ${count === 1 ? one : many}`;
+  const labels: Record<string, string> = { item: "件商品", order: "笔订单", day: "天", night: "晚", unit: "件", guest: "位" };
+  return `${formatNumber(count)} ${labels[one] ?? (/[\u3400-\u9fff]/.test(one) ? one : count === 1 ? one : many)}`;
 }
 
 /** "12 days of cover", "1 day of cover", "<1 day of cover". */
@@ -101,22 +102,29 @@ export function hasOptions(product: Pick<OptionFields, "options">): boolean {
   return Object.keys(product.options ?? {}).length > 0;
 }
 
+const OPTION_LABELS: Record<string, string> = {
+  twin: "单人", full: "标准双人", queen: "加宽双人", king: "特大号", standard: "标准",
+  ivory: "象牙白", slate: "岩灰色", blush: "浅粉色", sage: "鼠尾草绿",
+  porcelain: "瓷白", sand: "沙色", honey: "蜜色", amber: "琥珀色", chestnut: "栗色", espresso: "深咖色",
+};
+export function optionLabel(value: string): string { return OPTION_LABELS[value] ?? value.replace(/ lb$/, " 磅"); }
+
 /** "twin · full · queen · king", one group per option separated by " / "; empty for a plain product. */
 export function optionSummary(product: Pick<OptionFields, "options">): string {
   return Object.values(product.options ?? {})
-    .map((values) => values.join(" · "))
+    .map((values) => values.map(optionLabel).join(" · "))
     .join(" / ");
 }
 
 /** "king · slate" for a variant or a cart line; empty when nothing was chosen. */
 export function optionValuesLabel(item: Pick<OptionFields, "option_values">): string {
-  return Object.values(item.option_values ?? {}).join(" · ");
+  return Object.values(item.option_values ?? {}).map(optionLabel).join(" · ");
 }
 
 /** "From $349" on a family record, whose price is its lowest variant's; the plain price otherwise. */
 export function priceLabel(product: OptionFields): string {
   const money = formatMoney(product.price, product.currency);
-  return hasOptions(product) ? `From ${money}` : money;
+  return hasOptions(product) ? `${money} 起` : money;
 }
 
 export function titleCase(value: string): string {
@@ -223,12 +231,12 @@ export function describeResolver(change: {
   return null;
 }
 
-/** "Good morning" before noon, "Good afternoon" until six, then "Good evening". */
+/** "上午好" before noon, "下午好" until six, then "晚上好". */
 export function greeting(now: Date): string {
   const hour = now.getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return "上午好";
+  if (hour < 18) return "下午好";
+  return "晚上好";
 }
 
 export interface HandoffLink {

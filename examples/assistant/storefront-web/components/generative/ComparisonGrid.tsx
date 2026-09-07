@@ -6,7 +6,7 @@ import { formatMoney } from "web-shared";
 import type { ComparisonPayload } from "@/lib/types";
 import { ProductImage, ProductTitle, Rating } from "../ProductTile";
 
-const RECOMMENDED_LABEL = "Recommended";
+const RECOMMENDED_LABEL = "推荐";
 
 /** The sign has its own column so text shares a left edge across rows. */
 function TermRow({ sign, text }: { sign: "+" | "−"; text: string }) {
@@ -71,7 +71,7 @@ export default function ComparisonGrid({
               <div>
                 {entry.best_for ? (
                   <div className="rounded-md bg-(--well) px-2 py-1 text-[13px] text-(--ink)">
-                    Best for: {entry.best_for}
+                    适合： {entry.best_for}
                   </div>
                 ) : null}
               </div>
@@ -97,15 +97,15 @@ export default function ComparisonGrid({
       </div>
       {delta ? (
         <p className="mt-3 text-[13px] text-(--ink)">
-          Price difference:{" "}
+          价格差：{" "}
           <span className="font-semibold">{formatMoney(delta.amount)}</span>{" "}
           <span className="text-(--ink-soft)">
-            ({formatMoney(delta.low_price)} vs {formatMoney(delta.high_price)})
+            ({formatMoney(delta.low_price)} 与 {formatMoney(delta.high_price)})
           </span>
         </p>
       ) : null}
       {payload.dimensions?.length ? (
-        <p className="mt-3 text-xs text-(--ink-soft)/80">Compared on: {payload.dimensions.join(" · ")}</p>
+        <p className="mt-3 text-xs text-(--ink-soft)/80">比较维度： {payload.dimensions.join(" · ")}</p>
       ) : null}
     </section>
   );

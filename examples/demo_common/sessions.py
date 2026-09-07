@@ -31,6 +31,8 @@ from typing import Annotated, Any, Generic, TypeVar
 from fastapi import Depends, Header, HTTPException
 from pydantic import BaseModel
 
+from commerce_common.context import WorkingContext
+
 SESSION_HEADER = "X-Session-Id"
 
 StateT = TypeVar("StateT", bound=BaseModel)
@@ -53,6 +55,8 @@ class SessionRecord(Generic[StateT]):
     # Actions taken outside the conversation (a button, a server-side event) since the
     # agent's last reply; the next chat turn hands them to the model as a note.
     pending_app_events: list[str] = field(default_factory=list)
+    working_context: WorkingContext = field(default_factory=WorkingContext)
+    running_turn: str | None = None
     # What the store holds, so ``save`` writes only the difference: the state document's
     # version and content as loaded, and how many of ``messages`` are stored. A turn that
     # rewrote earlier messages sets ``stored_messages`` to 0 and the transcript is written whole.

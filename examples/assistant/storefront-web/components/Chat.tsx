@@ -5,7 +5,7 @@
 
 import type { ReactNode } from "react";
 import { ActivityLine, type AgentTurn, type AssistantChatItem, Chat as ChatShell } from "web-shared";
-import { addToCart } from "@/lib/api";
+import { addToCart, api } from "@/lib/api";
 import type { CartPayload } from "@/lib/types";
 import GenerativeBlock from "./generative";
 
@@ -17,7 +17,7 @@ function Pending({ item }: { item: AssistantChatItem }) {
   if (!searching) return <ActivityLine item={item} />;
   return (
     <section role="status" className="rounded-2xl border border-(--line) bg-(--card) p-3 shadow-(--shadow-sm)">
-      <div className="mb-3 animate-pulse text-[15px] text-(--ink-soft)">{item.activity ?? "Searching the catalog…"}</div>
+      <div className="mb-3 animate-pulse text-[15px] text-(--ink-soft)">{item.activity ?? "正在查找商品…"}</div>
       <div className="flex gap-3 overflow-hidden pb-1">
         {[0, 1, 2, 3].map((slot) => (
           <div
@@ -43,8 +43,9 @@ export default function Chat({ chat, home, onCartUpdate }: { chat: AgentTurn; ho
           block={segment.block}
           status={segment.status}
           onAdd={async (product) => {
+            const conversationId = api.session;
             const cart = await addToCart(product.product_id);
-            if (cart) onCartUpdate(cart);
+            if (cart && api.session === conversationId) onCartUpdate(cart);
             return cart !== null;
           }}
         />

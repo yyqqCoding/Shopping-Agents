@@ -26,7 +26,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -46,8 +46,8 @@ StorefrontRecord = SessionRecord[ShoppingSessionState]
 
 # What the add button is told when a cart gate holds its write.
 _HELD_ADD_TEXT = {
-    PROVENANCE_GATE: "Product not in this session's results",
-    OPTIONS_GATE: "Choose the product's options with the assistant before adding it",
+    PROVENANCE_GATE: "请先在当前对话中查看这件商品",
+    OPTIONS_GATE: "请先选择商品规格，再加入购物车",
 }
 
 
@@ -143,10 +143,12 @@ class StorefrontHost:
             # The result text is written for the model; the button gets its first sentence,
             # or the gate's short reason.
             detail = _HELD_ADD_TEXT.get(execution.blocked or "", execution.result_text)
-            raise HTTPException(status_code=400, detail=detail.split(". ")[0] + ".")
+            if not any("\u3400" <= char <= "\u9fff" for char in detail):
+                detail = "暂时无法加入购物车，请让助手确认商品库存、规格和数量。"
+            raise HTTPException(status_code=400, detail=detail)
         product = record.state.seen_products.get(request.product_id)
         if product is None:
-            raise HTTPException(status_code=400, detail="Product not in this session's results")
+            raise HTTPException(status_code=400, detail="请先让助手在当前对话中查看这件商品。")
         # The title is catalog-authored and the note enters model context unfenced.
         record.pending_app_events.append(
             note.format(
@@ -157,6 +159,40 @@ class StorefrontHost:
         )
         cart = next((e.data.get("cart") for e in execution.events if e.type == "cart_update"), None)
         return {"ok": True, "cart": cart, **self._cart_extras(record)}
+
+
+def install_catalog_routes(
+    app: FastAPI,
+    backend: DemoStorefront,
+    *,
+    product_of: Callable[[str], ProductDetails | None] | None = None,
+    product_detail: Callable[[ProductDetails], dict[str, Any]] | None = None,
+) -> None:
+    read_product = product_of or backend.product
+    detail_of = product_detail or (lambda product: product.model_dump())
+
+    @app.get("/api/products")
+    async def list_products(
+        category: str | None = None,
+        limit: int = Query(24, ge=1, le=100),
+        offset: int = Query(0, ge=0),
+    ) -> dict:
+        products = [product for pid in backend.products if (product := read_product(pid))]
+        if category:
+            products = [product for product in products if product.category == category]
+        page = products[offset : offset + limit]
+        return {
+            "products": [product.model_dump(exclude=set(SUMMARY_EXCLUDES)) for product in page],
+            "has_more": offset + limit < len(products),
+            "total": len(products),
+        }
+
+    @app.get("/api/products/{product_id:path}")
+    async def get_product(product_id: str) -> dict:
+        product = read_product(product_id)
+        if product is None:
+            raise HTTPException(status_code=404, detail="未找到这件商品。")
+        return detail_of(product)
 
 
 def build_storefront_host(
@@ -185,8 +221,7 @@ def build_storefront_host(
         on_startup=[lambda: memory_seeder.seed_at_boot(cast(MemoryStore, agent.memory.store))],
     )
     app = host.app
-    read_product = product_of or backend.product
-    detail_of = product_detail or (lambda product: product.model_dump())
+    install_catalog_routes(app, backend, product_of=product_of, product_detail=product_detail)
     CurrentSession = host.CurrentSession
 
     @app.post("/api/session")
@@ -204,21 +239,6 @@ def build_storefront_host(
     @app.post("/api/chat", dependencies=[Depends(before_turn)] if before_turn else [])
     async def chat(request: ChatRequest, record: CurrentSession) -> StreamingResponse:
         return host.chat(request, record)
-
-    @app.get("/api/products")
-    async def list_products(category: str | None = None, limit: int = 24) -> dict:
-        products = [product for pid in backend.products if (product := read_product(pid))]
-        if category:
-            products = [product for product in products if product.category == category]
-        page = products[: max(1, min(limit, 100))]
-        return {"products": [product.model_dump(exclude=set(SUMMARY_EXCLUDES)) for product in page]}
-
-    @app.get("/api/products/{product_id:path}")  # an id may contain "/"
-    async def get_product(product_id: str) -> dict:
-        product = read_product(product_id)
-        if product is None:
-            raise HTTPException(status_code=404, detail="Product not found")
-        return detail_of(product)
 
     @app.get("/api/cart")
     async def get_cart(record: CurrentSession) -> dict:

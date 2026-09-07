@@ -62,6 +62,7 @@ class SearchFilters(BaseModel):
     min_price: float | None = None
     max_price: float | None = None
     min_rating: float | None = None
+    in_stock: bool | None = None
     attributes: dict[str, str] = Field(default_factory=dict)
     sort: Literal["relevance", "price_asc", "price_desc", "rating"] = "relevance"
 

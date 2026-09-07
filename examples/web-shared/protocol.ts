@@ -108,3 +108,26 @@ export interface AssistantChatItem {
 }
 
 export type ChatItem = UserChatItem | AssistantChatItem;
+
+export interface Conversation {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type HistoryFragment =
+  | { type: "text" | "error"; text: string }
+  | { type: "ui"; block: UIBlock }
+  | { type: "suggestions"; suggestions: string[] };
+
+export interface StoredTurn {
+  id: string;
+  request_id: string;
+  sequence: number;
+  message: string;
+  display: HistoryFragment[];
+  display_version: number;
+  status: "running" | "complete" | "interrupted" | "error";
+  completion: Record<string, unknown>;
+}

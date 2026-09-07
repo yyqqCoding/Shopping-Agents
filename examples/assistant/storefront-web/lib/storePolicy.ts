@@ -1,10 +1,7 @@
-// Copyright 2026 Anthropic PBC
-// SPDX-License-Identifier: Apache-2.0
-
-/** Copied from ../data/policies.json; keep in sync with it. */
+/** Mirrors data/policies.json; these are demonstration terms. */
 export const STORE_POLICY = {
-  returnsShort: "30-day returns",
-  returnsLine: "Most items can be returned within 30 days of delivery for a refund to your original payment method.",
+  returnsShort: "退货条件见商品与政策说明",
+  returnsLine: "多数商品支持送达后 30 天内退货，电子产品、床品和个护等另有条件。",
   freeShippingThreshold: 49,
-  standardShippingEta: "3–5 business days",
+  standardShippingEta: "3–5 个工作日",
 } as const;

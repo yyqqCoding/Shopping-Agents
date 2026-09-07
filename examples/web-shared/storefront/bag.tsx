@@ -43,7 +43,7 @@ export function BagPanel({
         >
           {count}
         </span>
-        <IconButton icon="x" label={`Close ${title.toLowerCase()}`} onClick={closePanel} className="ml-auto xl:hidden" />
+        <IconButton icon="x" label={`关闭${title}`} onClick={closePanel} className="ml-auto xl:hidden" />
       </div>
       <div className="panel-scroll min-h-0 flex-1 overflow-y-auto px-[18px] py-3.5">
         {isEmpty ? (
@@ -57,7 +57,7 @@ export function BagPanel({
   );
 }
 
-/** Subtotal row above the primary action. */
+/** 商品小计 row above the primary action. */
 export function TotalRow({ label, value, note }: { label: string; value: string; note?: ReactNode }) {
   return (
     <div>
@@ -72,10 +72,11 @@ export function TotalRow({ label, value, note }: { label: string; value: string;
 
 /** The hand-off under a panel's primary action or a card: sends one question. */
 export function AskLink({ label, prompt }: { label: string; prompt: string }) {
-  const { ask } = useStoreFrame();
+  const { ask, chat } = useStoreFrame();
   return (
     <button
       type="button"
+      disabled={!!chat && (!chat.ready || chat.busy)}
       onClick={() => ask(prompt)}
       className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-(--accent-ink) transition-colors hover:text-(--accent)"
     >
@@ -101,7 +102,8 @@ export function Stepper({
   /** Called with the new quantity; 0 means remove. */
   onChange: (quantity: number) => void;
 }) {
-  const busy = useStoreFrame().chat?.busy ?? false;
+  const chat = useStoreFrame().chat;
+  const busy = !!chat && (chat.busy || !chat.ready);
   const units = unit ? ` ${unit}${quantity === 1 ? "" : "s"}` : "";
   return (
     <div className="flex items-center rounded-full border border-(--line-strong) bg-(--card)">
@@ -109,7 +111,7 @@ export function Stepper({
         type="button"
         disabled={busy}
         onClick={() => onChange(quantity - 1)}
-        aria-label={unit ? `Fewer ${unit}s for ${itemTitle}` : `Decrease ${itemTitle} quantity`}
+        aria-label={unit ? `减少${itemTitle}的${unit}` : `减少${itemTitle}数量`}
         className="px-2.5 py-0.5 text-sm text-(--ink-soft) hover:text-(--ink) disabled:opacity-40"
       >
         −
@@ -122,7 +124,7 @@ export function Stepper({
         type="button"
         disabled={busy}
         onClick={() => onChange(quantity + 1)}
-        aria-label={unit ? `More ${unit}s for ${itemTitle}` : `Increase ${itemTitle} quantity`}
+        aria-label={unit ? `增加${itemTitle}的${unit}` : `增加${itemTitle}数量`}
         className="px-2.5 py-0.5 text-sm text-(--ink-soft) hover:text-(--ink) disabled:opacity-40"
       >
         +
@@ -132,23 +134,25 @@ export function Stepper({
 }
 
 export function RemoveLink({ itemTitle, onClick }: { itemTitle: string; onClick: () => void }) {
-  const busy = useStoreFrame().chat?.busy ?? false;
+  const chat = useStoreFrame().chat;
+  const busy = !!chat && (chat.busy || !chat.ready);
   return (
     <button
       type="button"
       disabled={busy}
       onClick={onClick}
-      aria-label={`Remove ${itemTitle}`}
+      aria-label={`移除${itemTitle}`}
       className="text-[12px] text-(--ink-soft) underline-offset-2 hover:text-(--danger) hover:underline disabled:opacity-40"
     >
-      Remove
+      移除
     </button>
   );
 }
 
 /** Once the assistant has staged a checkout, the primary action scrolls to that summary instead. */
 export function CheckoutButton({ staged, disabled, prompt }: { staged: boolean; disabled: boolean; prompt: string }) {
-  const { ask } = useStoreFrame();
+  const { ask, chat } = useStoreFrame();
+  disabled = disabled || !!chat && (chat.busy || !chat.ready);
   if (staged && !disabled) {
     return (
       <button
@@ -157,17 +161,17 @@ export function CheckoutButton({ staged, disabled, prompt }: { staged: boolean; 
           const cards = document.querySelectorAll("[data-checkout-card]");
           const card = cards[cards.length - 1];
           if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
-          else ask("Show me the checkout summary again.");
+          else ask("再次展示结算摘要。");
         }}
         className="mt-3 w-full rounded-(--radius) border border-(--line-strong) bg-(--card) py-2.5 text-[14px] font-semibold text-(--ink) transition hover:border-(--accent)"
       >
-        View summary
+        查看摘要
       </button>
     );
   }
   return (
     <button type="button" onClick={() => ask(prompt)} disabled={disabled} className="btn-primary mt-3 w-full">
-      Check out
+      查看结算摘要
     </button>
   );
 }

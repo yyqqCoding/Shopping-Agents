@@ -202,13 +202,10 @@ def stream_turn(
         try:
             sessions.save(record)
         except SessionConflictError:
-            # A button's request wrote the session while the turn streamed. The turn is the
-            # larger write, so it goes in over that version; the note the button queued is lost.
-            record.version = (sessions.read_state(record.session_id) or (0, {}))[0]
             logger.warning(
-                "session %s: a write raced the turn; the turn wins", session_tag(record.session_id)
+                "session %s: stale turn checkpoint refused; newer state retained",
+                session_tag(record.session_id),
             )
-            sessions.save(record)
 
     return StreamingResponse(
         event_stream(),

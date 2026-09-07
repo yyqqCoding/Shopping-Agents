@@ -8,7 +8,9 @@ events.
     python scripts/smoke_chat.py                          # in-process
     python scripts/smoke_chat.py --url http://localhost:8004
 
-Needs Anthropic credentials (the demo's .env); each run costs a few cents.
+Needs Supabase and model configuration. Each run creates an anonymous visitor and
+conversation in the configured project and makes billable model calls. In-process
+mode must not run alongside another API instance using that project.
 """
 
 from __future__ import annotations
@@ -19,8 +21,10 @@ import importlib
 import json
 import sys
 import time
+from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import httpx
 
@@ -30,31 +34,41 @@ SESSION_HEADER = "X-Session-Id"
 
 TURNS: list[dict[str, Any]] = [
     {
-        "message": (
-            "I'm taking my partner and our 6-year-old camping for the first time next month. "
-            "We need a tent — nothing too heavy to deal with, ideally under $250."
-        ),
+        "message": "下个月第一次带家人露营，两位大人和一位 6 岁孩子，需要容易搭建的帐篷，预算 250 美元。",
         "expect_tools": {"search_products"},
         "expect_events": {"ui", "turn_complete"},
     },
     {
-        "message": "Compare the top two options for me — mostly care about space and ease of setup.",
+        "message": "比较前两个选择，我主要关心空间和搭建难度。",
         "expect_tools": set(),
         "expect_events": {"ui", "turn_complete"},
     },
     {
-        "message": "The family one sounds right. Add it to my cart, and remind me what returns look like just in case.",
+        "message": "把更适合家庭的那顶加入购物车，再告诉我退货政策。",
         "expect_tools": {"add_to_cart"},
         "expect_events": {"cart_update", "turn_complete"},
     },
 ]
 
 
-async def start_session(client: httpx.AsyncClient, user_id: str = "demo-user") -> dict[str, str]:
-    """Mint a token and return the header every later request carries."""
-    response = await client.post("/api/session", json={"user_id": user_id})
+async def start_session(client: httpx.AsyncClient) -> dict[str, str]:
+    """Use the browser's public anonymous flow; never impersonate a user id."""
+    response = await client.get("/api/config")
     response.raise_for_status()
-    return {SESSION_HEADER: response.json()["session_id"]}
+    config = response.json()
+    async with httpx.AsyncClient(timeout=15) as auth_client:
+        credential = await auth_client.post(
+            f"{config['supabase_url']}/auth/v1/signup",
+            headers={"apikey": config["supabase_key"]},
+            json={"data": {}},
+        )
+        credential.raise_for_status()
+    headers = {"Authorization": f"Bearer {credential.json()['access_token']}"}
+    response = await client.post(
+        "/api/conversations", json={"request_id": str(uuid4())}, headers=headers
+    )
+    response.raise_for_status()
+    return headers | {SESSION_HEADER: response.json()["session_id"]}
 
 
 async def run_turn(
@@ -62,7 +76,11 @@ async def run_turn(
 ) -> list[dict[str, Any]]:
     events: list[dict[str, Any]] = []
     async with client.stream(
-        "POST", "/api/chat", json={"message": message}, headers=headers, timeout=180.0
+        "POST",
+        "/api/chat",
+        json={"message": message, "request_id": str(uuid4())},
+        headers=headers,
+        timeout=180.0,
     ) as response:
         response.raise_for_status()
         current_event: str | None = None
@@ -114,7 +132,10 @@ async def run_smoke(args: argparse.Namespace, app_module: Any | None) -> int:
             transport=httpx.ASGITransport(app=app_module.app), base_url="http://localhost"
         )
     ok = True
-    async with client:
+    async with AsyncExitStack() as stack:
+        if app_module is not None:
+            await stack.enter_async_context(app_module.app.router.lifespan_context(app_module.app))
+        await stack.enter_async_context(client)
         headers = await start_session(client)
         for index, turn in enumerate(TURNS, start=1):
             print(f"\n[{index}/{len(TURNS)}] user: {turn['message'][:80]}...")
@@ -136,8 +157,6 @@ def main() -> int:
     )
     parser.add_argument("--url", help="base URL of a running demo API; in-process when omitted")
     args = parser.parse_args()
-    # The in-process app is imported before the event loop starts: the demo's main seeds
-    # memory with asyncio.run() at import time.
     app_module = None if args.url else importlib.import_module("assistant.api.main")
     return asyncio.run(run_smoke(args, app_module))
 

@@ -20,8 +20,10 @@ platform for that customer lives with the session, never with the model:
 
 **Treat a guest as a principal.** Mark the session as a guest. When a read needs an account
 (order history, saved addresses), raise an exception your executor subclass turns into "ask
-the customer to sign in". When the guest signs in, start a new session. The demo host
-takes a demo profile id at session start as a stand-in for real sign-in.
+the customer to sign in". When the guest signs in, start a new session. The Chinese demo
+uses verified Supabase anonymous users with no account UI; unowned orders stay unavailable.
+`examples/demo_common/experience.py` checks ownership on every private request, not only
+when the conversation starts. The older profile-based host is for local integrations only.
 
 ## Step 2: Keep multi-step flows in order
 

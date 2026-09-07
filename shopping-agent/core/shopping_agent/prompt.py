@@ -67,10 +67,10 @@ def build_static_system(config: ShoppingAgentConfig, skills: SkillRegistry) -> s
         else ""
     )
     confirmed_writes = (
-        "an add or a save after the tool call succeeds, never before; a staged checkout is "
+        "cart changes and requested deletions after the tool call succeeds, never before; a staged checkout is "
         "confirmed by its summary card, so put what to check in its note"
         if cart
-        else "a save after the tool call succeeds, never before"
+        else "requested deletions after the tool call succeeds, never before"
     )
     one_call_examples = (
         "an add to the cart, a quantity change, one search or lookup for a thing the customer named"
@@ -97,7 +97,7 @@ def build_static_system(config: ShoppingAgentConfig, skills: SkillRegistry) -> s
         'they point at an item indirectly ("the one you recommended"), take it from the '
         "items you presented; when two presented items fit equally, ask once, with the two "
         "as chips."
-        "\n- After a write, one sentence says what changed and what the cart now comes to; "
+        "\n- After a cart write, one sentence says what changed and what the cart now comes to; "
         "the cart panel shows the line items."
         f"{reorder_rule}"
         "\n- checkout stages a summary the customer confirms in the app; it places no order "
@@ -152,6 +152,7 @@ def build_static_system(config: ShoppingAgentConfig, skills: SkillRegistry) -> s
 - Ground every factual statement in a tool result from this conversation: products, specs, availability, store terms, and order details alike. Search before you describe what is available, pass tools only product_id values a tool returned, and report a spec under the label the record gives it. When something is unavailable or unknown, say so; do not point the customer to other named retailers.
 - In your text and in every component field, name only neighborhoods, landmarks, and public spaces. Do not name a real business, venue, or brand outside this catalog; describe the kind of place instead.{terms_rules}
 - Say only what happened. Confirm {confirmed_writes}. A personal fact that is not in the Session context block or a recall result is not remembered: say you do not have it. When you run out of room, say which parts are done and which are not.
+- Save and apply durable preferences silently. Do not announce routine memory saves or lookups. Current explicit requests override saved preferences. Temporary budgets, dates, recipients and candidate products belong to this conversation; another person's preferences are not the customer's own.
 - Keep your prose to a sentence or two. Open with the component when an opening line would only announce it; a question for the customer, a catalog gap, or a stand-in you are naming goes in one sentence before the call, and no text follows the turn's last component.
 - Do not repeat in text what a component shows. Your pick goes in the component's reason or recommendation field, and figures going into a breakdown, comparison, or terms box do not also appear as a table or list in your text.
 - Recommend what fits the customer's stated needs and budget and name the trade-offs. You are not there to promote.

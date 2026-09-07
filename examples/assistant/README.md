@@ -1,54 +1,40 @@
-# assistant — the shopping agent, chat-only
+# ACME 中文购物助手
 
-The shopping agent's full feature set (every tool, skill, memory, and generative card)
-over the mock retail catalog in `data/`, hosted for a single chat page with none of the
-store chrome. This is the page to open when showing someone what the shopping agent does.
+一个打开即可体验的购物 Agent：中文对话、商品检索与比较、购物计划、模拟购物车和结算。浏览器自动建立 Supabase 匿名身份，不提供账号登录页面。每位访问者有自己的历史和长期偏好，同一访问者的新对话使用独立购物车和短期上下文。
 
-    python scripts/run_demo.py            # API :8004 + web :3004
-    python scripts/run_demo.py --fresh-memory
+## 运行
 
-## Layout
+先安装仓库依赖，按 [部署说明](../../docs/deployment.md#中文体验站) 启用 Supabase 匿名访问、执行迁移并填写根目录 `.env`。然后运行：
 
-- `api/main.py` — one FastAPI process: `MockRetail` (`api/mock_retail.py`, a
-  `StorefrontBackend` over the fixtures in `data/`) + `ShoppingAgent` + demo_common's
-  shared storefront host and the direct add-to-cart route. Memory is file-backed under
-  `data/` (gitignored) and seeded once per user from `data/memory-seed.json`.
-- `storefront-web/` — one Next.js page on `web-shared`'s `StoreShell`: the conversation
-  with the six shopping generative cards, the cart panel, and the Activity inspector
-  (tool trace + memory). The product photos live in `storefront-web/public/products/`
-  and the app serves them directly. `lib/api.ts` points at the API
-  (`NEXT_PUBLIC_API_URL`, default `http://localhost:8004`).
+```bash
+python scripts/run_demo.py --no-install     # API :8004，页面 :3004
+```
 
-## Try
+页面通过同源 `/api` 访问后端，开发代理由 `API_INTERNAL_URL` 指定。公网使用 [deploy](../../deploy/) 的 HTTPS 代理和一个 API worker。无需 Supabase 时只能浏览公开商品，不能创建共享演示身份来代替真实隔离。
 
-- "A tent for a first family camping trip, under $250" — search, product cards, add to cart
-- "Compare the two you like most" — comparison card with the server's price delta
-- "Plan the whole trip" — plan card with per-step products and the budget bar
-- "Where is my order?" — order status card with the delivery rail
-- "Remember I'm usually a size medium" — then open the avatar sheet to see (and edit) memory
-- "Check out my cart" — the staged checkout summary; nothing is charged
+## 文件与接口
 
-## Your own API or gateway
+- `api/main.py` 组合 `ShoppingAgent`、`MockRetail` 和 `demo_common.experience`，读取模型与 Supabase 配置。
+- `api/mock_retail.py` 查询虚构商品与政策；购物车通过 `demo_common.persistence.PersistentCarts` 保存。
+- `data/catalog.json` 包含 87 个中文主商品和 21 个规格变体。`content-zh.json` 是中文内容源，`evidence.json` 保存一致的模拟价格与评价，`policies.json` 包含配送、退货与选购指南。
+- `storefront-web/` 使用 `web-shared` 的匿名身份、会话历史和流式组件，提供购物车与六种购物卡片；不展示记忆面板或读写进度。
+- `public/products/` 保留现有照片，来源见目录中的 `IMAGE-CREDITS.md`。新增图片尚未生成，`data/image-prompts.json` 只记录待生成素材要求。
 
-The agent's client is the Anthropic SDK, which reads `ANTHROPIC_BASE_URL`,
-`ANTHROPIC_API_KEY`, and `ANTHROPIC_AUTH_TOKEN` from the environment (or a `.env` here or
-at the repo root — the repo's `.env.example` lists every knob) — pointing the demo at
-your own endpoint needs no code change. This demo's `.env` files take precedence over
-ambient `ANTHROPIC_*` variables already in the shell, so a machine-wide export (another
-tool's gateway) cannot shadow the demo's configuration. The endpoint must speak the
-Anthropic Messages
-API: the SDK posts to `{ANTHROPIC_BASE_URL}/v1/messages` with SSE streaming, so write
-the base URL without `/v1`. An OpenAI-format endpoint (`/v1/chat/completions`) does not
-work; a multi-format gateway must expose its Anthropic-compatible endpoint. Everything
-the agent sends (prompt-caching markers, `eager_input_streaming`, `thinking`) is
-ordinary request JSON.
+数据重新固化与校验：
 
-    # examples/assistant/.env
-    ANTHROPIC_BASE_URL=https://your-gateway.example.com
-    ANTHROPIC_AUTH_TOKEN=sk-...        # Bearer token; or ANTHROPIC_API_KEY for x-api-key
-    SHOPPING_MODEL=claude-sonnet-5     # only when the gateway serves its own model ids
-    SHOPPING_MEMORY_MODEL=claude-haiku-4-5
-    SHOPPING_THINKING_EFFORT=low       # low, medium, high, xhigh, max, or off
+```bash
+python scripts/prepare_catalog.py
+python scripts/prepare_catalog.py --check
+```
 
-`SHOPPING_MEMORY_MODEL` runs the post-turn memory extraction; when it names a model the
-gateway doesn't serve, chat still works but nothing new is remembered.
+主数据仍使用 JSON；Supabase 只保存身份、对话、购物车、长期记忆及处理进度。旧的本地记忆文件保留，不导入匿名用户。
+
+## 体验场景
+
+- 为两个人规划周末露营，预算 250 美元，需要帐篷与配套用品。
+- 比较两个候选商品，说明价格、规格和适用场景的差异。
+- 为小空间配置办公桌面，优先调整最影响日常使用的部分。
+- 在一段对话里表达稳定的材质或颜色偏好，再新建对话体验推荐；后台提取完成前，新偏好可能尚未生效。
+- 查看购物车和结算摘要。结算不创建订单、扣款或发货。
+
+模型、记忆提取与长对话摘要都使用 Anthropic Messages API。网关必须支持 `/v1/messages` 和 SSE；`SHOPPING_MODEL` 与 `SHOPPING_MEMORY_MODEL` 都须在该网关可用。协议和部署参数见 [部署说明](../../docs/deployment.md)。

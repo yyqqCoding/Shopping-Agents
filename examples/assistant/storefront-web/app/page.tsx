@@ -4,16 +4,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { type AgentEvent, formatMoney, StoreShell, type StoreView, useAgentTurn, useSession } from "web-shared";
+import { type AgentEvent, Conversations, formatMoney, StoreShell, type StoreView, useAgentTurn, useSession } from "web-shared";
 import CartPanel from "@/components/CartPanel";
 import Chat from "@/components/Chat";
 import HomeView from "@/components/HomeView";
 import { api, UNREACHABLE } from "@/lib/api";
-import type { CartPayload } from "@/lib/types";
+import type { CartPayload, CheckoutPayload } from "@/lib/types";
 
 type View = "assistant";
 
-const ASSISTANT = "ACME Assistant";
+const ASSISTANT = "ACME 购物助手";
 
 function Wordmark() {
   return (
@@ -22,7 +22,7 @@ function Wordmark() {
         A
       </span>
       <span className="text-[17px] font-bold tracking-[-0.02em] text-(--ink)">ACME</span>
-      <span className="hidden text-[13px] font-medium text-(--ink-soft) sm:inline">Assistant</span>
+      <span className="hidden text-[13px] font-medium text-(--ink-soft) sm:inline">购物助手</span>
     </span>
   );
 }
@@ -31,31 +31,46 @@ export default function AssistantPage() {
   const session = useSession(api);
   const [view, setView] = useState<View>("assistant");
   const [cart, setCart] = useState<CartPayload | null>(null);
-  // A staged checkout owns the panel's primary action until the cart changes again.
-  const [checkoutStaged, setCheckoutStaged] = useState(false);
+  const [cartError, setCartError] = useState(false);
+  const [cartReload, setCartReload] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
 
   const handleCartUpdate = useCallback((next: CartPayload) => {
     setCart(next);
-    setCheckoutStaged(false);
+    setCartError(false);
   }, []);
 
   const onEvent = useCallback(
     (event: AgentEvent) => {
       if (event.type === "cart_update") handleCartUpdate(event.data.cart as CartPayload);
-      else if (event.type === "ui" && event.data.component === "checkout") setCheckoutStaged(true);
     },
     [handleCartUpdate],
   );
 
-  const chat = useAgentTurn(api, { ...session, unreachable: UNREACHABLE, onEvent });
+  const chat = useAgentTurn(api, { sessionId: session.sessionId, unreachable: UNREACHABLE, onEvent, onTurnEnd: session.refresh });
 
   useEffect(() => {
-    if (session.sessionId) void api.fetchCart<CartPayload>().then((next) => next && setCart(next));
+    setCart(null);
+    setCartError(false);
   }, [session.sessionId]);
 
-  const views: StoreView<View>[] = [{ id: "assistant", label: "Assistant", icon: "spark" }];
-  const shopper = session.shopper ?? { name: "Guest" };
+  useEffect(() => {
+    let current = true;
+    if (session.sessionId) void api.fetchCart<CartPayload>().then((next) => {
+      if (!current) return;
+      if (next) setCart(next);
+      setCartError(!next);
+    });
+    return () => { current = false; };
+  }, [session.sessionId, chat.completed, cartReload]);
+
+  const lastCheckout = chat.items.flatMap((item) => item.kind === "assistant" ? item.segments : [])
+    .filter((segment) => segment.type === "ui" && segment.status === "final" && segment.block.component === "checkout").at(-1);
+  const stagedCart = lastCheckout?.type === "ui" ? (lastCheckout.block.payload as CheckoutPayload).cart : null;
+  const cartKey = (value: CartPayload) => `${value.currency}:${value.items.map((item) => `${item.product_id}:${item.price}:${item.quantity}`).sort().join("|")}`;
+  const checkoutStaged = !!(cart && stagedCart && cartKey(cart) === cartKey(stagedCart));
+
+  const views: StoreView<View>[] = [{ id: "assistant", label: "购物助手", icon: "spark" }];
   const count = cart?.item_count ?? 0;
 
   return (
@@ -65,17 +80,22 @@ export default function AssistantPage() {
       view={view}
       onViewChange={setView}
       chat={chat}
-      api={api}
       assistantName={ASSISTANT}
-      shopper={shopper}
-      bag={{ label: "Cart", count, noun: "item", figure: count ? formatMoney(cart?.subtotal ?? 0, cart?.currency) : null }}
+      headerActions={<Conversations session={session} busy={chat.busy} />}
+      bag={{ label: "购物车", count, noun: "件商品", figure: count ? formatMoney(cart?.subtotal ?? 0, cart?.currency) : null }}
       panel={<CartPanel cart={cart} checkoutStaged={checkoutStaged} />}
       panelOpen={panelOpen}
       onPanelOpenChange={setPanelOpen}
-      placeholder="Ask about a product, a project, an order…"
+      placeholder="告诉我你想买什么，或正在规划什么…"
+      banner={session.error || chat.historyError || cartError ? (
+        <div role="status" className="flex items-center justify-center gap-3 bg-(--warn-soft) px-4 py-2 text-sm text-(--warn)">
+          {session.error || chat.historyError || "购物车暂时无法读取，请重试。"}
+          <button type="button" className="shrink-0 underline" disabled={chat.busy} onClick={session.error ? session.retry : chat.historyError ? (chat.pendingRetry ? chat.retryPending : chat.reloadHistory) : () => setCartReload((n) => n + 1)}>{chat.pendingRetry && !session.error ? "重试发送" : "重试"}</button>
+        </div>
+      ) : null}
     >
       <div className="h-full">
-        <Chat chat={chat} onCartUpdate={handleCartUpdate} home={<HomeView shopperName={shopper.name} />} />
+        <Chat chat={chat} onCartUpdate={handleCartUpdate} home={<HomeView />} />
       </div>
     </StoreShell>
   );

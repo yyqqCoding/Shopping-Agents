@@ -1,15 +1,16 @@
 # Copyright 2026 Anthropic PBC
 # SPDX-License-Identifier: Apache-2.0
 
-"""The full verification loop: lint, format check, pytest, the web build, and (with
---live) a scripted conversation against the API.
+"""The verification loop: lint, format, catalog validation, pytest, Node tests,
+the web build, and (with --live) a scripted conversation against the API.
 
     python scripts/verify_all.py            # everything that runs without API access
     python scripts/verify_all.py --live     # adds the live smoke conversation
     python scripts/verify_all.py --skip-web # no node available
 
-Steps run cheapest first and in the interpreter that runs this script; the loop exits
-non-zero if any step failed. The live step uses the ambient credentials.
+Steps run cheapest first, using --python or this script's interpreter. The loop exits
+non-zero if any step failed. Dependencies must already be installed; the live step
+uses the ambient credentials.
 """
 
 from __future__ import annotations
@@ -23,9 +24,8 @@ import time
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PYTHON = sys.executable
 EXAMPLES = REPO_ROOT / "examples"
-NEXT = EXAMPLES / "node_modules" / ".bin" / "next"
+NEXT = EXAMPLES / "node_modules" / "next" / "dist" / "bin" / "next"
 
 
 class Step:
@@ -42,9 +42,15 @@ class Step:
 
     def run(self) -> bool:
         started = time.perf_counter()
-        merged_env = {**os.environ, **(self.env or {})}
+        merged_env = {**os.environ, "PYTHONIOENCODING": "utf-8", **(self.env or {})}
         result = subprocess.run(
-            self.cmd, cwd=self.cwd, env=merged_env, capture_output=True, text=True
+            self.cmd,
+            cwd=self.cwd,
+            env=merged_env,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         self.duration = time.perf_counter() - started
         self.passed = result.returncode == 0
@@ -58,37 +64,52 @@ def main() -> int:
     parser.add_argument(
         "--live", action="store_true", help="include steps that call the Anthropic API"
     )
-    parser.add_argument("--skip-web", action="store_true", help="skip the web build")
+    parser.add_argument("--skip-web", action="store_true", help="skip Node tests and the web build")
+    parser.add_argument("--python", default=sys.executable, help="Python interpreter for checks")
     args = parser.parse_args()
 
     steps: list[Step] = [
-        Step("lint (ruff check)", [PYTHON, "-m", "ruff", "check", "."]),
-        Step("format (ruff format --check)", [PYTHON, "-m", "ruff", "format", "--check", "."]),
-        Step("tests (pytest)", [PYTHON, "-m", "pytest", "-q"]),
+        Step("lint (ruff check)", [args.python, "-m", "ruff", "check", "."]),
+        Step("format (ruff format --check)", [args.python, "-m", "ruff", "format", "--check", "."]),
+        Step("catalog validation", [args.python, "scripts/prepare_catalog.py", "--check"]),
+        Step("tests (pytest)", [args.python, "-m", "pytest", "-q"]),
     ]
 
     if not args.skip_web:
-        if shutil.which("npm"):
-            if not NEXT.exists():
-                steps.append(
-                    Step(
-                        "web workspace deps (npm ci)",
-                        ["npm", "ci", "--no-audit", "--no-fund"],
-                        cwd=EXAMPLES,
-                    )
-                )
-            steps.append(
-                Step(
-                    "assistant storefront-web (next build)",
-                    [str(NEXT), "build"],
-                    cwd=EXAMPLES / "assistant" / "storefront-web",
-                )
+        node = shutil.which("node")
+        if not node or not NEXT.exists():
+            print(
+                "Web checks need Node.js and installed workspace dependencies; use --skip-web to omit."
             )
-        else:
-            print("note: npm not found; skipping the web build (use --skip-web to silence)")
+            return 1
+        steps.append(
+            Step(
+                "browser identity and history (node test)",
+                [
+                    node,
+                    "--import",
+                    "./web-shared/tests/register.mjs",
+                    "--test",
+                    *map(str, sorted((EXAMPLES / "web-shared" / "tests").glob("*.test.mjs"))),
+                ],
+                cwd=EXAMPLES,
+            )
+        )
+        steps.append(
+            Step(
+                "assistant storefront-web (next build)",
+                [node, str(NEXT), "build"],
+                cwd=EXAMPLES / "assistant" / "storefront-web",
+                env={
+                    "NEXT_TELEMETRY_DISABLED": "1",
+                    "NEXT_IGNORE_INCORRECT_LOCKFILE": "1",
+                    "SHOPPING_STANDALONE": "1",
+                },
+            )
+        )
 
     if args.live:
-        steps.append(Step("live smoke conversation", [PYTHON, "scripts/smoke_chat.py"]))
+        steps.append(Step("live smoke conversation", [args.python, "scripts/smoke_chat.py"]))
 
     print(f"verify_all: {len(steps)} steps\n")
     failures = []

@@ -147,6 +147,7 @@ class BaseToolExecutor:
             **self.handlers(),
             "save_memory": self._save_memory,
             "recall_memories": self._recall_memories,
+            "forget_memory": self._forget_memory,
         }
 
     # -- role hooks -------------------------------------------------------------
@@ -264,6 +265,9 @@ class BaseToolExecutor:
 
     async def _recall_memories(self, tool_input: dict[str, Any]) -> ToolOutcome:
         return await self._memory.recall(self.memory_subject, tool_input)
+
+    async def _forget_memory(self, tool_input: dict[str, Any]) -> ToolOutcome:
+        return await self._memory.forget(self.memory_subject, tool_input)
 
     async def _run_delegate(
         self, delegate: DelegateExtension, tool_input: dict[str, Any]

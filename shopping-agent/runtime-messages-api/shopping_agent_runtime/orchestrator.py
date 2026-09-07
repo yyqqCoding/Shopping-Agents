@@ -16,6 +16,7 @@ and memory extracted once the reply is out.
 from __future__ import annotations
 
 import asyncio
+import copy
 import logging
 import time
 from collections.abc import AsyncIterator, Sequence
@@ -24,6 +25,7 @@ from typing import Any, cast
 
 from anthropic import AsyncAnthropic
 
+from commerce_common.context import WorkingContext, fit_context
 from commerce_common.grounding import first_forced_tool
 from commerce_common.memory import MemoryRuntime, MemoryStore, MemoryWriteFilter
 from commerce_common.presentation import (
@@ -123,11 +125,26 @@ class ShoppingAgent:
         messages: list[dict[str, Any]],
         session: ShoppingSessionContext,
         state: ShoppingSessionState | None = None,
+        *,
+        archive: list[dict[str, Any]] | None = None,
+        working_context: WorkingContext | None = None,
     ) -> AsyncIterator[AgentEvent]:
         """Run one turn. ``messages`` ends with the user's message and is extended in
         place with the turn's assistant messages and tool results, so the host stores it
         as is; ``state`` carries the session's provenance and comes back on every turn."""
         state = state if state is not None else ShoppingSessionState()
+        # Callers without a context checkpoint keep their full message list. A summary
+        # must never remove history whose replacement that host has nowhere to save.
+        working_messages = messages if working_context is not None else copy.deepcopy(messages)
+        working_context = working_context if working_context is not None else WorkingContext()
+
+        def append(message: dict[str, Any]) -> None:
+            messages.append(message)
+            if working_messages is not messages:
+                working_messages.append(copy.deepcopy(message))
+            if archive is not None:
+                archive.append(copy.deepcopy(message))
+
         turn_started = time.monotonic()
         preferences, cart, memory_facts, account = await self._prefetch(session)
         # The second system block, built once per turn: the same bytes across the turn's
@@ -141,7 +158,6 @@ class ShoppingAgent:
             account=account,
             account_max_chars=self.config.max_context_chars,
         )
-        system = build_system_blocks(self._static_system, context)
         executor = self.executor_class(
             backend=self.backend,
             config=self.config,
@@ -172,11 +188,27 @@ class ShoppingAgent:
                 else:
                     tool_choice = {"type": "auto"}
 
+                fitted = await fit_context(
+                    working_messages,
+                    working_context,
+                    client=self.client,
+                    model=self.config.memory_model,
+                    fixed=[self._static_system, context, self._tools],
+                    budget=(
+                        self.config.context_window_tokens
+                        - self.config.max_tokens
+                        - self.config.context_reserve_tokens
+                    ),
+                    keep_turns=self.config.context_recent_turns,
+                    timeout=self.config.context_summary_timeout_s,
+                )
+                system = build_system_blocks(self._static_system, context + working_context.block())
+
                 # The marker is skipped on non-auto rounds: tool_choice keys the cached
                 # messages span, so an entry written under a forced round is unreadable
                 # by the auto rounds that follow.
                 request_messages = build_request_messages(
-                    messages,
+                    fitted,
                     rolling_breakpoint=(
                         self.config.rolling_conversation_cache and tool_choice["type"] == "auto"
                     ),
@@ -236,7 +268,7 @@ class ShoppingAgent:
                     accumulate_usage(usage, response)
                     last_prompt = prompt_tokens(response)
                     if reply is not None:
-                        messages.append(reply)
+                        append(reply)
                     if not tool_uses or force_text:
                         break
 
@@ -254,7 +286,7 @@ class ShoppingAgent:
                 for block, outcome in calls:
                     for event in outcome_events(block.name, block.id, outcome):
                         yield event
-                messages.append(
+                append(
                     {
                         "role": "user",
                         "content": [
@@ -269,7 +301,10 @@ class ShoppingAgent:
                     stop_reason = "end_turn"
                     break
         finally:
+            before_close = len(messages)
             close_open_tool_uses(messages, settled)
+            if archive is not None:
+                archive.extend(copy.deepcopy(messages[before_close:]))
 
         cleared = compact_history(
             messages, last_prompt, self.config.compact_history_above_tokens, session.session_id

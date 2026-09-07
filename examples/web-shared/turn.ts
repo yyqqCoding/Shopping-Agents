@@ -11,13 +11,13 @@ import {
   useRef,
   useState,
 } from "react";
-import type { AgentApi } from "./api";
+import { ApiError, type AgentApi, type PendingChat } from "./api";
 import type {
   AgentEvent,
   AssistantChatItem,
   AssistantSegment,
   ChatItem,
-  MemoryFact,
+  StoredTurn,
   ToolCallData,
   TraceEntry,
   UIBlock,
@@ -35,8 +35,7 @@ const MAX_QUEUE = 8;
 const STRUCTURAL_KEYS = ["items", "entries", "steps", "days", "sections", "metrics"] as const;
 /** Consumed here; never reaches an app's component registry. */
 const CHIPS_COMPONENT = "suggestions";
-/** Grace for the memory extractor before the store is re-read. */
-const MEMORY_REREAD_MS = 2500;
+
 
 function structuralCount(block: UIBlock): number {
   const payload = block.payload as Record<string, unknown>;
@@ -96,11 +95,34 @@ export interface AgentTurn {
   completed: number;
   streaming: boolean;
   trace: TraceEntry[];
-  memory: MemoryFact[];
-  /** Keys changed since the page's first read of the store. */
-  newMemoryKeys: ReadonlySet<string>;
-  /** Re-reads the store after the shopper edits or forgets a fact; that key stops counting as new. */
-  reloadMemory: (editedKey: string) => void;
+  historyError: string | null;
+  historyLoading: boolean;
+  pendingRetry: boolean;
+  retryPending: () => Promise<void>;
+  hasEarlier: boolean;
+  loadEarlier: () => Promise<void>;
+  reloadHistory: () => void;
+
+}
+
+/** Restore display fragments without replaying events or tool side effects. */
+export function historyItems(turns: StoredTurn[]): ChatItem[] {
+  return turns.flatMap((turn): ChatItem[] => {
+    const segments: AssistantSegment[] = [];
+    let suggestions: string[] = [];
+    for (const [index, fragment] of turn.display.entries()) {
+      if (fragment.type === "suggestions") suggestions = fragment.suggestions;
+      else if (fragment.type === "ui") segments.push({ type: "ui", block: fragment.block, slotKey: `${turn.id}-${index}`, status: "final" });
+      else segments.push(fragment);
+    }
+    if (["interrupted", "error"].includes(turn.status) && !segments.some((s) => s.type === "error")) {
+      segments.push({ type: "error", text: "上一轮回复未完成，已完成的操作仍然保留。" });
+    }
+    return [
+      { kind: "user", text: turn.message },
+      { kind: "assistant", turn: turn.sequence, segments, suggestions, pending: turn.status === "running", tools: [] },
+    ];
+  });
 }
 
 export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTurn {
@@ -109,9 +131,17 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
   const [busy, setBusy] = useState(false);
   const [turnState, setTurnState] = useState({ turnCount: 0, completed: 0, streaming: false });
   const [trace, setTrace] = useState<TraceEntry[]>([]);
-  const [memory, setMemory] = useState<MemoryFact[]>([]);
-  const [newMemoryKeys, setNewMemoryKeys] = useState<ReadonlySet<string>>(() => new Set());
-  const memoryBaseline = useRef<Map<string, string> | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyReady, setHistoryReady] = useState(false);
+  const [pendingRetry, setPendingRetry] = useState(false);
+  const [hasEarlier, setHasEarlier] = useState(false);
+  const [reload, setReload] = useState(0);
+  const oldest = useRef<number | undefined>(undefined);
+  const generation = useRef(0);
+  const controller = useRef<AbortController | null>(null);
+  const sending = useRef(false);
+  const loadingEarlier = useRef(false);
   const turnRef = useRef(0);
   const slotsRef = useRef<Map<string, Slot>>(new Map());
   const slotByStream = useRef<Map<string, string>>(new Map());
@@ -146,23 +176,89 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
     setTrace((previous) => [...previous, { ...entry, at: performance.now() }]);
   }, []);
 
-  const readMemory = useCallback((editedKey?: string) => {
-    void api.fetchMemory().then((facts) => {
-      if (facts === null) return;
-      const baseline = (memoryBaseline.current ??= new Map(facts.map((f) => [f.key, f.value])));
-      // A fact the shopper corrected or forgot on the page is not something the assistant learned.
-      const edited = facts.find((f) => f.key === editedKey);
-      if (editedKey) edited ? baseline.set(editedKey, edited.value) : baseline.delete(editedKey);
-      setMemory(facts);
-      const changed = facts.filter((f) => baseline.get(f.key) !== f.value).map((f) => f.key);
-      setNewMemoryKeys(new Set(changed));
-    });
-  }, [api]);
-
-  // The read before the first turn is the baseline for newMemoryKeys.
   useEffect(() => {
-    if (sessionId) readMemory();
-  }, [sessionId, readMemory]);
+    const current = ++generation.current;
+    controller.current?.abort();
+    controller.current = new AbortController();
+    clearTimers();
+    sending.current = false;
+    loadingEarlier.current = false;
+    oldest.current = undefined;
+    setBusy(false);
+    setHistoryReady(false);
+    setHistoryError(null);
+    setPendingRetry(false);
+    setHasEarlier(false);
+    setItems([]);
+    setTrace([]);
+    setTurnState({ turnCount: 0, completed: 0, streaming: false });
+    let poll: number | undefined;
+    const hydrate = async () => {
+      if (!sessionId) { setHistoryLoading(false); return; }
+      setHistoryLoading(true);
+      try {
+        const result = await api.fetchHistory(sessionId, undefined, controller.current?.signal);
+        const pending = api.pendingChat(sessionId);
+        let unresolved = false;
+        let pendingRunning = false;
+        if (pending) {
+          let stored = result.turns.find((t) => t.request_id === pending.requestId);
+          if (!stored) {
+            try { stored = await api.fetchTurn(sessionId, pending.requestId, controller.current?.signal); }
+            catch (error) {
+              if (!(error instanceof ApiError) || error.status !== 404) throw error;
+            }
+          }
+          if (stored && stored.status !== "running") api.clearPendingChat(sessionId, pending.requestId);
+          else if (stored) pendingRunning = true;
+          else unresolved = true;
+        }
+        if (current !== generation.current) return;
+        setItems(historyItems(result.turns));
+        turnRef.current = result.turns.at(-1)?.sequence ?? 0;
+        oldest.current = result.turns[0]?.sequence;
+        setHasEarlier(result.has_more);
+        setTurnState({ turnCount: turnRef.current, completed: result.turns.filter((t) => t.status === "complete").length, streaming: false });
+        const running = pendingRunning || result.turns.some((t) => t.status === "running");
+        setPendingRetry(unresolved);
+        setHistoryReady(!running && !unresolved);
+        setHistoryError(running ? "上一轮仍在处理中，完成后会自动更新。" : unresolved ? (pending?.failure ?? "上一条消息尚未确认发送，请重试这条消息。") : null);
+        if (running) poll = window.setTimeout(() => void hydrate(), 3000);
+      } catch (error) {
+        if (current === generation.current) setHistoryError(error instanceof Error ? error.message : "历史暂时无法读取，请重试。");
+      } finally {
+        if (current === generation.current) setHistoryLoading(false);
+      }
+    };
+    void hydrate();
+    return () => {
+      generation.current++;
+      controller.current?.abort();
+      window.clearTimeout(poll);
+      clearTimers();
+    };
+  }, [api, sessionId, reload, clearTimers]);
+
+  const loadEarlier = useCallback(async () => {
+    if (!sessionId || !oldest.current || historyLoading || loadingEarlier.current) return;
+    const current = generation.current;
+    loadingEarlier.current = true;
+    setHistoryLoading(true);
+    try {
+      const result = await api.fetchHistory(sessionId, oldest.current, controller.current?.signal);
+      if (current !== generation.current) return;
+      setItems((items) => [...historyItems(result.turns), ...items]);
+      oldest.current = result.turns[0]?.sequence ?? oldest.current;
+      setHasEarlier(result.has_more);
+    } catch (error) {
+      if (current === generation.current) setHistoryError(error instanceof Error ? error.message : "历史暂时无法读取。");
+    } finally {
+      if (current === generation.current) {
+        loadingEarlier.current = false;
+        setHistoryLoading(false);
+      }
+    }
+  }, [api, sessionId, historyLoading]);
 
   const commit = useCallback(
     (turn: number, slot: Slot, block: UIBlock, status: UISlotStatus) => {
@@ -355,7 +451,7 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
           const tool = String(data.tool ?? "tool");
           const input = data.input ?? {};
           // The model's own line for the call when it carries one, else the stock copy.
-          const label = typeof data.label === "string" ? data.label.trim() : "";
+          const label = typeof data.label === "string" && /[\u3400-\u9fff]/.test(data.label) ? data.label.trim() : "";
           updateTurn(turn, (item) => ({
             ...item,
             tools: [...item.tools, tool],
@@ -413,11 +509,11 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
           const message = String(event.data.message ?? "").trim();
           if (!message) return;
           progressToolRef.current = event.data.tool ? String(event.data.tool) : null;
-          updateTurn(turn, (item) => ({ ...item, activity: message }));
+          updateTurn(turn, (item) => ({ ...item, activity: /[\u3400-\u9fff]/.test(message) ? message : describeToolCall(String(event.data.tool ?? ""), {}) }));
           return;
         }
         case "error": {
-          const text = String(event.data.message ?? "Something went wrong.");
+          const text = String(event.data.message ?? "回复暂时失败，请重试。");
           updateTurn(turn, (item) => ({
             ...item,
             segments: [...item.segments, { type: "error", text }],
@@ -433,7 +529,8 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
   );
 
   const runTurn = useCallback(
-    async (userText: string, events: AsyncIterable<AgentEvent>) => {
+    async (userText: string, events: AsyncIterable<AgentEvent>, current: number): Promise<boolean> => {
+      let completed = false;
       const turn = ++turnRef.current;
       const startedAt = performance.now();
       clearTimers();
@@ -450,9 +547,11 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
       ]);
       try {
         for await (const event of events) {
+          if (current !== generation.current) return false;
           if (event.type === "turn_complete") {
+            completed = true;
             const usage = (event.data.usage ?? {}) as Record<string, number>;
-            const n = (value?: number) => (value ?? 0).toLocaleString("en-US");
+            const n = (value?: number) => (value ?? 0).toLocaleString("zh-CN");
             appendTrace({
               kind: "turn_complete",
               turn,
@@ -467,54 +566,86 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
             handleEvent(turn, event);
           }
         }
-      } catch {
-        updateTurn(turn, (item) =>
-          item.segments.length
-            ? item
-            : { ...item, segments: [{ type: "error", text: unreachable }] },
-        );
+      } catch (error) {
+        if (current !== generation.current) return false;
+        const message = error instanceof Error && /[\u3400-\u9fff]/.test(error.message) ? error.message : unreachable;
+        const pending = sessionId ? api.pendingChat(sessionId) : null;
+        if (sessionId && pending) api.notePendingError(sessionId, pending.requestId, message);
+        updateTurn(turn, (item) => ({ ...item, segments: [...item.segments, { type: "error", text: message }] }));
       } finally {
-        // Partials freeze as they are; unadopted skeletons and failed slots go at turn end.
+        if (current !== generation.current) return false;
+        // Only server-validated final cards survive a settled or interrupted stream.
         flush(turn);
         updateTurn(turn, (item) => ({
           ...item,
           pending: false,
           activity: undefined,
-          segments: item.segments
-            .filter((s) => s.type !== "ui" || (s.status !== "pending" && s.status !== "retrying"))
-            .map((s) =>
-              s.type === "ui" && s.status === "partial" ? { ...s, status: "final" } : s,
-            ),
+          segments: item.segments.filter((s) => s.type !== "ui" || s.status === "final"),
         }));
-        setTurnState((state) => ({ turnCount: turn, completed: state.completed + 1, streaming: false }));
+        setTurnState((state) => ({ turnCount: turn, completed: state.completed + (completed ? 1 : 0), streaming: false }));
         callbacks.current.onTurnEnd?.(turn);
       }
+      return completed;
     },
-    [appendTrace, clearTimers, flush, handleEvent, unreachable, updateTurn],
+    [api, sessionId, appendTrace, clearTimers, flush, handleEvent, unreachable, updateTurn],
   );
 
-  const send = useCallback(
-    async (text: string) => {
-      const message = text.trim();
-      if (!message || busy || !sessionId) return;
+  const transmit = useCallback(
+    async (request: PendingChat) => {
+      if (sending.current || !sessionId) return;
+      const current = generation.current;
+      const abort = new AbortController();
+      controller.current = abort;
+      sending.current = true;
       setBusy(true);
-      await runTurn(message, api.chatStream(message));
-      setBusy(false);
-      window.setTimeout(() => readMemory(), MEMORY_REREAD_MS);
+      try {
+        const complete = await runTurn(request.message, api.chatStream(request.message, request.requestId, sessionId, abort.signal), current);
+        if (complete) {
+          api.clearPendingChat(sessionId, request.requestId);
+          if (current === generation.current) {
+            setHistoryReady(true);
+            setPendingRetry(false);
+            setHistoryError(null);
+          }
+        }
+        else if (current === generation.current) {
+          setHistoryReady(false);
+          setReload((n) => n + 1);
+        }
+      } finally {
+        if (current === generation.current) { sending.current = false; setBusy(false); }
+      }
     },
-    [api, busy, sessionId, runTurn, readMemory],
+    [api, sessionId, runTurn],
   );
+
+  const send = useCallback(async (text: string) => {
+    const message = text.trim();
+    if (!message || sending.current || !sessionId || !historyReady) return;
+    try { await transmit(api.prepareChat(sessionId, message)); }
+    catch (error) { setHistoryError(error instanceof Error ? error.message : unreachable); }
+  }, [api, sessionId, historyReady, transmit, unreachable]);
+
+  const retryPending = useCallback(async () => {
+    if (!sessionId || !pendingRetry || sending.current) return;
+    const pending = api.pendingChat(sessionId);
+    if (pending) await transmit(pending);
+  }, [api, sessionId, pendingRetry, transmit]);
 
   return {
     items,
     setItems,
-    ready: sessionId != null,
+    ready: sessionId != null && historyReady,
     busy,
     send,
     ...turnState,
     trace,
-    memory,
-    newMemoryKeys,
-    reloadMemory: readMemory,
+    historyError,
+    historyLoading,
+    pendingRetry,
+    retryPending,
+    hasEarlier,
+    loadEarlier,
+    reloadHistory: () => setReload((n) => n + 1),
   };
 }

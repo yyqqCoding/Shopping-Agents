@@ -55,7 +55,9 @@ export function useStickToBottom(
       stickRef.current = true;
       setStuck(true);
     }
-    if (stickRef.current && (busy || !onlyWhileBusy)) scrollToBottom(appended ? "smooth" : "auto");
+    // With no transcript items the panel shows the home view; pinning it to the
+    // bottom would crop its heading, so following only starts once items exist.
+    if (stickRef.current && items.length > 0 && (busy || !onlyWhileBusy)) scrollToBottom(appended ? "smooth" : "auto");
     previousHeight.current = node?.scrollHeight ?? 0;
   }, [items, busy, onlyWhileBusy, scrollToBottom]);
 

@@ -45,7 +45,6 @@ export default function EquipmentDetail({
             priority
             sizes="(max-width: 760px) 100vw, 55vw"
           />
-          <span>原创商品示意图</span>
         </div>
         <div className="detail-copy">
           <p className="detail-category">{full.attributes?.category_label}</p>
@@ -94,9 +93,6 @@ export default function EquipmentDetail({
                 ? "当前暂时缺货，可向助手了解替代装备。"
                 : "当前可选 · 具体数量由助手确认"
               : "目录展示 · 库存以助手确认为准"}
-          </p>
-          <p className="detail-disclaimer">
-            虚构商品与参数，用于选品体验。结算不创建订单或扣款。
           </p>
         </div>
       </div>

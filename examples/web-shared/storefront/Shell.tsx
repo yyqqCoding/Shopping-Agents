@@ -121,7 +121,7 @@ export function StoreShell<V extends string>({
           <header className="workspace-header">
             <button type="button" className="workspace-icon-button mobile-navigation-button" aria-label="打开历史对话" aria-expanded={mobileNavigation} onClick={openNavigation}><Icon name="sidebar" size={22} /></button>
             {collapsed ? <button type="button" className="workspace-icon-button desktop-navigation-button" aria-label="展开侧边栏" onClick={toggleSidebar}><Icon name="sidebar" size={22} /></button> : null}
-            <div className="workspace-heading"><span>{assistantName}</span><h1 title={conversationTitle}>{conversationTitle}</h1></div>
+            <div className="workspace-heading"><h1 title={conversationTitle}>{conversationTitle}</h1></div>
             {views.length > 1 ? <nav aria-label="页面导航">{views.map((item) => <button type="button" key={item.id} aria-current={item.id === view ? "page" : undefined} onClick={() => onViewChange(item.id)}>{item.label}</button>)}</nav> : null}
             <div className="workspace-header-actions">{headerActions}</div>
           </header>
@@ -129,7 +129,6 @@ export function StoreShell<V extends string>({
           <main className="min-h-0 flex-1">{children}</main>
           <div ref={dock} className="composer-dock">
             <Composer send={ask} ready={chat.ready} busy={chat.busy} prefill={composerPrefill} label={`向${assistantName}提问`} placeholder={placeholder} className="conversation-column" />
-            <p className="composer-note">装备参数与商品为虚构体验数据，结算不下单或扣款。</p>
           </div>
           <button type="button" data-cart-target className="floating-cart" aria-label={`打开${bag.label}，共 ${bag.count} ${bag.noun}`} aria-haspopup="dialog" aria-expanded={panelOpen} onClick={openCart}>
             <Icon name="cart" size={26} />

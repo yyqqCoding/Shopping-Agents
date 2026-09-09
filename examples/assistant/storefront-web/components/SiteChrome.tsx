@@ -36,18 +36,21 @@ export function SiteHeader({
         <OutdoorMark className="outdoor-mark" />
         <span>户外装备助手</span>
       </Link>
-      <nav aria-label="主导航">
-        <Link href="/#journeys">探索出行</Link>
+      <nav aria-label="主导航" className="site-header-center">
+        <Link href="/#journeys">出行场景</Link>
+        <Link href="/#how-it-works">如何准备</Link>
         <Link
           href="/equipment"
           aria-current={active === "equipment" ? "page" : undefined}
         >
           装备目录
         </Link>
+      </nav>
+      <div className="site-header-side">
         <Link href="/chat" className="nav-assistant">
           开始准备 <Arrow diagonal />
         </Link>
-      </nav>
+      </div>
     </header>
   );
 }
@@ -60,13 +63,13 @@ export function SiteFooter() {
           <span>户外装备助手</span>
         </Link>
         <p>准备得刚刚好，出发得更从容。</p>
-        <Link href="/chat">
-          聊聊下一程 <Arrow diagonal />
-        </Link>
-      </div>
-      <div className="footer-bottom">
-        <span>徒步 · 露营 · 轻量出行</span>
-        <span>原创生成影像 · 虚构商品体验 · 结算不下单、不扣款</span>
+        <nav aria-label="页脚导航">
+          <Link href="/#journeys">出行场景</Link>
+          <Link href="/equipment">装备目录</Link>
+          <Link href="/chat">
+            聊聊下一程 <Arrow diagonal />
+          </Link>
+        </nav>
       </div>
     </footer>
   );

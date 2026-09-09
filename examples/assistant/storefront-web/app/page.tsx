@@ -4,6 +4,8 @@ import { assistantLink } from "@/lib/navigation";
 import { SiteHeader, SiteFooter, Arrow } from "@/components/SiteChrome";
 import EquipmentCard from "@/components/EquipmentCard";
 import {
+  DawnCanvas,
+  HeroPrompt,
   LandingMotion,
   PackingStory,
   TripEntry,
@@ -50,32 +52,24 @@ export default function WelcomePage() {
       <LandingMotion />
       <SiteHeader overlay />
       <main id="main-content" className="editorial-home">
-        <section className="field-hero" aria-labelledby="hero-title" data-reveal>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="field-hero-image"
-            src="/images/hero.webp"
-            alt="晨光照进层叠山谷，草地上停着一顶帐篷"
-            fetchPriority="high"
-            width={1536}
-            height={1024}
-          />
-          <div className="field-hero-shade" />
-          <div className="field-hero-copy">
-            <h1 id="hero-title">
-              把下一程，
-              <br />
-              交给<span>山野。</span>
+        <section className="dawn-hero" aria-labelledby="hero-title">
+          <DawnCanvas />
+          <div className="dawn-hero-veil" aria-hidden="true" />
+          <div className="dawn-hero-copy">
+            <h1 id="hero-title" data-hero="title">
+              <span>把下一程，</span>
+              <span>交给山野。</span>
             </h1>
-            <p>
-              把出发前的准备，交给我们。
-              <br />
-              聊行程、挑装备，一起配好你的出行清单。
+            <p data-hero="sub">
+              告诉助手你的行程、人数和预算，
+              装备清单一起准备好。
             </p>
-            <Link className="field-button field-button-lime" href="/chat">
-              准备我的下一程 <Arrow diagonal />
-            </Link>
+            <HeroPrompt />
           </div>
+          <a className="dawn-hero-cue" href="#journeys" data-hero="cue">
+            向下，看看怎么准备
+            <Arrow />
+          </a>
         </section>
         <section className="journeys-section section-wrap" id="journeys" data-reveal>
           <div className="section-heading section-heading-stacked">
@@ -90,12 +84,14 @@ export default function WelcomePage() {
               先选个场景，我们从这里聊起。
             </p>
           </div>
-          <div className="journey-grid" data-reveal>
-            {journeys.map((journey) => (
+          <div className="journey-grid">
+            {journeys.map((journey, index) => (
               <Link
                 href={assistantLink(journey.prompt)}
                 className={`journey journey-${journey.image}`}
                 key={journey.image}
+                data-reveal
+                data-reveal-delay={index === 0 ? undefined : index}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -168,7 +164,6 @@ export default function WelcomePage() {
           <div className="comparison-preview">
             <div className="comparison-preview-head">
               <span>双人帐篷 · 参数对照</span>
-              <span>虚构商品</span>
             </div>
             <table>
               <caption className="sr-only">

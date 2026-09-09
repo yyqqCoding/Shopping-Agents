@@ -6,6 +6,413 @@ import { assistantLink } from "@/lib/navigation";
 import { ProductImage } from "./ProductTile";
 import { Arrow } from "./SiteChrome";
 
+/*
+ * The dawn scene is drawn, not filmed: layered ridge silhouettes breathe on slow
+ * sine drift, mist bands wander between them, and warm motes rise through the
+ * light. One canvas, one rAF loop, paused offscreen; reduced motion gets a
+ * single still frame.
+ */
+
+type RidgeLayer = {
+  base: number; // vertical anchor, fraction of scene height
+  amp: number; // silhouette amplitude, fraction of scene height
+  fill: string;
+  drift: number; // sideways wander, px/s at 1x depth
+  depth: number; // pointer parallax weight
+  morph: number; // temporal breathing speed
+  octaves: [number, number, number][]; // [freq, phase, weight]
+};
+
+function seededRandom(seed: number) {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+const SCENE_LAYERS: RidgeLayer[] = (() => {
+  const rand = seededRandom(20260909);
+  const make = (
+    base: number,
+    amp: number,
+    fill: string,
+    drift: number,
+    depth: number,
+    morph: number,
+  ): RidgeLayer => ({
+    base,
+    amp,
+    fill,
+    drift,
+    depth,
+    morph,
+    octaves: [0, 1, 2].map(() => [
+      0.0016 + rand() * 0.0034,
+      rand() * Math.PI * 2,
+      0.35 + rand() * 0.65,
+    ]),
+  });
+  return [
+    make(0.42, 0.11, "#c3d4cb", 2.4, 4, 0.016),
+    make(0.52, 0.14, "#9db8aa", 3.6, 9, 0.02),
+    make(0.63, 0.16, "#6f9483", 5.2, 16, 0.024),
+    make(0.75, 0.18, "#41695a", 7.4, 26, 0.03),
+    make(0.9, 0.2, "#1c3d31", 10, 40, 0.036),
+  ];
+})();
+
+const MOTE_COUNT = 42;
+
+export function DawnCanvas({ className = "" }: { className?: string }) {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let raf = 0;
+    let active = false;
+    let time = 14; // open on a composed frame, not the origin
+    let last = 0;
+    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
+
+    let sky: CanvasGradient | null = null;
+    let mistSprite: HTMLCanvasElement | null = null;
+    let moteSprite: HTMLCanvasElement | null = null;
+
+    const rand = seededRandom(418);
+    const motes = Array.from({ length: MOTE_COUNT }, () => ({
+      x: rand(),
+      y: rand(),
+      size: 1.5 + rand() * 3.4,
+      rise: 5 + rand() * 9,
+      sway: 8 + rand() * 22,
+      phase: rand() * Math.PI * 2,
+      depth: 0.3 + rand() * 0.7,
+    }));
+
+    function buildSprites() {
+      mistSprite = document.createElement("canvas");
+      mistSprite.width = 256;
+      mistSprite.height = 64;
+      const mistCtx = mistSprite.getContext("2d");
+      if (mistCtx) {
+        const gradient = mistCtx.createRadialGradient(128, 32, 4, 128, 32, 128);
+        gradient.addColorStop(0, "rgba(255, 253, 246, 0.85)");
+        gradient.addColorStop(0.55, "rgba(255, 253, 246, 0.32)");
+        gradient.addColorStop(1, "rgba(255, 253, 246, 0)");
+        mistCtx.fillStyle = gradient;
+        mistCtx.fillRect(0, 0, 256, 64);
+      }
+      moteSprite = document.createElement("canvas");
+      moteSprite.width = 32;
+      moteSprite.height = 32;
+      const moteCtx = moteSprite.getContext("2d");
+      if (moteCtx) {
+        const gradient = moteCtx.createRadialGradient(16, 16, 0.5, 16, 16, 16);
+        gradient.addColorStop(0, "rgba(255, 238, 196, 0.95)");
+        gradient.addColorStop(0.4, "rgba(255, 226, 164, 0.45)");
+        gradient.addColorStop(1, "rgba(255, 226, 164, 0)");
+        moteCtx.fillStyle = gradient;
+        moteCtx.fillRect(0, 0, 32, 32);
+      }
+    }
+
+    function ridgeY(layer: RidgeLayer, x: number, t: number) {
+      const drifted = x + t * layer.drift;
+      let offset = 0;
+      layer.octaves.forEach(([freq, phase, weight], index) => {
+        const breathe =
+          index === 1 ? Math.sin(t * layer.morph + phase) * 0.35 : 0;
+        offset += Math.sin(drifted * freq + phase + breathe) * weight;
+      });
+      return height * layer.base - offset * height * layer.amp * 0.5;
+    }
+
+    function draw(t: number) {
+      if (!ctx || !sky) return;
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, width, height);
+
+      // Morning sun: a warm presence high right, breathing very slowly.
+      const sunX = width * 0.7 + pointer.x * -18;
+      const sunY = height * 0.24 + pointer.y * -10;
+      const sunRadius = Math.max(width, height) * (0.52 + Math.sin(t * 0.05) * 0.02);
+      const glow = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunRadius);
+      glow.addColorStop(0, "rgba(255, 236, 190, 0.9)");
+      glow.addColorStop(0.28, "rgba(255, 226, 168, 0.38)");
+      glow.addColorStop(1, "rgba(255, 226, 168, 0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, width, height);
+
+      // One soft light shaft leaning out of the sun.
+      ctx.save();
+      ctx.translate(sunX, sunY);
+      ctx.rotate(0.42);
+      const shaft = ctx.createLinearGradient(0, 0, 0, height * 1.2);
+      shaft.addColorStop(0, "rgba(255, 240, 205, 0.20)");
+      shaft.addColorStop(1, "rgba(255, 240, 205, 0)");
+      ctx.fillStyle = shaft;
+      ctx.fillRect(-width * 0.06, 0, width * 0.12, height * 1.4);
+      ctx.restore();
+
+      SCENE_LAYERS.forEach((layer, index) => {
+        const shiftX = pointer.x * layer.depth;
+        const shiftY = pointer.y * layer.depth * 0.4;
+        ctx.beginPath();
+        ctx.moveTo(-60, height + 60);
+        for (let x = -60; x <= width + 60; x += 7) {
+          ctx.lineTo(x, ridgeY(layer, x, t) + shiftY);
+        }
+        ctx.lineTo(width + 60, height + 60);
+        ctx.closePath();
+        ctx.save();
+        ctx.translate(shiftX * 0.4, 0);
+        ctx.fillStyle = layer.fill;
+        ctx.fill();
+        ctx.restore();
+
+        // Mist drifts in the valley in front of every ridge but the nearest.
+        // The wrap span runs fully off-screen on both sides so the loop never pops.
+        if (mistSprite && index < SCENE_LAYERS.length - 1) {
+          const bandY = height * layer.base + Math.sin(t * 0.07 + index) * 6;
+          const span = width * 2.2 + 600;
+          const bandX =
+            ((t * (9 + index * 5) + index * 320) % span) - width * 0.6 - 300;
+          const alpha = 0.34 + Math.sin(t * 0.11 + index * 2.1) * 0.12;
+          ctx.globalAlpha = Math.max(alpha, 0.12);
+          ctx.drawImage(
+            mistSprite,
+            bandX - width * 0.5,
+            bandY - height * 0.075,
+            width * 1.1,
+            height * 0.15,
+          );
+          ctx.globalAlpha = 1;
+        }
+      });
+
+      // Light motes rising through the air.
+      if (moteSprite) {
+        for (const mote of motes) {
+          const y =
+            (((mote.y * height - t * mote.rise) % (height + 80)) +
+              height +
+              80) %
+            (height + 80);
+          const x =
+            mote.x * width +
+            Math.sin(t * 0.3 + mote.phase) * mote.sway +
+            pointer.x * 26 * mote.depth;
+          const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 0.8 + mote.phase * 3));
+          ctx.globalAlpha = twinkle * 0.8;
+          const size = mote.size * 4;
+          ctx.drawImage(moteSprite, x - size / 2, y - 40 - size / 2, size, size);
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function frame(now: number) {
+      if (!active) return;
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      time += dt;
+      pointer.x += (pointer.tx - pointer.x) * 0.045;
+      pointer.y += (pointer.ty - pointer.y) * 0.045;
+      draw(time);
+      raf = requestAnimationFrame(frame);
+    }
+
+    function start() {
+      if (active || reduced.matches) return;
+      active = true;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+
+    function stop() {
+      active = false;
+      cancelAnimationFrame(raf);
+    }
+
+    function resize() {
+      const element = ref.current;
+      if (!element) return;
+      const rect = element.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(rect.width, 1);
+      height = Math.max(rect.height, 1);
+      element.width = Math.round(width * dpr);
+      element.height = Math.round(height * dpr);
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sky = ctx
+        ? (() => {
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, "#dcebe7");
+            gradient.addColorStop(0.38, "#eef0e4");
+            gradient.addColorStop(0.62, "#f8ecd4");
+            gradient.addColorStop(1, "#f4e3c2");
+            return gradient;
+          })()
+        : null;
+      if (reduced.matches) draw(time);
+    }
+
+    buildSprites();
+    resize();
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas);
+
+    const viewObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) start();
+        else stop();
+      },
+      { threshold: 0 },
+    );
+    viewObserver.observe(canvas);
+
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else start();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    const onPointer = (event: PointerEvent) => {
+      pointer.tx = (event.clientX / window.innerWidth - 0.5) * 2;
+      pointer.ty = (event.clientY / window.innerHeight - 0.5) * 2;
+    };
+    window.addEventListener("pointermove", onPointer, { passive: true });
+
+    const onPreference = () => {
+      if (reduced.matches) {
+        stop();
+        draw(time);
+      } else {
+        start();
+      }
+    };
+    reduced.addEventListener("change", onPreference);
+    onPreference();
+
+    return () => {
+      stop();
+      resizeObserver.disconnect();
+      viewObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pointermove", onPointer);
+      reduced.removeEventListener("change", onPreference);
+    };
+  }, []);
+
+  return <canvas ref={ref} className={`dawn-canvas ${className}`} aria-hidden="true" />;
+}
+
+const PROMPT_EXAMPLES = [
+  "两人周末自驾露营一晚，预算 2000 元，帮我配帐篷和睡眠装备…",
+  "准备一天的近郊徒步，已有徒步鞋，预算 700 元，想轻便一点…",
+  "想去山里的营地看日出，夜间最低 5°C，需要保暖与照明建议…",
+];
+
+/**
+ * The liquid-glass entry card. The placeholder itself types and erases example
+ * trips until the visitor writes their own; an empty submit carries the
+ * example currently on display.
+ */
+export function HeroPrompt() {
+  const [draft, setDraft] = useState("");
+  const [example, setExample] = useState("");
+  const exampleIndex = useRef(0);
+  const engaged = useRef(false);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setExample(PROMPT_EXAMPLES[0]);
+      return;
+    }
+    let timer = 0;
+    let char = 0;
+    let deleting = false;
+    const tick = () => {
+      if (engaged.current) return;
+      const full = PROMPT_EXAMPLES[exampleIndex.current];
+      char += deleting ? -1 : 1;
+      setExample(full.slice(0, char));
+      let delay = deleting ? 26 : 88;
+      if (!deleting && char === full.length) {
+        delay = 2600;
+        deleting = true;
+      } else if (deleting && char === 0) {
+        deleting = false;
+        exampleIndex.current = (exampleIndex.current + 1) % PROMPT_EXAMPLES.length;
+        delay = 420;
+      }
+      timer = window.setTimeout(tick, delay);
+    };
+    timer = window.setTimeout(tick, 700);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const engage = () => {
+    engaged.current = true;
+  };
+
+  return (
+    <form
+      action="/chat"
+      className="hero-prompt"
+      data-hero="card"
+      onSubmit={(event) => {
+        // An untouched submit starts from the example on display.
+        if (draft.trim()) return;
+        event.preventDefault();
+        window.location.href = assistantLink(example);
+      }}
+    >
+      <label htmlFor="hero-draft" className="sr-only">
+        描述你的下一程
+      </label>
+      <textarea
+        id="hero-draft"
+        name="draft"
+        rows={2}
+        maxLength={1200}
+        value={draft}
+        placeholder={example}
+        onChange={(event) => setDraft(event.target.value)}
+        onFocus={engage}
+        onKeyDown={(event) => {
+          if (
+            event.key === "Enter" &&
+            !event.shiftKey &&
+            !event.nativeEvent.isComposing
+          ) {
+            event.preventDefault();
+            event.currentTarget.form?.requestSubmit();
+          }
+        }}
+      />
+      <div className="hero-prompt-bar">
+        <span className="hero-prompt-hint">行程、人数、预算，随便从哪说起</span>
+        <button type="submit" aria-label="带着这段行程进入助手">
+          <Arrow />
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export function TripEntry() {
   return (
     <form action="/chat" className="trip-entry">
@@ -22,10 +429,10 @@ export function TripEntry() {
           <Arrow />
         </button>
       </div>
-      <p>先说个大概，剩下的一起慢慢挑。</p>
     </form>
   );
 }
+
 const steps = [
   {
     title: "先把行程说清楚。",
@@ -43,6 +450,7 @@ const steps = [
     tags: ["装备组合", "清楚的取舍", "继续调整"],
   },
 ];
+
 export function PackingStory({ products }: { products: ProductDetails[] }) {
   const [step, setStep] = useState(0);
   const sections = useRef<(HTMLDivElement | null)[]>([]);
@@ -142,10 +550,15 @@ export function PackingStory({ products }: { products: ProductDetails[] }) {
     </section>
   );
 }
+
+/**
+ * Reveal-on-scroll, the header state flip, and the hero's scroll drift:
+ * the copy rises out of view a touch slower than the scene recedes.
+ */
 export function LandingMotion() {
   useEffect(() => {
     const header = document.querySelector<HTMLElement>(".site-header-overlay");
-    const hero = document.querySelector<HTMLElement>(".field-hero");
+    const hero = document.querySelector<HTMLElement>(".dawn-hero");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     document.documentElement.classList.add("motion-ready");
     const revealObserver = new IntersectionObserver(
@@ -172,11 +585,24 @@ export function LandingMotion() {
       : null;
     if (hero && headerObserver) headerObserver.observe(hero);
 
+    let raf = 0;
+    const drift = () => {
+      raf = 0;
+      if (!hero || reduced.matches) return;
+      const progress = Math.min(window.scrollY / window.innerHeight, 1);
+      hero.style.setProperty("--hero-drift", progress.toFixed(4));
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(drift);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
     const onPreference = () => {
       if (reduced.matches) {
         document.querySelectorAll("[data-reveal]").forEach((element) => {
           element.classList.add("is-visible");
         });
+        hero?.style.setProperty("--hero-drift", "0");
       }
     };
     onPreference();
@@ -185,6 +611,8 @@ export function LandingMotion() {
       reduced.removeEventListener("change", onPreference);
       revealObserver.disconnect();
       headerObserver?.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
       document.documentElement.classList.remove("motion-ready");
     };
   }, []);

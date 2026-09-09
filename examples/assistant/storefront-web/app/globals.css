@@ -190,18 +190,6 @@ button.ac-reveal:nth-child(4) {
   color: var(--ink-soft);
 }
 
-/* The composer's focus ring wraps the dock. */
-form:has(> button[aria-label="发送"]) {
-  transition:
-    border-color 180ms,
-    box-shadow 220ms;
-}
-form:has(> button[aria-label="发送"]):focus-within {
-  box-shadow:
-    var(--shadow),
-    0 0 0 4px var(--accent-soft);
-}
-
 /* Plan budget segments, warm and muted. */
 .plan-seg-0 {
   background: #376e54;
@@ -651,12 +639,6 @@ button:not(:disabled) {
 .workspace-heading {
   min-width: 0;
 }
-.workspace-heading > span {
-  display: block;
-  margin-bottom: 2px;
-  color: var(--ink-soft);
-  font-size: 1rem;
-}
 .workspace-heading > h1 {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -686,13 +668,6 @@ button:not(:disabled) {
   top: -22px;
   height: 22px;
   background: linear-gradient(transparent, var(--ground));
-}
-.composer-note {
-  margin: 9px 0 0;
-  text-align: center;
-  color: var(--ink-soft);
-  font-size: 0.9375rem;
-  line-height: 1.5;
 }
 .floating-cart {
   position: absolute;
@@ -820,10 +795,6 @@ button:not(:disabled) {
 @media (max-width: 700px) {
   .composer-dock {
     padding: 8px 14px calc(10px + env(safe-area-inset-bottom));
-  }
-  .composer-note {
-    font-size: 0.875rem;
-    margin-top: 8px;
   }
   .floating-cart {
     bottom: calc(var(--composer-height, 105px) + 13px);

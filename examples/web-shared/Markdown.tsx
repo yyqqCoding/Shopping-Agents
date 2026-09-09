@@ -25,7 +25,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
     }
     if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
       return (
-        <code key={key} className="rounded bg-(--well) px-1 font-mono text-[13px]">
+        <code key={key} className="rounded bg-(--well) px-1 font-mono text-[0.85em]">
           {part.slice(1, -1)}
         </code>
       );
@@ -47,12 +47,12 @@ function Table({ rows, id }: { rows: string[]; id: string }) {
   const body = (hasHeader ? rows.slice(2) : rows).map(splitRow);
   return (
     <div className="panel-scroll my-2 overflow-x-auto rounded-lg border border-(--line)">
-      <table className="w-full border-collapse text-left text-[13px]">
+      <table className="w-full border-collapse text-left text-[15px]">
         {header ? (
           <thead>
             <tr className="border-b border-(--line) bg-(--well)/70">
               {header.map((cell, i) => (
-                <th key={i} className="px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-(--ink-soft)">
+                <th key={i} className="px-2.5 py-1.5 text-[13px] font-bold tracking-wide text-(--ink-soft)">
                   {renderInline(cell, `${id}-h${i}`)}
                 </th>
               ))}
@@ -103,7 +103,7 @@ export function Markdown({ text }: { text: string }) {
       quote = [];
       blocks.push(
         <div key={`q-${at}`} className="my-1.5">
-          <blockquote className="border-l-2 border-(--line) pl-2.5 text-[13px] italic leading-relaxed text-(--ink-soft)">
+          <blockquote className="border-l-2 border-(--line) pl-2.5 text-[15px] italic leading-relaxed text-(--ink-soft)">
             {lines.map((line, i) => (
               <p key={i}>{renderInline(line, `q-${at}-${i}`)}</p>
             ))}

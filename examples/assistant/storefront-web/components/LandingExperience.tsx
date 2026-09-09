@@ -167,7 +167,7 @@ export function LandingMotion() {
           ([entry]) => {
             header?.classList.toggle("is-scrolled", !entry.isIntersecting);
           },
-          { threshold: 0, rootMargin: "-88px 0px 0px 0px" },
+          { threshold: 0, rootMargin: "-140px 0px 0px 0px" },
         )
       : null;
     if (hero && headerObserver) headerObserver.observe(hero);

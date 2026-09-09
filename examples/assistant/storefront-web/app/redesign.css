@@ -186,7 +186,14 @@ body {
 }
 
 .journeys-section {
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: max(24px, calc((100vw - 1240px) / 2));
   padding-block: clamp(96px, 12vw, 176px) 120px;
+}
+
+.journeys-section.section-wrap {
+  width: 100%;
 }
 
 .journey-grid {
@@ -996,6 +1003,7 @@ body {
   }
 
   .journeys-section {
+    padding-inline: 24px;
     padding-block: 88px 80px;
   }
 
@@ -1137,6 +1145,10 @@ body {
   .field-hero {
     min-height: 680px;
     padding: 126px 16px 56px;
+  }
+
+  .journeys-section {
+    padding-inline: 16px;
   }
 
   .field-hero-copy h1 {

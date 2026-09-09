@@ -50,7 +50,7 @@ export default function WelcomePage() {
       <LandingMotion />
       <SiteHeader overlay />
       <main id="main-content" className="editorial-home">
-        <section className="field-hero" aria-labelledby="hero-title">
+        <section className="field-hero" aria-labelledby="hero-title" data-reveal>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="field-hero-image"
@@ -76,28 +76,9 @@ export default function WelcomePage() {
               准备我的下一程 <Arrow diagonal />
             </Link>
           </div>
-          <div className="field-hero-bottom">
-            <a href="#journeys">
-              向下，发现出发的理由{" "}
-              <svg
-                width="16"
-                height="22"
-                viewBox="0 0 16 22"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M8 1v19m-6-6 6 6 6-6"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-              </svg>
-            </a>
-            <span>徒步 · 露营 · 轻量出行</span>
-          </div>
         </section>
-        <section className="journeys-section section-wrap" id="journeys">
-          <div className="section-heading">
+        <section className="journeys-section section-wrap" id="journeys" data-reveal>
+          <div className="section-heading section-heading-stacked">
             <h2>
               总有一种出发，
               <br />
@@ -109,7 +90,7 @@ export default function WelcomePage() {
               先选个场景，我们从这里聊起。
             </p>
           </div>
-          <div className="journey-grid">
+          <div className="journey-grid" data-reveal>
             {journeys.map((journey) => (
               <Link
                 href={assistantLink(journey.prompt)}
@@ -143,8 +124,8 @@ export default function WelcomePage() {
           </div>
         </section>
         <PackingStory products={packing} />
-        <section className="featured-section section-wrap">
-          <div className="section-heading">
+        <section className="featured-section section-wrap" data-reveal>
+          <div className="section-heading section-heading-stacked">
             <h2>
               好装备，
               <br />
@@ -163,7 +144,7 @@ export default function WelcomePage() {
             ))}
           </div>
         </section>
-        <section className="comparison-story section-wrap">
+        <section className="comparison-story section-wrap" data-reveal>
           <div className="comparison-intro">
             <h2>
               轻一点，
@@ -224,7 +205,7 @@ export default function WelcomePage() {
             </table>
           </div>
         </section>
-        <section className="departure-section">
+        <section className="departure-section" data-reveal>
           <div>
             <h2>
               山野不远，

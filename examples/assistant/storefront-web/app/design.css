@@ -229,7 +229,7 @@ button:disabled {
 .field-hero {
   position: relative;
   min-height: 740px;
-  height: 100svh;
+  height: auto;
   max-height: none;
   background: #193b31;
   color: white;
@@ -242,8 +242,7 @@ button:disabled {
   width: 100%;
   object-fit: cover;
   object-position: 60% 50%;
-  translate: 0 calc(var(--hero-drift, 0px) * 0.4);
-  scale: 1.09;
+  transform: scale(1.09);
   animation: hero-settle 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .field-hero-shade {

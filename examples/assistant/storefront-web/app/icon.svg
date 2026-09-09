@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-labelledby="title">
+  <title>户外装备助手</title>
+  <rect width="40" height="40" rx="12" fill="#193c31"/>
+  <path d="m8 27 9-15 6 9 3-5 7 11" fill="none" stroke="#fafbf7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m15 27 3-4 3 4" fill="none" stroke="#d5ed87" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="28" cy="11" r="2.5" fill="#d5ed87"/>
+</svg>

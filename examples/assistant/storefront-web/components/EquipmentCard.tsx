@@ -1,10 +1,16 @@
 import type { Product } from "@/lib/types";
+import Link from "next/link";
 import { ProductImage } from "./ProductTile";
 import { Arrow } from "./SiteChrome";
 
 export default function EquipmentCard({ product }: { product: Product }) {
   return (
-    <a href={`/equipment/${product.product_id}`} className="equipment-card">
+    <Link
+      href={`/equipment/${product.product_id}`}
+      className="equipment-card"
+      data-reveal
+      aria-label={`查看${product.title}`}
+    >
       <div
         className="equipment-card-photo"
         style={{ viewTransitionName: `gear-${product.product_id}` }}
@@ -34,6 +40,6 @@ export default function EquipmentCard({ product }: { product: Product }) {
           查看装备 <Arrow />
         </span>
       </div>
-    </a>
+    </Link>
   );
 }

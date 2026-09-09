@@ -43,11 +43,12 @@ export default function HomeView() {
           我们从一件装备开始，也可以一起准备完整清单。
         </p>
       </div>
-      <div className="assistant-scenarios">
-        {STARTERS.map((item) => (
+      <div className="assistant-scenarios" data-reveal>
+        {STARTERS.map((item, index) => (
           <button
             key={item.image}
             type="button"
+            className={`assistant-scenario assistant-scenario-${index}`}
             disabled={!ready}
             onClick={() => ask(item.prompt)}
           >

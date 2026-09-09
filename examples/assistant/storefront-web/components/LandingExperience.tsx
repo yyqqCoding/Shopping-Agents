@@ -65,6 +65,7 @@ export function PackingStory({ products }: { products: ProductDetails[] }) {
       className="packing-story"
       id="how-it-works"
       aria-label="从行程到装备清单"
+      data-reveal
     >
       <div className="packing-narrative">
         {steps.map((item, index) => (
@@ -72,6 +73,8 @@ export function PackingStory({ products }: { products: ProductDetails[] }) {
             className="packing-chapter"
             key={item.title}
             data-step={index}
+            data-reveal
+            data-reveal-delay={index}
             ref={(element) => {
               sections.current[index] = element;
             }}
@@ -144,61 +147,45 @@ export function LandingMotion() {
     const header = document.querySelector<HTMLElement>(".site-header-overlay");
     const hero = document.querySelector<HTMLElement>(".field-hero");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const animations = new Set<Animation>();
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      header?.classList.toggle("is-scrolled", window.scrollY > 70);
-      if (hero) {
-        const progress = Math.min(
-          1,
-          Math.max(0, window.scrollY / hero.offsetHeight),
-        );
-        hero.style.setProperty(
-          "--hero-drift",
-          reduced.matches ? "0px" : `${progress * 90}px`,
-        );
-      }
-    };
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(update);
-    };
-    const observer = new IntersectionObserver(
+    document.documentElement.classList.add("motion-ready");
+    const revealObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          observer.unobserve(entry.target);
-          if (reduced.matches) continue;
-          const animation = entry.target.animate(
-            [{ clipPath: "inset(0 0 10% 0)" }, { clipPath: "inset(0 0 0% 0)" }],
-            { duration: 750, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
-          );
-          animations.add(animation);
-          animation.onfinish = () => animations.delete(animation);
+          entry.target.classList.add("is-visible");
+          revealObserver.unobserve(entry.target);
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0.14, rootMargin: "0px 0px -6% 0px" },
     );
-    document
-      .querySelectorAll(".journey")
-      .forEach((element) => observer.observe(element));
+    document.querySelectorAll("[data-reveal]").forEach((element) => {
+      revealObserver.observe(element);
+    });
+
+    const headerObserver = hero
+      ? new IntersectionObserver(
+          ([entry]) => {
+            header?.classList.toggle("is-scrolled", !entry.isIntersecting);
+          },
+          { threshold: 0, rootMargin: "-88px 0px 0px 0px" },
+        )
+      : null;
+    if (hero && headerObserver) headerObserver.observe(hero);
+
     const onPreference = () => {
-      if (reduced.matches)
-        animations.forEach((animation) => animation.cancel());
-      onScroll();
+      if (reduced.matches) {
+        document.querySelectorAll("[data-reveal]").forEach((element) => {
+          element.classList.add("is-visible");
+        });
+      }
     };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    onPreference();
     reduced.addEventListener("change", onPreference);
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
       reduced.removeEventListener("change", onPreference);
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-      animations.forEach((animation) => animation.cancel());
-      hero?.style.removeProperty("--hero-drift");
+      revealObserver.disconnect();
+      headerObserver?.disconnect();
+      document.documentElement.classList.remove("motion-ready");
     };
   }, []);
   return null;

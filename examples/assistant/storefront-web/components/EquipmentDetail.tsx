@@ -34,7 +34,7 @@ export default function EquipmentDetail({
   const prompt = `帮我看看${display.title}（${display.product_id}），结合我的出行需求判断是否合适，并确认规格与库存。`;
   return (
     <>
-      <div className="detail-main">
+      <div className="detail-main" data-reveal>
         <div
           className="detail-photo"
           style={{ viewTransitionName: `gear-${product.product_id}` }}
@@ -100,7 +100,7 @@ export default function EquipmentDetail({
           </p>
         </div>
       </div>
-      <section className="detail-information">
+      <section className="detail-information" data-reveal>
         <div>
           <h2>把细节看清楚。</h2>
           <p>场景决定选择，参数帮助判断。</p>

@@ -21,6 +21,7 @@ export function BagPanel({
   isEmpty,
   footer,
   children,
+  className,
 }: {
   title: string;
   /** "1 item", "2 bookings"; pops when it changes. */
@@ -30,10 +31,11 @@ export function BagPanel({
   isEmpty: boolean;
   footer: ReactNode;
   children: ReactNode;
+  className?: string;
 }) {
   const { closePanel } = useStoreFrame();
   return (
-    <>
+    <section className={`bag-panel${className ? ` ${className}` : ""}`}>
       <div className="flex items-center gap-2 border-b border-(--line) px-[18px] py-3.5">
         <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-(--ink)">{title}</h2>
         <span
@@ -53,7 +55,7 @@ export function BagPanel({
         )}
       </div>
       <div className="border-t border-(--line) px-[18px] pb-[calc(18px+env(safe-area-inset-bottom))] pt-3.5">{footer}</div>
-    </>
+    </section>
   );
 }
 

@@ -68,7 +68,7 @@ export default function EquipmentBrowser({
     setLimit(24);
   }
   return (
-    <div className="catalog-browser">
+    <div className="catalog-browser" data-syncing={refreshing}>
       <div className="catalog-toolbar">
         <label className="catalog-search">
           <svg
@@ -150,7 +150,7 @@ export default function EquipmentBrowser({
           )}
         </p>
       )}
-      <div className="catalog-grid">
+      <div className="catalog-grid" aria-busy={refreshing}>
         {filtered.slice(0, limit).map((product) => (
           <EquipmentCard key={product.product_id} product={product} />
         ))}

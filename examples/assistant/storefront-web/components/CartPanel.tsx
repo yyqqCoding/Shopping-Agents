@@ -72,6 +72,7 @@ export default function CartPanel({ cart, checkoutStaged = false }: { cart: Cart
   return (
     <BagPanel
       title="购物车"
+      className="assistant-bag-panel"
       count={plural(count, "item")}
       isEmpty={items.length === 0}
       empty={

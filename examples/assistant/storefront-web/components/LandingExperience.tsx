@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { ProductDetails } from "@/lib/types";
 import { assistantLink } from "@/lib/navigation";
@@ -10,10 +11,18 @@ import { Arrow } from "./SiteChrome";
  * The welcome table. A trip is typed onto the paper slip; as the words arrive
  * the trip's equipment prints land on the ground cloth and the packing list
  * beside them ticks itself. Three example trips cycle until the visitor takes
- * the slip; an empty submit carries the example on display into the chat.
+ * the slip; the landscape follows the trip. An empty submit carries the
+ * example on display into the chat.
  */
 
+const HERO_SCENES = {
+  camping: { label: "林间露营", image: "/images/camping.webp" },
+  hiking: { label: "轻装徒步", image: "/images/hiking.webp" },
+  sunrise: { label: "山间日出", image: "/images/hero.webp" },
+};
+
 export type HeroKit = {
+  scene: keyof typeof HERO_SCENES;
   prompt: string;
   budget: number | null;
   items: { product: ProductDetails; qty: number }[];
@@ -44,33 +53,34 @@ export function HeroTable({
   // print lands, so the table is never bare between examples.
   const [stage, setStage] = useState({ kit: 0, landed: 0 });
   const [settled, setSettled] = useState(false);
-  const engaged = useRef(false);
+  const [playback, setPlayback] = useState({ start: 0, playing: true });
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   const current = kits[kit];
   const example = current.prompt.slice(0, chars);
   const count = current.items.length;
   const landed = stage.kit === kit ? stage.landed : 0;
+  const playing = playback.playing && !reducedMotion;
+  const playbackLabel = playing ? "暂停场景演示" : "播放场景演示";
+  const playbackHint = reducedMotion
+    ? "已跟随系统减少动态效果"
+    : focused || draft.length > 0
+      ? "填写行程时暂停演示"
+      : playbackLabel;
 
   useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let index = playback.start;
+    let c = 0;
+    let deleting = false;
+    let timer = 0;
     const finish = (index: number) => {
       setKit(index);
       setChars(kits[index].prompt.length);
       setStage({ kit: index, landed: kits[index].items.length });
       setSettled(true);
     };
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      finish(0);
-      return;
-    }
-    let index = 0;
-    let c = 0;
-    let deleting = false;
-    let timer = 0;
     const tick = () => {
-      if (engaged.current) {
-        finish(index);
-        return;
-      }
       const full = kits[index].prompt;
       const n = kits[index].items.length;
       let delay = deleting ? ERASE_MS : TYPE_MS;
@@ -96,12 +106,31 @@ export function HeroTable({
       }
       timer = window.setTimeout(tick, delay);
     };
-    timer = window.setTimeout(tick, 400);
-    return () => window.clearTimeout(timer);
-  }, [kits]);
+
+    const syncMotion = () => {
+      window.clearTimeout(timer);
+      setReducedMotion(motion.matches);
+      if (motion.matches || !playback.playing) {
+        finish(index);
+        return;
+      }
+      c = 0;
+      deleting = false;
+      setKit(index);
+      setChars(0);
+      setSettled(false);
+      timer = window.setTimeout(tick, REST_MS);
+    };
+    syncMotion();
+    motion.addEventListener("change", syncMotion);
+    return () => {
+      window.clearTimeout(timer);
+      motion.removeEventListener("change", syncMotion);
+    };
+  }, [kits, playback]);
 
   const engage = () => {
-    engaged.current = true;
+    setPlayback({ start: kit, playing: false });
     setFocused(true);
   };
 
@@ -112,123 +141,189 @@ export function HeroTable({
   );
 
   return (
-    <div className="table">
-      <div className="table-words">
-        {children}
-        <form
-          action="/chat"
-          className="slip"
-          data-hero="slip"
-          onSubmit={(event) => {
-            // An untouched submit starts from the example on display.
-            if (draft.trim()) return;
-            event.preventDefault();
-            window.location.href = assistantLink(current.prompt);
-          }}
-        >
-          <label htmlFor="hero-draft" className="sr-only">
-            描述你的下一程
-          </label>
-          <div className="slip-field">
-            <textarea
-              id="hero-draft"
-              name="draft"
-              rows={2}
-              maxLength={1200}
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onFocus={engage}
-              onBlur={() => setFocused(false)}
-              onKeyDown={(event) => {
-                if (
-                  event.key === "Enter" &&
-                  !event.shiftKey &&
-                  !event.nativeEvent.isComposing
-                ) {
-                  event.preventDefault();
-                  event.currentTarget.form?.requestSubmit();
-                }
-              }}
+    <>
+      <div className="table-environment" aria-hidden="true">
+        {kits.map(({ scene }, index) => (
+          <div
+            className="table-landscape"
+            data-scene={scene}
+            data-active={index === kit}
+            key={scene}
+          >
+            <Image
+              src={HERO_SCENES[scene].image}
+              alt=""
+              fill
+              sizes="(max-width: 820px) 100vw, 74vw"
+              loading={index === 0 ? "eager" : "lazy"}
+              fetchPriority={index === 0 ? "high" : "low"}
             />
-            {/* The example writes itself with a pen cursor until the visitor takes over. */}
-            <span
-              className="slip-example"
-              aria-hidden="true"
-              data-hidden={focused || draft.length > 0}
-            >
-              {example}
-            </span>
           </div>
-          <button type="submit" aria-label="带着这段行程进入助手">
-            <Arrow />
-          </button>
-        </form>
+        ))}
       </div>
-
-      <div className="table-cloth" data-hero="cloth">
-        <div className="table-prints" aria-hidden="true">
-          {kits.map((entry, k) =>
-            entry.items.map(({ product }, index) => (
-              <div
-                className={`print table-print table-print-${index}`}
-                key={`${k}-${product.product_id}`}
-                data-landed={stage.kit === k && index < stage.landed}
+      <div className="table" data-playing={playing}>
+        <div className="table-words">
+          {children}
+          <form
+            action="/chat"
+            className="slip"
+            data-hero="slip"
+            onSubmit={(event) => {
+              // An untouched submit starts from the example on display.
+              if (draft.trim()) return;
+              event.preventDefault();
+              window.location.href = assistantLink(current.prompt);
+            }}
+          >
+            <label htmlFor="hero-draft" className="sr-only">
+              描述你的下一程
+            </label>
+            <div className="slip-field">
+              <textarea
+                id="hero-draft"
+                name="draft"
+                rows={2}
+                maxLength={1200}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onFocus={engage}
+                onBlur={() => setFocused(false)}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === "Enter" &&
+                    !event.shiftKey &&
+                    !event.nativeEvent.isComposing
+                  ) {
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }
+                }}
+              />
+              {/* The example writes itself with a pen cursor until the visitor takes over. */}
+              <span
+                className="slip-example"
+                aria-hidden="true"
+                data-hidden={focused || draft.length > 0}
               >
-                <ProductImage
-                  product={product}
-                  sizes="(max-width: 820px) 44vw, 420px"
-                />
-              </div>
-            )),
-          )}
+                {example}
+              </span>
+            </div>
+            <button type="submit" aria-label="带着这段行程进入助手">
+              <Arrow />
+            </button>
+          </form>
+          <div className="table-scenes" data-hero="scenes">
+            <div
+              className="table-scene-options"
+              role="group"
+              aria-label="切换示例行程和背景"
+            >
+              {kits.map(({ scene }, index) => (
+                <button
+                  key={scene}
+                  type="button"
+                  aria-pressed={index === kit}
+                  onClick={() => setPlayback({ start: index, playing: false })}
+                >
+                  {HERO_SCENES[scene].label}
+                </button>
+              ))}
+            </div>
+            <button
+              className="table-playback"
+              type="button"
+              disabled={reducedMotion || focused || draft.length > 0}
+              aria-label={playbackLabel}
+              title={playbackHint}
+              onClick={() => setPlayback({ start: kit, playing: !playback.playing })}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden="true"
+              >
+                {playing ? (
+                  <path
+                    d="M7 5v10M13 5v10"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                ) : (
+                  <path d="m7 4 9 6-9 6V4Z" fill="currentColor" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <div className="paper packing-list" data-settled={settled}>
-          <header>
-            <span>出发清单</span>
-            <span>{settled ? `${count} 件已摊开` : `${landed} / ${count}`}</span>
-          </header>
-          <ol>
-            {current.items.map(({ product, qty }, index) => (
-              <li key={product.product_id} data-checked={index < landed}>
-                <span className="tick" aria-hidden="true">
-                  <svg viewBox="0 0 20 20" width="20" height="20">
-                    <path
-                      d="M4 10.5 8.2 14.5 16 6"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
+        <div className="table-cloth" data-hero="cloth">
+          <div className="table-prints" aria-hidden="true">
+            {kits.map((entry, k) =>
+              entry.items.map(({ product }, index) => (
+                <div
+                  className={`print table-print table-print-${index}`}
+                  key={`${k}-${product.product_id}`}
+                  data-landed={stage.kit === k && index < stage.landed}
+                >
+                  <ProductImage
+                    product={product}
+                    sizes="(max-width: 820px) 44vw, 420px"
+                  />
+                </div>
+              )),
+            )}
+          </div>
+
+          <div className="paper packing-list" data-settled={settled}>
+            <header>
+              <span>出发清单</span>
+              <span>{settled ? `${count} 件已摊开` : `${landed} / ${count}`}</span>
+            </header>
+            <ol>
+              {current.items.map(({ product, qty }, index) => (
+                <li key={product.product_id} data-checked={index < landed}>
+                  <span className="tick" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" width="20" height="20">
+                      <path
+                        d="M4 10.5 8.2 14.5 16 6"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className="packing-name">
+                    {product.title}
+                    {qty > 1 ? <em> ×{qty}</em> : null}
+                  </span>
+                  <span className="packing-price">{yuan(product.price * qty)}</span>
+                </li>
+              ))}
+              <li className="packing-pending" data-shown={settled}>
+                <span className="tick" aria-hidden="true" />
                 <span className="packing-name">
-                  {product.title}
-                  {qty > 1 ? <em> ×{qty}</em> : null}
+                  还缺 {current.pending.product.title}
+                  <em>{current.pending.note}</em>
                 </span>
-                <span className="packing-price">{yuan(product.price * qty)}</span>
+                <span className="packing-price">{yuan(current.pending.product.price)}</span>
               </li>
-            ))}
-            <li className="packing-pending" data-shown={settled}>
-              <span className="tick" aria-hidden="true" />
-              <span className="packing-name">
-                还缺 {current.pending.product.title}
-                <em>{current.pending.note}</em>
-              </span>
-              <span className="packing-price">{yuan(current.pending.product.price)}</span>
-            </li>
-          </ol>
-          <footer>
-            <span>合计</span>
-            <strong>
-              {landed > 0 ? yuan(total) : "—"}
-              {current.budget ? <span> / 预算 {yuan(current.budget)}</span> : null}
-            </strong>
-          </footer>
+            </ol>
+            <footer>
+              <span>合计</span>
+              <strong>
+                {landed > 0 ? yuan(total) : "—"}
+                {current.budget ? <span> / 预算 {yuan(current.budget)}</span> : null}
+              </strong>
+            </footer>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -286,7 +381,6 @@ export function GearPrint({
 export function LandingMotion() {
   useEffect(() => {
     const header = document.querySelector<HTMLElement>(".site-header-overlay");
-    const hero = document.querySelector<HTMLElement>(".welcome-table");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const targets = Array.from(
       document.querySelectorAll<HTMLElement>("[data-reveal], [data-land]"),
@@ -312,14 +406,11 @@ export function LandingMotion() {
     );
     pending.forEach((element) => observer.observe(element));
 
-    const headerObserver =
-      hero && header
-        ? new IntersectionObserver(
-            ([entry]) => header.classList.toggle("is-scrolled", !entry.isIntersecting),
-            { threshold: 0, rootMargin: "-96px 0px 0px 0px" },
-          )
-        : null;
-    if (hero) headerObserver?.observe(hero);
+    const syncHeader = () => {
+      header?.classList.toggle("is-scrolled", window.scrollY > 24);
+    };
+    syncHeader();
+    window.addEventListener("scroll", syncHeader, { passive: true });
 
     const onPreference = () => {
       if (reduced.matches) targets.forEach((element) => element.classList.add("is-visible"));
@@ -329,7 +420,7 @@ export function LandingMotion() {
     return () => {
       reduced.removeEventListener("change", onPreference);
       observer.disconnect();
-      headerObserver?.disconnect();
+      window.removeEventListener("scroll", syncHeader);
       document.documentElement.classList.remove("motion-ready");
     };
   }, []);

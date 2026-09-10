@@ -42,12 +42,14 @@ const scenes = [
 ];
 
 function kit(
+  scene: HeroKit["scene"],
   prompt: string,
   budget: number | null,
   items: [string, number][],
   pending: [string, string],
 ): HeroKit {
   return {
+    scene,
     prompt,
     budget,
     items: items.map(([id, qty]) => ({ product: equipmentById(id)!, qty })),
@@ -58,6 +60,7 @@ function kit(
 export default function WelcomePage() {
   const kits = [
     kit(
+      "camping",
       "两人周末自驾露营一晚，预算 2000 元，帮我配帐篷和睡眠装备。",
       2000,
       [
@@ -68,6 +71,7 @@ export default function WelcomePage() {
       ["OD-6006", "夜间照明，预算内"],
     ),
     kit(
+      "hiking",
       "准备一天的近郊徒步，已有徒步鞋，预算 700 元，想轻便些。",
       700,
       [
@@ -78,6 +82,7 @@ export default function WelcomePage() {
       ["OD-4001", "看天气再定"],
     ),
     kit(
+      "sunrise",
       "想去山里的营地看日出，夜间最低 5°C，预算 1500 元，要保暖和照明。",
       1500,
       [

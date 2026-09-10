@@ -6,12 +6,18 @@ Messages API runtime, the skills, and a runnable demo.
 ## Layout
 
 - `commerce-common/commerce_common/`: what the agent builds on; its `__init__` lists the modules.
+- `commerce_common/context.py` budgets and summarizes working context; `search.py` shares Chinese and Latin keyword matching.
 - `shopping-agent/core/shopping_agent/`: types, `StorefrontBackend`, config, prompt, `tools/`, gates, enrichment, executor.
 - `shopping-agent/runtime-messages-api/`: `ShoppingAgent`, the turn loop on the Messages API.
 - `shopping-agent/skills/`: the flows, one `SKILL.md` each.
 - `examples/demo_common/` and `examples/web-shared/`: what the demo's API and web app share; `examples/` is the npm workspace.
-- `examples/assistant/`: the shopping agent over the mock catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004.
-- `docs/`: `safety.md`, `backends.md`, `deployment.md`. `scripts/`: install, demo, smoke, verify.
+- `demo_common/experience.py`, `persistence.py`, `supabase.py`: anonymous identity, owned conversations, durable turns, carts and memory jobs. `web-shared/identity.ts` and `Conversations.tsx` handle browser identity and conversation history.
+- `examples/assistant/`: the outdoor equipment agent over a fictional CNY catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004. `/` is the scrolling welcome page; `/equipment` and `/equipment/[id]` provide public browsing; `/chat` hosts conversations. `data/legacy/` preserves retired catalog records for old conversations.
+- `storefront-web/components/VisitorProfile.tsx` owns the sidebar profile menu and browser-local display preferences, scoped to the existing anonymous identity.
+- `storefront-web/components/SiteChrome.tsx`, `LandingExperience.tsx` (the departure table: typewriter prompt slip, equipment prints landing on the cloth, self-ticking packing list) and `app/redesign.css` (tokens, display font and home composition over the `design.css` compatibility layer) define the public site. `storefront-web/DESIGN.md` records the visual system. `lib/catalog.ts` reads the authored public catalog; `lib/navigation.ts` creates draft-only chat links. `EquipmentBrowser.tsx`, `EquipmentCard.tsx` and `EquipmentDetail.tsx` serve `/equipment` and `/equipment/[id]`.
+- `storefront-web/public/images/` contains generated scene photography; `public/products/generated/` contains product photography. Image prompts and provenance live in `examples/assistant/data/*image*.json`. Self-hosted headline typography and its license live in `public/fonts/`.
+- `supabase/migrations/`: service-only tables and transactional RPCs. `deploy/`: single-worker containers and HTTPS/SSE proxy; `check_database.py` checks cart migration readiness without starting the API.
+- `docs/`: `safety.md`, `backends.md`, `deployment.md`, `agent-experience-design.md`. `scripts/`: install, demo, smoke, verify; `deploy.sh` builds and replaces the deployment from the current checkout; `outdoor_catalog.py` defines outdoor equipment and `prepare_catalog.py` freezes the catalog, evidence and image requests.
 - Tests live in each package's `tests/` plus `examples/demo_common/tests/` and `examples/assistant/api/tests/`.
 
 `requirements.txt` installs the three packages and their pinned dependencies
@@ -28,8 +34,9 @@ Messages API runtime, the skills, and a runnable demo.
 
 ## Fictional and original
 
-No real company, brand, product, or person appears: the only company is ACME and its
-lines; every brand, prompt, schema, and figure is invented here. Two exceptions:
+No real company, brand, product, or person appears. The outdoor experience uses
+unbranded fictional equipment and the descriptive name 户外装备助手. Legacy product
+records retain their original names for archived conversations. Two exceptions:
 deployment and integration targets (the README's "MCP connectors" section; platform
 names in `docs/deployment.md` and the README's deploying section), and CC0 product
 photos listed in the `IMAGE-CREDITS.md` beside them. When in doubt, redesign rather
@@ -44,7 +51,9 @@ than rename.
 
 ## Verify
 
+Frontend-only visual work does not run tests unless requested. The repository has no GitHub Actions workflow. The commands below are optional local verification for other changes.
+
 ```bash
 ruff check . && ruff format --check . && pytest
-python scripts/verify_all.py          # adds the web build
+python scripts/verify_all.py          # adds catalog validation, Node tests and the web build
 ```

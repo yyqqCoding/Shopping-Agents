@@ -54,8 +54,8 @@ export default async function EquipmentDetailPage({
             </Link>
           </div>
           <div className="featured-grid">
-            {related.map((item) => (
-              <EquipmentCard key={item.product_id} product={item} />
+            {related.map((item, index) => (
+              <EquipmentCard key={item.product_id} product={item} index={index} />
             ))}
           </div>
         </section>

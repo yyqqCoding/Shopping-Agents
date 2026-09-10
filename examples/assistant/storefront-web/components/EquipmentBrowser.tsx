@@ -151,8 +151,8 @@ export default function EquipmentBrowser({
         </p>
       )}
       <div className="catalog-grid" aria-busy={refreshing}>
-        {filtered.slice(0, limit).map((product) => (
-          <EquipmentCard key={product.product_id} product={product} />
+        {filtered.slice(0, limit).map((product, index) => (
+          <EquipmentCard key={product.product_id} product={product} index={index} />
         ))}
       </div>
       {filtered.length === 0 && (

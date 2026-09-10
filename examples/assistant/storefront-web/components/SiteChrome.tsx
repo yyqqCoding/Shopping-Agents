@@ -38,7 +38,7 @@ export function SiteHeader({
       </Link>
       <nav aria-label="主导航" className="site-header-center">
         <Link href="/#journeys">出行场景</Link>
-        <Link href="/#how-it-works">如何准备</Link>
+        <Link href="/#how-it-works">摊开来比</Link>
         <Link
           href="/equipment"
           aria-current={active === "equipment" ? "page" : undefined}

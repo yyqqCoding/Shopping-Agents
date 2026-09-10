@@ -47,8 +47,8 @@ export default function EquipmentDetail({
           />
         </div>
         <div className="detail-copy">
-          <p className="detail-category">{full.attributes?.category_label}</p>
           <h1>{full.title}</h1>
+          <p className="detail-category">{full.attributes?.category_label}</p>
           <p className="detail-description">{full.short_description}</p>
           <div className="detail-price">
             ¥{display.price.toLocaleString("zh-CN")}

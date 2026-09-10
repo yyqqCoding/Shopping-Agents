@@ -100,18 +100,18 @@ export default function CartPanel({ cart, checkoutStaged = false }: { cart: Cart
         {items.map((item) => {
           const product = asProduct(item, catalog, currency);
           return (
-            <li key={item.product_id} className="ac-reveal flex gap-3 py-3 first:pt-0">
+            <li key={item.product_id} className="cart-item ac-reveal flex gap-3 py-3 first:pt-0" data-unavailable={Boolean(item.unavailable_reason)}>
               <ProductImage product={product} className="h-20 w-20 shrink-0 rounded-[10px]" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     {product.brand ? <div className="text-[13px] font-semibold uppercase tracking-[0.06em] text-(--ink-soft)">{product.brand}</div> : null}
                     {/* A two-line clamp cuts long names in half. */}
-                    <ProductTitle title={item.title} className="line-clamp-3 text-[15px] font-semibold leading-snug text-(--ink)" />
-                    {optionValuesLabel(item) ? <div className="text-[13px] text-(--ink-soft)">{optionValuesLabel(item)}</div> : null}
+                    <ProductTitle title={item.title} className="cart-item-title line-clamp-3 font-semibold leading-snug text-(--ink)" />
+                    {optionValuesLabel(item) ? <div className="cart-item-options">{optionValuesLabel(item)}</div> : null}
                   </div>
                   <div className="shrink-0 text-right">
-                    <div className="text-[18px] font-bold tabular-nums text-(--ink)">{formatMoney(item.line_total, currency)}</div>
+                    <div className="cart-item-total font-bold tabular-nums text-(--ink)">{formatMoney(item.line_total, currency)}</div>
                     {item.quantity > 1 ? <div className="text-[15px] text-(--ink-soft)">每件 {formatMoney(item.price, currency)}</div> : null}
                   </div>
                 </div>

@@ -47,8 +47,11 @@ export function SiteHeader({
         </Link>
       </nav>
       <div className="site-header-side">
-        <Link href="/chat" className="nav-assistant">
-          开始准备 <Arrow diagonal />
+        <Link href="/chat" className="nav-assistant" data-magnetic>
+          <span>开始准备</span>
+          <span className="nav-assistant-arrow">
+            <Arrow diagonal />
+          </span>
         </Link>
       </div>
     </header>

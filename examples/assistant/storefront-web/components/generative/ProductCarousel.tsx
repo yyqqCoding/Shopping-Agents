@@ -24,6 +24,7 @@ import ProductTile, {
   DeliveryPromise,
   OptionLine,
   ProductImage,
+  ProductTileSkeleton,
   Rating,
 } from "../ProductTile";
 
@@ -200,7 +201,7 @@ function ProductDetail({
   const full = details ?? product;
   const specs = details?.specs ?? {};
   return (
-    <div className="ac-reveal mb-1 mt-3 rounded-xl border border-(--line) bg-(--well)/40 p-3">
+    <div className="product-expanded-detail ac-reveal">
       <div className="flex flex-col items-start gap-5 sm:flex-row">
         <div className="relative shrink-0">
           <ProductImage product={full} className="h-36 w-36 rounded-lg" />
@@ -323,8 +324,15 @@ export default function ProductCarousel({
   onAdd?: (product: Product) => boolean | void | Promise<boolean | void>;
   partial?: boolean;
 }) {
-  const layout = payload.layout ?? "carousel";
+  const layout = payload.layout ?? "grid";
   const items = payload.items ?? [];
+  const delivery = items[0]?.product.attributes?.delivery;
+  const sharedDelivery =
+    delivery && items.every(
+      ({ product }) => product.in_stock !== false && product.attributes?.delivery === delivery,
+    )
+      ? delivery
+      : null;
   const [expandedId, setExpandedId] = useState<string | null>(null);
   // Keep the last product mounted while the panel folds shut, so collapse animates.
   const [renderedId, setRenderedId] = useState<string | null>(null);
@@ -347,7 +355,7 @@ export default function ProductCarousel({
     const observer = new ResizeObserver(syncOverflow);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [syncOverflow, items.length, partial]);
+  }, [syncOverflow, items.length, partial, layout]);
   const nudge = (direction: 1 | -1) => {
     const node = scrollerRef.current;
     node?.scrollBy({
@@ -388,28 +396,23 @@ export default function ProductCarousel({
     );
 
   return (
-    <section className="product-carousel rounded-xl border border-(--line) bg-(--card) p-4">
+    <section className="product-carousel">
       {payload.title ? (
-        <h3 className="font-display mb-3 text-[18px] font-medium tracking-[-0.01em] text-(--ink)">
-          {payload.title}
-        </h3>
+        <h3 className="recommendation-heading">{payload.title}</h3>
       ) : null}
       <div className="relative">
         <div
           ref={scrollerRef}
           onScroll={layout === "carousel" ? syncOverflow : undefined}
-          className={
-            layout === "grid"
-              ? "grid grid-cols-2 gap-3 sm:grid-cols-3"
-              : layout === "list"
-                ? "flex flex-col gap-3"
-                : "panel-scroll flex gap-3 overflow-x-auto pb-1"
-          }
+          className={`product-collection product-collection-${layout} ${layout === "carousel" ? "panel-scroll" : ""}`}
         >
-          {items.map(({ product }) => (
-            <div key={product.product_id} className="min-w-0 shrink-0">
+          {items.map(({ product, reason }) => (
+            <div key={product.product_id} className="product-collection-item">
               <ProductTile
                 product={product}
+                reason={reason}
+                horizontal
+                hideDelivery={Boolean(sharedDelivery)}
                 fluid={layout !== "carousel"}
                 onAdd={onAdd}
                 onOpen={toggle}
@@ -417,11 +420,9 @@ export default function ProductCarousel({
               />
             </div>
           ))}
-          {partial ? (
-            <div className="ac-skeleton h-[150px] w-48 shrink-0 rounded-xl" />
-          ) : null}
+          {partial ? <ProductTileSkeleton /> : null}
         </div>
-        {overflow.left ? (
+        {layout === "carousel" && overflow.left ? (
           <>
             <div
               aria-hidden
@@ -436,7 +437,7 @@ export default function ProductCarousel({
             </button>
           </>
         ) : null}
-        {overflow.right ? (
+        {layout === "carousel" && overflow.right ? (
           <>
             <div
               aria-hidden
@@ -452,6 +453,9 @@ export default function ProductCarousel({
           </>
         ) : null}
       </div>
+      {sharedDelivery ? (
+        <p className="product-group-delivery">{sharedDelivery}</p>
+      ) : null}
       <div
         ref={collapseRef}
         className={`ac-collapse ${open ? "ac-collapse-open" : ""}`}
@@ -460,6 +464,7 @@ export default function ProductCarousel({
             setRenderedId(null);
         }}
         aria-hidden={!open}
+        inert={!open}
       >
         <div className="ac-collapse-inner">
           {rendered ? (

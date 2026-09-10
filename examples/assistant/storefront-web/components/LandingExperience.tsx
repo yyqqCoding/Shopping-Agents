@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductDetails } from "@/lib/types";
@@ -29,8 +29,8 @@ export type HeroKit = {
   pending: { product: ProductDetails; note: string };
 };
 
-const TYPE_MS = 72;
-const ERASE_MS = 20;
+const TYPE_MS = 55;
+const ERASE_MS = 16;
 const HOLD_MS = 4200;
 const REST_MS = 400;
 
@@ -45,6 +45,7 @@ export function HeroTable({
   kits: HeroKit[];
   children: React.ReactNode;
 }) {
+  const sceneRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
   const [kit, setKit] = useState(0);
@@ -55,6 +56,7 @@ export function HeroTable({
   const [settled, setSettled] = useState(false);
   const [playback, setPlayback] = useState({ start: 0, playing: true });
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [active, setActive] = useState(true);
 
   const current = kits[kit];
   const example = current.prompt.slice(0, chars);
@@ -74,6 +76,7 @@ export function HeroTable({
     let c = 0;
     let deleting = false;
     let timer = 0;
+    let inView = true;
     const finish = (index: number) => {
       setKit(index);
       setChars(kits[index].prompt.length);
@@ -81,6 +84,7 @@ export function HeroTable({
       setSettled(true);
     };
     const tick = () => {
+      if (!inView || document.hidden || motion.matches || !playback.playing) return;
       const full = kits[index].prompt;
       const n = kits[index].items.length;
       let delay = deleting ? ERASE_MS : TYPE_MS;
@@ -89,7 +93,13 @@ export function HeroTable({
       if (!deleting) {
         const per = full.length / (n + 0.4);
         const now = Math.min(n, Math.floor(c / per));
-        if (now > 0) setStage({ kit: index, landed: now });
+        if (now > 0) {
+          setStage((previous) =>
+            previous.kit === index && previous.landed >= now
+              ? previous
+              : { kit: index, landed: now },
+          );
+        }
         if (c === full.length) {
           setStage({ kit: index, landed: n });
           setSettled(true);
@@ -107,6 +117,15 @@ export function HeroTable({
       timer = window.setTimeout(tick, delay);
     };
 
+    const syncVisibility = () => {
+      window.clearTimeout(timer);
+      const visible = inView && !document.hidden;
+      setActive(visible);
+      if (visible && playback.playing && !motion.matches) {
+        timer = window.setTimeout(tick, TYPE_MS);
+      }
+    };
+
     const syncMotion = () => {
       window.clearTimeout(timer);
       setReducedMotion(motion.matches);
@@ -119,15 +138,92 @@ export function HeroTable({
       setKit(index);
       setChars(0);
       setSettled(false);
-      timer = window.setTimeout(tick, REST_MS);
+      if (inView && !document.hidden) timer = window.setTimeout(tick, REST_MS);
     };
     syncMotion();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        syncVisibility();
+      },
+      { threshold: 0.05 },
+    );
+    if (sceneRef.current) observer.observe(sceneRef.current);
+    document.addEventListener("visibilitychange", syncVisibility);
     motion.addEventListener("change", syncMotion);
     return () => {
       window.clearTimeout(timer);
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", syncVisibility);
       motion.removeEventListener("change", syncMotion);
     };
   }, [kits, playback]);
+
+  // Pointer depth stays outside React's render cycle. Only an active movement
+  // requests frames; leaving the scene eases the equipment back to its rest.
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (
+      !scene ||
+      !active ||
+      reducedMotion ||
+      !window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    ) return;
+    let frame = 0;
+    let x = 0;
+    let y = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let bounds: DOMRect | null = null;
+    const draw = () => {
+      x += (targetX - x) * 0.12;
+      y += (targetY - y) * 0.12;
+      scene.style.setProperty("--pointer-x", x.toFixed(4));
+      scene.style.setProperty("--pointer-y", y.toFixed(4));
+      frame =
+        Math.abs(targetX - x) + Math.abs(targetY - y) > 0.002
+          ? window.requestAnimationFrame(draw)
+          : 0;
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(draw);
+    };
+    const invalidateBounds = () => {
+      bounds = null;
+    };
+    const move = (event: PointerEvent) => {
+      bounds ??= scene.getBoundingClientRect();
+      targetX = Math.max(
+        -1,
+        Math.min(1, ((event.clientX - bounds.left) / bounds.width) * 2 - 1),
+      );
+      targetY = Math.max(
+        -1,
+        Math.min(1, ((event.clientY - bounds.top) / bounds.height) * 2 - 1),
+      );
+      schedule();
+    };
+    const reset = () => {
+      targetX = 0;
+      targetY = 0;
+      schedule();
+    };
+    scene.addEventListener("pointerenter", invalidateBounds);
+    scene.addEventListener("pointermove", move, { passive: true });
+    scene.addEventListener("pointerleave", reset);
+    window.addEventListener("resize", invalidateBounds);
+    window.addEventListener("scroll", invalidateBounds, { passive: true });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      scene.removeEventListener("pointerenter", invalidateBounds);
+      scene.removeEventListener("pointermove", move);
+      scene.removeEventListener("pointerleave", reset);
+      window.removeEventListener("resize", invalidateBounds);
+      window.removeEventListener("scroll", invalidateBounds);
+      scene.style.removeProperty("--pointer-x");
+      scene.style.removeProperty("--pointer-y");
+    };
+  }, [active, reducedMotion]);
 
   const engage = () => {
     setPlayback({ start: kit, playing: false });
@@ -141,7 +237,12 @@ export function HeroTable({
   );
 
   return (
-    <>
+    <div
+      ref={sceneRef}
+      className="hero-experience"
+      data-playing={playing}
+      data-active={active}
+    >
       <div className="table-environment" aria-hidden="true">
         {kits.map(({ scene }, index) => (
           <div
@@ -154,7 +255,7 @@ export function HeroTable({
               src={HERO_SCENES[scene].image}
               alt=""
               fill
-              sizes="(max-width: 820px) 100vw, 74vw"
+              sizes="100vw"
               loading={index === 0 ? "eager" : "lazy"}
               fetchPriority={index === 0 ? "high" : "low"}
             />
@@ -323,7 +424,7 @@ export function HeroTable({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -413,11 +514,59 @@ export function LandingMotion() {
     window.addEventListener("scroll", syncHeader, { passive: true });
 
     const onPreference = () => {
-      if (reduced.matches) targets.forEach((element) => element.classList.add("is-visible"));
+      if (reduced.matches) {
+        targets.forEach((element) => element.classList.add("is-visible"));
+      }
     };
     onPreference();
     reduced.addEventListener("change", onPreference);
+
+    const magnetic = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-magnetic]"),
+    );
+    const cleanupMagnetic = magnetic.map((element) => {
+      let frame = 0;
+      let bounds: DOMRect | null = null;
+      const enter = () => {
+        bounds = element.getBoundingClientRect();
+      };
+      const reset = () => {
+        window.cancelAnimationFrame(frame);
+        element.style.removeProperty("--magnetic-x");
+        element.style.removeProperty("--magnetic-y");
+        bounds = null;
+      };
+      const move = (event: PointerEvent) => {
+        if (reduced.matches || event.pointerType !== "mouse") return;
+        bounds ??= element.getBoundingClientRect();
+        const x = Math.max(
+          -5,
+          Math.min(5, ((event.clientX - bounds.left) / bounds.width - 0.5) * 10),
+        );
+        const y = Math.max(
+          -4,
+          Math.min(4, ((event.clientY - bounds.top) / bounds.height - 0.5) * 8),
+        );
+        window.cancelAnimationFrame(frame);
+        frame = window.requestAnimationFrame(() => {
+          element.style.setProperty("--magnetic-x", `${x.toFixed(2)}px`);
+          element.style.setProperty("--magnetic-y", `${y.toFixed(2)}px`);
+        });
+      };
+      element.addEventListener("pointerenter", enter);
+      element.addEventListener("pointermove", move, { passive: true });
+      element.addEventListener("pointerleave", reset);
+      reduced.addEventListener("change", reset);
+      return () => {
+        reset();
+        element.removeEventListener("pointerenter", enter);
+        element.removeEventListener("pointermove", move);
+        element.removeEventListener("pointerleave", reset);
+        reduced.removeEventListener("change", reset);
+      };
+    });
     return () => {
+      cleanupMagnetic.forEach((cleanup) => cleanup());
       reduced.removeEventListener("change", onPreference);
       observer.disconnect();
       window.removeEventListener("scroll", syncHeader);

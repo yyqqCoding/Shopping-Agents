@@ -26,7 +26,7 @@ export function ProductTitle({
 }) {
   const match = /^(.*\S)\s+(\([^()]+\))$/.exec(title);
   return (
-    <div className={className} title={title}>
+    <span className={className} title={title}>
       {match ? (
         <>
           {match[1]} <span className="whitespace-nowrap">{match[2]}</span>
@@ -34,7 +34,7 @@ export function ProductTitle({
       ) : (
         title
       )}
-    </div>
+    </span>
   );
 }
 
@@ -172,16 +172,22 @@ export function OptionLine({
 export function AddButton({
   product,
   onAdd,
+  appearance = "icon",
 }: {
   product: Product;
   onAdd: (product: Product) => boolean | void | Promise<boolean | void>;
+  appearance?: "icon" | "label";
 }) {
-  const [phase, setPhase] = useState<"idle" | "busy" | "done" | "error">(
-    "idle",
-  );
+  const [phase, setPhase] = useState<"idle" | "busy" | "done" | "error">("idle");
   const adding = useRef(false);
   const { ask, chat } = useStoreFrame();
   const disabled = !!chat && (!chat.ready || chat.busy);
+  const className = `product-add-button product-add-${appearance}`;
+  const optionLabel = Object.keys(product.options ?? {}).some((key) =>
+    /尺码|size/i.test(key),
+  )
+    ? "选择尺码"
+    : "选择规格";
   if (hasOptions(product)) {
     return (
       <button
@@ -193,10 +199,25 @@ export function AddButton({
             `帮我选择${product.title}（${product.product_id}）的规格，再加入购物车。`,
           );
         }}
-        aria-label={`选择${product.title}的规格`}
-        className="pointer-events-auto absolute bottom-2 right-2 flex h-10 w-10 items-center justify-center rounded-full bg-(--ink) text-lg font-semibold leading-none text-(--surface) shadow-(--shadow-sm) transition-all hover:scale-105"
+        aria-label={`${optionLabel}：${product.title}`}
+        className={className}
       >
-        +
+        {appearance === "label" ? <span>{optionLabel}</span> : null}
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 20 20"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="m7 4 6 6-6 6"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </button>
     );
   }
@@ -208,7 +229,12 @@ export function AddButton({
         event.stopPropagation();
         if (disabled || adding.current || phase !== "idle") return;
         adding.current = true;
-        const source = event.currentTarget.parentElement ?? event.currentTarget;
+        const source =
+          event.currentTarget
+            .closest(".chat-product-tile, .product-row")
+            ?.querySelector<HTMLElement>(".product-tile-media") ??
+          event.currentTarget.parentElement ??
+          event.currentTarget;
         setPhase("busy");
         let added = false;
         try {
@@ -223,17 +249,50 @@ export function AddButton({
         if (added) flyToCart(source);
         window.setTimeout(() => setPhase("idle"), added ? 1200 : 1600);
       }}
-      aria-label={`将${product.title}加入购物车`}
-      title={phase === "error" ? "暂时未能加入购物车，请重试。" : "加入购物车"}
-      className={`pointer-events-auto absolute bottom-2 right-2 flex h-10 w-10 items-center justify-center rounded-full text-lg font-semibold leading-none text-(--surface) shadow-(--shadow-sm) transition-all hover:scale-110 hover:bg-(--accent-strong) active:scale-95 ${
+      aria-label={
         phase === "done"
-          ? "bg-(--ok)"
+          ? `${product.title}已加入购物车`
           : phase === "error"
-            ? "bg-(--warn)"
-            : "bg-(--ink)"
-      } ${phase === "busy" ? "animate-pulse" : ""}`}
+            ? `${product.title}未能加入购物车`
+            : `将${product.title}加入购物车`
+      }
+      aria-busy={phase === "busy"}
+      title={phase === "error" ? "暂时未能加入购物车，请重试。" : "加入购物车"}
+      className={className}
+      data-phase={phase}
     >
-      {phase === "done" ? "✓" : phase === "error" ? "!" : "+"}
+      {appearance === "label" ? (
+        <span aria-live="polite">
+          {phase === "done"
+            ? "已加入"
+            : phase === "error"
+              ? "未能加入"
+              : phase === "busy"
+                ? "加入中"
+                : "加入购物车"}
+        </span>
+      ) : null}
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d={
+            phase === "done"
+              ? "m4 10 4 4 8-8"
+              : phase === "error"
+                ? "M10 4v7m0 4v1"
+                : "M4 10h12M10 4v12"
+          }
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </button>
   );
 }
@@ -242,7 +301,10 @@ export default function ProductTile({
   product,
   compact = false,
   fluid = false,
+  horizontal = false,
   selected = false,
+  hideDelivery = false,
+  reason,
   onAdd,
   onOpen,
 }: {
@@ -250,102 +312,133 @@ export default function ProductTile({
   compact?: boolean;
   /** Fills its grid cell instead of the carousel's fixed width. */
   fluid?: boolean;
+  horizontal?: boolean;
   selected?: boolean;
+  hideDelivery?: boolean;
+  reason?: string | null;
   onAdd?: (product: Product) => boolean | void | Promise<boolean | void>;
   onOpen?: (product: Product) => void;
 }) {
-  const clickable = Boolean(onOpen);
-  const chips = compact ? [] : attributeChips(product);
-  const imageHeight = compact ? "h-32" : fluid ? "h-48" : "h-44";
+  const chips = compact ? [] : [...new Set(attributeChips(product))].slice(0, 2);
+  const selectedOptions = optionValuesLabel(product);
+  const picture = (
+    <ProductImage
+      product={product}
+      className="product-tile-photo"
+      sizes={horizontal ? "200px" : "280px"}
+    />
+  );
   return (
-    <div
-      className={`chat-product-tile group relative flex shrink-0 flex-col overflow-hidden rounded-2xl border bg-(--card) transition-[border-color,transform] duration-300 hover:-translate-y-0.5 ${
-        fluid ? "w-full" : compact ? "w-48" : "w-60"
-      } ${selected ? "border-(--ink)" : "border-(--line)"}`}
+    <article
+      className={`chat-product-tile ${horizontal ? "product-tile-horizontal" : ""}`}
+      data-fluid={fluid}
+      data-compact={compact}
+      data-selected={selected}
     >
-      <div
-        onClick={clickable ? () => onOpen?.(product) : undefined}
-        onKeyDown={
-          clickable
-            ? (event) => {
-                if (event.key === "Enter" || event.key === " ") {
-                  event.preventDefault();
-                  onOpen?.(product);
-                }
-              }
-            : undefined
-        }
-        role={clickable ? "button" : undefined}
-        tabIndex={clickable ? 0 : undefined}
-        className={`flex flex-1 flex-col rounded-2xl focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-(--accent) ${
-          clickable ? "cursor-pointer" : ""
-        }`}
-      >
-        <div className="relative overflow-hidden">
-          <ProductImage
-            product={product}
-            className={`w-full ${imageHeight} transition-transform duration-500 ease-out group-hover:scale-[1.04]`}
-          />
-          {product.in_stock === false ? (
-            <span className="absolute right-1.5 top-1.5 rounded-full bg-(--ink)/85 px-2 py-0.5 text-[13px] font-medium text-(--surface)">
-              {product.attributes?.retired === "true" ? "已下架" : "暂时缺货"}
-            </span>
-          ) : (
-            <LowStockChip
-              product={product}
-              className="absolute right-1.5 top-1.5"
-            />
-          )}
-        </div>
-        <div className="flex flex-1 flex-col gap-1.5 p-3.5">
-          {product.brand ? (
-            <div className="text-[15px] text-(--ink-soft)">{product.brand}</div>
-          ) : null}
-          <ProductTitle
-            title={product.title}
-            className={`line-clamp-2 text-[16px] font-semibold leading-snug ${compact ? "" : "min-h-11"}`}
-          />
-          {compact ? null : optionText(product) ? (
-            <OptionLine
-              product={product}
-              className="h-[24px] pt-0.5 leading-5"
-            />
-          ) : (
-            /* Fixed height keeps sibling cards aligned. */
-            <div
-              className="flex min-h-[24px] flex-wrap gap-1 overflow-hidden pt-0.5"
-              aria-hidden={chips.length === 0}
-            >
-              {chips.map((chip) => (
-                <span
-                  key={chip}
-                  className="whitespace-nowrap rounded-full bg-(--well) px-1.5 py-px text-[13px] leading-4 text-(--ink-soft)"
-                >
-                  {chip}
-                </span>
-              ))}
-            </div>
-          )}
-          <div className="mt-auto flex flex-wrap items-center justify-between gap-1 pt-1.5">
-            <span className="text-[18px] font-semibold">
-              {priceLabel(product)}
-            </span>
-            <Rating
-              rating={product.rating}
-              count={compact ? undefined : product.review_count}
-            />
+      <div className="product-tile-media">
+        {onOpen ? (
+          <button
+            type="button"
+            className="product-tile-image-button"
+            onClick={() => onOpen(product)}
+            aria-label={`查看${product.title}详情`}
+            aria-expanded={selected}
+          >
+            {picture}
+          </button>
+        ) : (
+          picture
+        )}
+        {product.in_stock === false ? (
+          <span className="product-stock-label">
+            {product.attributes?.retired === "true" ? "已下架" : "暂时缺货"}
+          </span>
+        ) : (
+          <LowStockChip product={product} className="product-stock-label" />
+        )}
+      </div>
+      <div className="product-tile-copy">
+        {product.brand ? (
+          <div className="product-tile-brand">{product.brand}</div>
+        ) : null}
+        {onOpen ? (
+          <button
+            type="button"
+            className="product-tile-title-button"
+            onClick={() => onOpen(product)}
+            aria-expanded={selected}
+          >
+            <ProductTitle title={product.title} className="product-tile-title" />
+          </button>
+        ) : (
+          <ProductTitle title={product.title} className="product-tile-title" />
+        )}
+        <div className="product-tile-price">{priceLabel(product)}</div>
+        {reason ? (
+          <p className="product-tile-reason" title={reason}>{reason}</p>
+        ) : null}
+        {chips.length ? (
+          <div className="product-tile-attributes">
+            {chips.map((chip) => (
+              <span key={chip}>{chip}</span>
+            ))}
           </div>
-          <DeliveryPromise product={product} />
+        ) : null}
+        {selectedOptions ? (
+          <p className="product-tile-options">{selectedOptions}</p>
+        ) : null}
+        {!hideDelivery ? (
+          <DeliveryPromise product={product} className="product-tile-delivery" />
+        ) : null}
+        <div className="product-tile-actions">
+          {onOpen ? (
+            <button
+              type="button"
+              className="product-detail-action"
+              onClick={() => onOpen(product)}
+              aria-expanded={selected}
+            >
+              {selected ? "收起详情" : "查看详情"}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d={selected ? "m5 12 5-5 5 5" : "m5 8 5 5 5-5"}
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          ) : product.rating != null ? (
+            <Rating rating={product.rating} />
+          ) : null}
+          {onAdd && product.in_stock !== false ? (
+            <AddButton product={product} onAdd={onAdd} appearance="label" />
+          ) : null}
         </div>
       </div>
-      {onAdd && product.in_stock !== false ? (
-        // Over the image but a sibling of the clickable area, so one control is not nested in another.
-        <div
-          className={`pointer-events-none absolute inset-x-0 top-0 ${imageHeight}`}
-        >
-          <AddButton product={product} onAdd={onAdd} />
-        </div>
-      ) : null}
+    </article>
+  );
+}
+
+/** Uses the same media and text columns as a delivered recommendation. */
+export function ProductTileSkeleton() {
+  return (
+    <div className="product-tile-skeleton" aria-hidden="true">
+      <div className="ac-skeleton product-skeleton-image" />
+      <div className="product-skeleton-copy">
+        <div className="ac-skeleton product-skeleton-title" />
+        <div className="ac-skeleton product-skeleton-price" />
+        <div className="ac-skeleton product-skeleton-line" />
+        <div className="ac-skeleton product-skeleton-line" />
+        <div className="ac-skeleton product-skeleton-action" />
+      </div>
     </div>
   );
 }
@@ -358,32 +451,23 @@ export function ProductRow({
   onAdd?: (product: Product) => boolean | void | Promise<boolean | void>;
 }) {
   return (
-    <div className="flex w-full items-center gap-3 rounded-lg bg-(--well)/60 p-3">
-      <div className="relative shrink-0">
+    <div className="product-row">
+      <div className="product-tile-media">
         <ProductImage
           product={product}
-          className={`h-14 w-16 rounded-lg ${product.in_stock === false ? "opacity-50" : ""}`}
+          className={`product-row-photo ${product.in_stock === false ? "opacity-50" : ""}`}
         />
-        {onAdd && product.in_stock !== false ? (
-          <AddButton product={product} onAdd={onAdd} />
-        ) : null}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="product-row-copy">
         {product.brand ? (
-          <div className="text-[15px] text-(--ink-soft)">{product.brand}</div>
+          <div className="product-tile-brand">{product.brand}</div>
         ) : null}
-        <ProductTitle
-          title={product.title}
-          className="line-clamp-2 text-[16px] font-medium leading-snug"
-        />
+        <ProductTitle title={product.title} className="product-tile-title" />
         <OptionLine product={product} />
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[16px] font-semibold">
-            {priceLabel(product)}
-          </span>
-          <Rating rating={product.rating} />
+        <div className="product-row-price">
+          <span>{priceLabel(product)}</span>
           {product.in_stock === false ? (
-            <span className="rounded-full bg-(--ink)/85 px-2 py-0.5 text-[13px] font-medium text-(--surface)">
+            <span className="product-unavailable">
               {product.attributes?.retired === "true" ? "已下架" : "暂时缺货"}
             </span>
           ) : (
@@ -392,6 +476,9 @@ export function ProductRow({
         </div>
         <DeliveryPromise product={product} />
       </div>
+      {onAdd && product.in_stock !== false ? (
+        <AddButton product={product} onAdd={onAdd} appearance="label" />
+      ) : null}
     </div>
   );
 }

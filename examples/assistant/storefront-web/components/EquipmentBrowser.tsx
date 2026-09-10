@@ -69,72 +69,81 @@ export default function EquipmentBrowser({
   }
   return (
     <div className="catalog-browser" data-syncing={refreshing}>
-      <div className="catalog-toolbar">
-        <label className="catalog-search">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-          >
-            <circle
-              cx="10.5"
-              cy="10.5"
-              r="6.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
+      <div className="catalog-controls">
+        <div className="catalog-toolbar">
+          <label className="catalog-search">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle
+                cx="10.5"
+                cy="10.5"
+                r="6.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path d="m16 16 5 5" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setLimit(24);
+              }}
+              placeholder="搜索帐篷、背包、头灯…"
+              aria-label="搜索装备"
             />
-            <path d="m16 16 5 5" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setLimit(24);
-            }}
-            placeholder="搜索帐篷、背包、头灯…"
-            aria-label="搜索装备"
-          />
-        </label>
-        <label className="catalog-sort">
-          排序
-          <select value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="featured">默认顺序</option>
-            <option value="price-up">价格从低到高</option>
-            <option value="price-down">价格从高到低</option>
-          </select>
-        </label>
-      </div>
-      <div className="catalog-categories" aria-label="装备分类">
-        {[["", "全部装备"], ...categories].map(([id, label]) => (
-          <button
-            type="button"
-            key={id}
-            aria-pressed={category === id}
-            onClick={() => {
-              setCategory(id);
-              setLimit(24);
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <div className="catalog-results-line">
-        <p role="status">找到 {filtered.length} 款装备</p>
-        <label>
-          <input
-            type="checkbox"
-            checked={available}
-            onChange={(e) => {
-              setAvailable(e.target.checked);
-              setLimit(24);
-            }}
-          />
-          仅看有货
-        </label>
+          </label>
+          <label className="catalog-sort">
+            排序
+            <select value={sort} onChange={(e) => setSort(e.target.value)}>
+              <option value="featured">默认顺序</option>
+              <option value="price-up">价格从低到高</option>
+              <option value="price-down">价格从高到低</option>
+            </select>
+          </label>
+        </div>
+        <div className="catalog-categories" aria-label="装备分类">
+          {[["", "全部装备"], ...categories].map(([id, label]) => (
+            <button
+              type="button"
+              key={id}
+              aria-pressed={category === id}
+              onClick={() => {
+                setCategory(id);
+                setLimit(24);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="catalog-results-line">
+          <div className="catalog-result-summary">
+            <p role="status">找到 {filtered.length} 款装备</p>
+            {category || query.trim() || available || sort !== "featured" ? (
+              <button type="button" className="catalog-reset" onClick={reset}>
+                重置筛选
+              </button>
+            ) : null}
+          </div>
+          <label>
+            <input
+              type="checkbox"
+              checked={available}
+              onChange={(e) => {
+                setAvailable(e.target.checked);
+                setLimit(24);
+              }}
+            />
+            仅看有货
+          </label>
+        </div>
       </div>
       {catalogOnly && (
         <p className="catalog-notice">

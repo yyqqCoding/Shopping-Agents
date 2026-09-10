@@ -8,21 +8,18 @@ import { ActivityLine, type AgentTurn, type AssistantChatItem, Chat as ChatShell
 import { addToCart, api } from "@/lib/api";
 import type { CartPayload } from "@/lib/types";
 import GenerativeBlock from "./generative";
+import { ProductTileSkeleton } from "./ProductTile";
 
 /** Shimmers where the carousel will land while a search runs. */
 function Pending({ item }: { item: AssistantChatItem }) {
   const searching = item.tools.includes("search_products") && !item.segments.some((s) => s.type === "ui");
   if (!searching) return <ActivityLine item={item} />;
   return (
-    <section role="status" className="rounded-2xl border border-(--line) bg-(--card) p-3 shadow-(--shadow-sm)">
-      <div className="mb-3 animate-pulse text-[15px] text-(--ink-soft)">{item.activity ?? "正在查找商品…"}</div>
-      <div className="flex gap-3 overflow-hidden pb-1">
+    <section role="status" className="product-loading">
+      <div className="recommendation-heading">{item.activity ?? "正在查找商品…"}</div>
+      <div className="product-loading-grid">
         {[0, 1, 2, 3].map((slot) => (
-          <div
-            key={slot}
-            className="ac-skeleton h-[150px] w-48 shrink-0 rounded-xl"
-            style={{ animationDelay: `${slot * 140}ms` }}
-          />
+          <ProductTileSkeleton key={slot} />
         ))}
       </div>
     </section>

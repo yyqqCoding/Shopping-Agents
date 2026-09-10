@@ -112,9 +112,12 @@ export default function WelcomePage() {
         <section className="welcome-table" aria-labelledby="hero-title">
           <HeroTable kits={kits}>
             <h1 id="hero-title" data-hero="title">
-              把下一程，
-              <br />
-              摊开来看。
+              <span className="hero-title-line">
+                <span>把下一程，</span>
+              </span>
+              <span className="hero-title-line">
+                <span>摊开来看。</span>
+              </span>
             </h1>
             <p data-hero="sub">
               说出行程、人数和预算，装备会一件件落到布上，清单同时写好。
@@ -176,6 +179,7 @@ export default function WelcomePage() {
             </p>
             <Link
               className="field-button"
+              data-magnetic
               data-reveal
               href={assistantLink(
                 "请比较双人三季徒步帐篷 OD-1001 和双人宽居营地帐篷 OD-1002，解释重量、空间与价格的取舍。",

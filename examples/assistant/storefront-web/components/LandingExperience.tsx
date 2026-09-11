@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,19 +7,40 @@ import type { ProductDetails } from "@/lib/types";
 import { assistantLink } from "@/lib/navigation";
 import { ProductImage } from "./ProductTile";
 import { Arrow } from "./SiteChrome";
+import { TelemetryCanvas } from "./TelemetryCanvas";
 
 /*
- * The welcome table. A trip is typed onto the paper slip; as the words arrive
- * the trip's equipment prints land on the ground cloth and the packing list
- * beside them ticks itself. Three example trips cycle until the visitor takes
- * the slip; the landscape follows the trip. An empty submit carries the
- * example on display into the chat.
+ * Expedition Telemetry & Tactical Schematics System.
+ *
+ * The departure table evolved into an interactive mission console:
+ * - Telemetry radar & dynamic contour vector field
+ * - Laser assembly scanner for incoming gear prints
+ * - 3D Spring-physics tilt & tactile snap-locks
+ * - Liquid-glass refractive surfaces and telemetry HUD readout
  */
 
-const HERO_SCENES = {
-  camping: { label: "林间露营", image: "/images/camping.webp" },
-  hiking: { label: "轻装徒步", image: "/images/hiking.webp" },
-  sunrise: { label: "山间日出", image: "/images/hero.webp" },
+export const HERO_SCENES = {
+  camping: {
+    sector: "SECTOR 01",
+    label: "林间露营",
+    coords: "30°18'N · 119°26'E",
+    elev: "+840M",
+    image: "/images/camping.webp",
+  },
+  hiking: {
+    sector: "SECTOR 02",
+    label: "轻装徒步",
+    coords: "31°14'N · 118°22'E",
+    elev: "+1,420M",
+    image: "/images/hiking.webp",
+  },
+  sunrise: {
+    sector: "SECTOR 03",
+    label: "山间日出",
+    coords: "29°42'N · 120°10'E",
+    elev: "+1,860M",
+    image: "/images/hero.webp",
+  },
 };
 
 export type HeroKit = {
@@ -29,13 +51,51 @@ export type HeroKit = {
   pending: { product: ProductDetails; note: string };
 };
 
-const TYPE_MS = 55;
-const ERASE_MS = 16;
-const HOLD_MS = 4200;
-const REST_MS = 400;
+const TYPE_MS = 50;
+const ERASE_MS = 14;
+const HOLD_MS = 4600;
+const REST_MS = 380;
 
 function yuan(n: number) {
   return `¥${n.toLocaleString("zh-CN")}`;
+}
+
+/** Animated rolling odometer counter for prices and totals */
+function AnimatedCounter({ value, prefix = "¥" }: { value: number; prefix?: string }) {
+  const [display, setDisplay] = useState(value);
+  const prevRef = useRef(value);
+
+  useEffect(() => {
+    const start = prevRef.current;
+    const end = value;
+    prevRef.current = end;
+    if (start === end) return;
+
+    const duration = 480;
+    const startTime = performance.now();
+    let frame = 0;
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const p = Math.min(1, elapsed / duration);
+      // spring-like ease-out cubic
+      const ease = 1 - Math.pow(1 - p, 3);
+      const current = Math.round(start + (end - start) * ease);
+      setDisplay(current);
+      if (p < 1) {
+        frame = requestAnimationFrame(step);
+      }
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
+
+  return (
+    <span className="odometer-num">
+      {prefix}
+      {display.toLocaleString("zh-CN")}
+    </span>
+  );
 }
 
 export function HeroTable({
@@ -50,24 +110,27 @@ export function HeroTable({
   const [focused, setFocused] = useState(false);
   const [kit, setKit] = useState(0);
   const [chars, setChars] = useState(0);
-  // The cloth keeps the previous trip's prints until the next trip's first
-  // print lands, so the table is never bare between examples.
   const [stage, setStage] = useState({ kit: 0, landed: 0 });
   const [settled, setSettled] = useState(false);
   const [playback, setPlayback] = useState({ start: 0, playing: true });
   const [reducedMotion, setReducedMotion] = useState(false);
   const [active, setActive] = useState(true);
 
+  // 3D Tilt Spring Physics State for Equipment Cards (Branch A)
+  const [activeHoverCard, setActiveHoverCard] = useState<number | null>(null);
+  const [cardTilt, setCardTilt] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
   const current = kits[kit];
+  const sceneData = HERO_SCENES[current.scene];
   const example = current.prompt.slice(0, chars);
   const count = current.items.length;
   const landed = stage.kit === kit ? stage.landed : 0;
   const playing = playback.playing && !reducedMotion;
-  const playbackLabel = playing ? "暂停场景演示" : "播放场景演示";
+  const playbackLabel = playing ? "暂停战术巡航" : "启动战术巡航";
   const playbackHint = reducedMotion
     ? "已跟随系统减少动态效果"
     : focused || draft.length > 0
-      ? "填写行程时暂停演示"
+      ? "输入任务指令时自动定格"
       : playbackLabel;
 
   useEffect(() => {
@@ -77,12 +140,14 @@ export function HeroTable({
     let deleting = false;
     let timer = 0;
     let inView = true;
-    const finish = (index: number) => {
-      setKit(index);
-      setChars(kits[index].prompt.length);
-      setStage({ kit: index, landed: kits[index].items.length });
+
+    const finish = (idx: number) => {
+      setKit(idx);
+      setChars(kits[idx].prompt.length);
+      setStage({ kit: idx, landed: kits[idx].items.length });
       setSettled(true);
     };
+
     const tick = () => {
       if (!inView || document.hidden || motion.matches || !playback.playing) return;
       const full = kits[index].prompt;
@@ -90,8 +155,9 @@ export function HeroTable({
       let delay = deleting ? ERASE_MS : TYPE_MS;
       c += deleting ? -1 : 1;
       setChars(c);
+
       if (!deleting) {
-        const per = full.length / (n + 0.4);
+        const per = full.length / (n + 0.35);
         const now = Math.min(n, Math.floor(c / per));
         if (now > 0) {
           setStage((previous) =>
@@ -140,6 +206,7 @@ export function HeroTable({
       setSettled(false);
       if (inView && !document.hidden) timer = window.setTimeout(tick, REST_MS);
     };
+
     syncMotion();
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -151,6 +218,7 @@ export function HeroTable({
     if (sceneRef.current) observer.observe(sceneRef.current);
     document.addEventListener("visibilitychange", syncVisibility);
     motion.addEventListener("change", syncMotion);
+
     return () => {
       window.clearTimeout(timer);
       observer.disconnect();
@@ -159,8 +227,7 @@ export function HeroTable({
     };
   }, [kits, playback]);
 
-  // Pointer depth stays outside React's render cycle. Only an active movement
-  // requests frames; leaving the scene eases the equipment back to its rest.
+  // Spatial Pointer Depth tracking for environmental tilt
   useEffect(() => {
     const scene = sceneRef.current;
     if (
@@ -168,13 +235,16 @@ export function HeroTable({
       !active ||
       reducedMotion ||
       !window.matchMedia("(hover: hover) and (pointer: fine)").matches
-    ) return;
+    )
+      return;
+
     let frame = 0;
     let x = 0;
     let y = 0;
     let targetX = 0;
     let targetY = 0;
     let bounds: DOMRect | null = null;
+
     const draw = () => {
       x += (targetX - x) * 0.12;
       y += (targetY - y) * 0.12;
@@ -185,12 +255,15 @@ export function HeroTable({
           ? window.requestAnimationFrame(draw)
           : 0;
     };
+
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(draw);
     };
+
     const invalidateBounds = () => {
       bounds = null;
     };
+
     const move = (event: PointerEvent) => {
       bounds ??= scene.getBoundingClientRect();
       targetX = Math.max(
@@ -203,16 +276,19 @@ export function HeroTable({
       );
       schedule();
     };
+
     const reset = () => {
       targetX = 0;
       targetY = 0;
       schedule();
     };
+
     scene.addEventListener("pointerenter", invalidateBounds);
     scene.addEventListener("pointermove", move, { passive: true });
     scene.addEventListener("pointerleave", reset);
     window.addEventListener("resize", invalidateBounds);
     window.addEventListener("scroll", invalidateBounds, { passive: true });
+
     return () => {
       window.cancelAnimationFrame(frame);
       scene.removeEventListener("pointerenter", invalidateBounds);
@@ -224,6 +300,21 @@ export function HeroTable({
       scene.style.removeProperty("--pointer-y");
     };
   }, [active, reducedMotion]);
+
+  // Card Mouse Move Handler for 3D Spring Physics Tilt (Branch A)
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>, idx: number) => {
+    if (reducedMotion) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2; // -1 to 1
+    const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2; // -1 to 1
+    setActiveHoverCard(idx);
+    setCardTilt({ x: nx * 14, y: -ny * 14 });
+  };
+
+  const handleCardMouseLeave = () => {
+    setActiveHoverCard(null);
+    setCardTilt({ x: 0, y: 0 });
+  };
 
   const engage = () => {
     setPlayback({ start: kit, playing: false });
@@ -239,10 +330,11 @@ export function HeroTable({
   return (
     <div
       ref={sceneRef}
-      className="hero-experience"
+      className="hero-experience telemetry-experience"
       data-playing={playing}
       data-active={active}
     >
+      {/* 1. Tactical Environmental Canvas & Backgrounds */}
       <div className="table-environment" aria-hidden="true">
         {kits.map(({ scene }, index) => (
           <div
@@ -261,77 +353,109 @@ export function HeroTable({
             />
           </div>
         ))}
+        {/* Real-time Topographic Contour & Radar Particle Canvas */}
+        <TelemetryCanvas activeScene={current.scene} />
       </div>
+
       <div className="table" data-playing={playing}>
+        {/* Left: Mission Command Terminal & Sector Selector */}
         <div className="table-words">
           {children}
-          <form
-            action="/chat"
-            className="slip"
-            data-hero="slip"
-            onSubmit={(event) => {
-              // An untouched submit starts from the example on display.
-              if (draft.trim()) return;
-              event.preventDefault();
-              window.location.href = assistantLink(current.prompt);
-            }}
-          >
-            <label htmlFor="hero-draft" className="sr-only">
-              描述你的下一程
-            </label>
-            <div className="slip-field">
-              <textarea
-                id="hero-draft"
-                name="draft"
-                rows={2}
-                maxLength={1200}
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                onFocus={engage}
-                onBlur={() => setFocused(false)}
-                onKeyDown={(event) => {
-                  if (
-                    event.key === "Enter" &&
-                    !event.shiftKey &&
-                    !event.nativeEvent.isComposing
-                  ) {
-                    event.preventDefault();
-                    event.currentTarget.form?.requestSubmit();
-                  }
-                }}
-              />
-              {/* The example writes itself with a pen cursor until the visitor takes over. */}
-              <span
-                className="slip-example"
-                aria-hidden="true"
-                data-hidden={focused || draft.length > 0}
-              >
-                {example}
-              </span>
+
+          {/* Tactical Mission Dispatch Terminal (Slip) with Liquid Glass */}
+          <div className="mission-terminal-wrap" data-hero="slip">
+            {/* HUD Status Header */}
+            <div className="mission-hud-bar" aria-hidden="true">
+              <span className="hud-beacon" />
+              <span className="hud-code">PROTOCOL // {sceneData.sector}</span>
+              <span className="hud-metric">{sceneData.coords}</span>
+              <span className="hud-elev">{sceneData.elev}</span>
             </div>
-            <button type="submit" aria-label="带着这段行程进入助手">
-              <Arrow />
-            </button>
-          </form>
+
+            <form
+              action="/chat"
+              className="slip tactical-slip"
+              onSubmit={(event) => {
+                if (draft.trim()) return;
+                event.preventDefault();
+                window.location.href = assistantLink(current.prompt);
+              }}
+            >
+              <label htmlFor="hero-draft" className="sr-only">
+                描述你的下一程任务需求
+              </label>
+
+              <div className="slip-field">
+                <textarea
+                  id="hero-draft"
+                  name="draft"
+                  rows={2}
+                  maxLength={1200}
+                  value={draft}
+                  placeholder=""
+                  onChange={(event) => setDraft(event.target.value)}
+                  onFocus={engage}
+                  onBlur={() => setFocused(false)}
+                  onKeyDown={(event) => {
+                    if (
+                      event.key === "Enter" &&
+                      !event.shiftKey &&
+                      !event.nativeEvent.isComposing
+                    ) {
+                      event.preventDefault();
+                      event.currentTarget.form?.requestSubmit();
+                    }
+                  }}
+                />
+                {/* Real-time typing stream simulation */}
+                <span
+                  className="slip-example"
+                  aria-hidden="true"
+                  data-hidden={focused || draft.length > 0}
+                >
+                  {example}
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                className="tactical-submit-btn"
+                aria-label="带着这段行程进入智能助理"
+              >
+                <Arrow />
+                <span className="btn-glow" aria-hidden="true" />
+              </button>
+            </form>
+          </div>
+
+          {/* Sector Navigation & Playback Controls */}
           <div className="table-scenes" data-hero="scenes">
             <div
-              className="table-scene-options"
+              className="table-scene-options tactical-sectors"
               role="group"
-              aria-label="切换示例行程和背景"
+              aria-label="切换勘测扇区与示例行程"
             >
-              {kits.map(({ scene }, index) => (
-                <button
-                  key={scene}
-                  type="button"
-                  aria-pressed={index === kit}
-                  onClick={() => setPlayback({ start: index, playing: false })}
-                >
-                  {HERO_SCENES[scene].label}
-                </button>
-              ))}
+              {kits.map(({ scene }, index) => {
+                const s = HERO_SCENES[scene];
+                const isSelected = index === kit;
+                return (
+                  <button
+                    key={scene}
+                    type="button"
+                    className="sector-btn"
+                    aria-pressed={isSelected}
+                    onClick={() => setPlayback({ start: index, playing: false })}
+                  >
+                    <span className="sector-tag">{s.sector.replace("SECTOR ", "#0")}</span>
+                    <span className="sector-title">{s.label}</span>
+                    {isSelected && <span className="sector-active-dot" />}
+                  </button>
+                );
+              })}
             </div>
+
             <button
-              className="table-playback"
+              className="table-playback tactical-playback-btn"
               type="button"
               disabled={reducedMotion || focused || draft.length > 0}
               aria-label={playbackLabel}
@@ -349,7 +473,7 @@ export function HeroTable({
                   <path
                     d="M7 5v10M13 5v10"
                     stroke="currentColor"
-                    strokeWidth="1.8"
+                    strokeWidth="2"
                     strokeLinecap="round"
                   />
                 ) : (
@@ -360,66 +484,160 @@ export function HeroTable({
           </div>
         </div>
 
-        <div className="table-cloth" data-hero="cloth">
+        {/* Right: 3D Holographic Gear Array & Tactical Loadout Manifest */}
+        <div className="table-cloth tactical-stage" data-hero="cloth">
+          {/* Depth-staged 3D Holographic Gear Prints with Laser Scanning */}
           <div className="table-prints" aria-hidden="true">
             {kits.map((entry, k) =>
-              entry.items.map(({ product }, index) => (
-                <div
-                  className={`print table-print table-print-${index}`}
-                  key={`${k}-${product.product_id}`}
-                  data-landed={stage.kit === k && index < stage.landed}
-                >
-                  <ProductImage
-                    product={product}
-                    sizes="(max-width: 820px) 44vw, 420px"
-                  />
-                </div>
-              )),
+              entry.items.map(({ product, qty }, index) => {
+                const isCurrentKit = stage.kit === k;
+                const isLanded = isCurrentKit && index < stage.landed;
+                const isHovered = activeHoverCard === index;
+
+                // 3D Spring tilt transform style
+                const dynamicTiltStyle = isHovered
+                  ? {
+                      transform: `translateZ(75px) rotateY(${cardTilt.x}deg) rotateX(${cardTilt.y}deg) scale(1.05)`,
+                      transition: "transform 80ms ease-out",
+                    }
+                  : undefined;
+
+                return (
+                  <div
+                    className={`print table-print table-print-${index} tactical-print`}
+                    key={`${k}-${product.product_id}`}
+                    data-landed={isLanded}
+                    onMouseMove={(e) => handleCardMouseMove(e, index)}
+                    onMouseLeave={handleCardMouseLeave}
+                    style={dynamicTiltStyle}
+                  >
+                    {/* Laser Assembly Scan Beam */}
+                    <div className="laser-scanner" aria-hidden="true" />
+
+                    {/* Corner Reticle Brackets (机能蓝图装配角标) */}
+                    <div className="tactical-brackets" aria-hidden="true">
+                      <span className="bracket tl" />
+                      <span className="bracket tr" />
+                      <span className="bracket bl" />
+                      <span className="bracket br" />
+                    </div>
+
+                    {/* Spec Technical Badge */}
+                    <div className="tactical-spec-chip" aria-hidden="true">
+                      <span className="chip-code">{product.product_id}</span>
+                      <span className="chip-attr">
+                        {product.attributes?.highlight_1 || "GEAR"}
+                      </span>
+                    </div>
+
+                    <ProductImage
+                      product={product}
+                      sizes="(max-width: 820px) 44vw, 420px"
+                    />
+
+                    {/* Liquid glass light reflection overlay */}
+                    <div className="card-liquid-sheen" aria-hidden="true" />
+                  </div>
+                );
+              }),
             )}
           </div>
 
-          <div className="paper packing-list" data-settled={settled}>
+          {/* Tactical Loadout Manifest (Packing List) with Liquid Glass & Odometer */}
+          <div className="paper packing-list tactical-manifest" data-settled={settled}>
+            {/* Header & Slots Progress Meter */}
             <header>
-              <span>出发清单</span>
-              <span>{settled ? `${count} 件已摊开` : `${landed} / ${count}`}</span>
+              <div className="manifest-title-row">
+                <span className="manifest-label">战备挂载清单</span>
+                <span className="manifest-status-badge">
+                  {settled ? "ASSEMBLY LOCKED" : "CONFIGURING"}
+                </span>
+              </div>
+              <div className="manifest-count-row">
+                <span className="manifest-count">
+                  {settled ? `${count} 槽位就绪` : `${landed} / ${count} 装备装配`}
+                </span>
+                {/* Segmented Loadout Slots */}
+                <div className="slots-meter" aria-hidden="true">
+                  {Array.from({ length: count }).map((_, i) => (
+                    <span
+                      key={i}
+                      className={`slot-dot ${i < landed ? "is-loaded" : ""}`}
+                    />
+                  ))}
+                </div>
+              </div>
             </header>
+
+            {/* Gear Items List with Snap-lock animations */}
             <ol>
-              {current.items.map(({ product, qty }, index) => (
-                <li key={product.product_id} data-checked={index < landed}>
-                  <span className="tick" aria-hidden="true">
-                    <svg viewBox="0 0 20 20" width="20" height="20">
-                      <path
-                        d="M4 10.5 8.2 14.5 16 6"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  <span className="packing-name">
-                    {product.title}
-                    {qty > 1 ? <em> ×{qty}</em> : null}
-                  </span>
-                  <span className="packing-price">{yuan(product.price * qty)}</span>
-                </li>
-              ))}
-              <li className="packing-pending" data-shown={settled}>
-                <span className="tick" aria-hidden="true" />
-                <span className="packing-name">
-                  还缺 {current.pending.product.title}
+              {current.items.map(({ product, qty }, index) => {
+                const isChecked = index < landed;
+                return (
+                  <li
+                    key={product.product_id}
+                    data-checked={isChecked}
+                    className="manifest-item"
+                  >
+                    <span className="tick tactical-tick" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" width="18" height="18">
+                        <path
+                          d="M4 10.5 8.2 14.5 16 6"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <span className="packing-name manifest-item-name">
+                      <strong>{product.title}</strong>
+                      {qty > 1 ? <em> ×{qty}</em> : null}
+                    </span>
+                    <span className="packing-price manifest-item-price">
+                      {yuan(product.price * qty)}
+                    </span>
+                  </li>
+                );
+              })}
+
+              {/* Pending Gear Recommendation */}
+              <li className="packing-pending manifest-pending" data-shown={settled}>
+                <span className="tick tactical-tick" aria-hidden="true">
+                  <span className="pending-pulse-dot" />
+                </span>
+                <span className="packing-name manifest-item-name">
+                  <strong>建议追加 {current.pending.product.title}</strong>
                   <em>{current.pending.note}</em>
                 </span>
-                <span className="packing-price">{yuan(current.pending.product.price)}</span>
+                <span className="packing-price manifest-item-price">
+                  {yuan(current.pending.product.price)}
+                </span>
               </li>
             </ol>
+
+            {/* Manifest Footer with Animated Rolling Counter */}
             <footer>
-              <span>合计</span>
-              <strong>
-                {landed > 0 ? yuan(total) : "—"}
-                {current.budget ? <span> / 预算 {yuan(current.budget)}</span> : null}
-              </strong>
+              <div className="footer-label-col">
+                <span>预估预算</span>
+                <span className="sub-label">TAX INCL.</span>
+              </div>
+              <div className="footer-total-col">
+                <strong>
+                  {landed > 0 ? (
+                    <AnimatedCounter value={total} />
+                  ) : (
+                    <span>—</span>
+                  )}
+                  {current.budget ? (
+                    <span className="budget-target">
+                      {" "}
+                      / 上限 {yuan(current.budget)}
+                    </span>
+                  ) : null}
+                </strong>
+              </div>
             </footer>
           </div>
         </div>
@@ -430,15 +648,15 @@ export function HeroTable({
 
 export function TripEntry() {
   return (
-    <form action="/chat" className="trip-entry paper">
-      <label htmlFor="trip-draft">你的下一程，写在这里。</label>
+    <form action="/chat" className="trip-entry paper tactical-trip-entry">
+      <label htmlFor="trip-draft">你的下一程任务，录入指令。</label>
       <div>
         <input
           id="trip-draft"
           name="draft"
           maxLength={1200}
           required
-          placeholder="比如：两人周末露营，预算 2000 元…"
+          placeholder="例如：两人周末自驾露营，预算 2000 元…"
         />
         <button type="submit" aria-label="带着行程进入助手">
           <Arrow />
@@ -463,21 +681,26 @@ export function GearPrint({
   return (
     <Link
       href={`/equipment/${product.product_id}`}
-      className="print gear-print"
+      className="print gear-print tactical-gear-print"
       data-land
       style={{ "--tilt": `${tilt}deg`, "--i": index } as React.CSSProperties}
       aria-label={`查看${product.title}`}
     >
-      <ProductImage product={product} priority={priority} sizes="(max-width: 820px) 46vw, 380px" />
+      <div className="tactical-brackets" aria-hidden="true">
+        <span className="bracket tl" />
+        <span className="bracket br" />
+      </div>
+      <ProductImage
+        product={product}
+        priority={priority}
+        sizes="(max-width: 820px) 46vw, 380px"
+      />
     </Link>
   );
 }
 
 /**
- * Reveal-on-scroll and the header state flip. Prints land once as they enter;
- * headings rise; nothing animates twice. Elements already inside the first
- * viewport are marked visible before the motion class lands, so hydration
- * never blinks them.
+ * Reveal-on-scroll and the header state flip with magnetic interactions.
  */
 export function LandingMotion() {
   useEffect(() => {
@@ -540,12 +763,12 @@ export function LandingMotion() {
         if (reduced.matches || event.pointerType !== "mouse") return;
         bounds ??= element.getBoundingClientRect();
         const x = Math.max(
-          -5,
-          Math.min(5, ((event.clientX - bounds.left) / bounds.width - 0.5) * 10),
+          -6,
+          Math.min(6, ((event.clientX - bounds.left) / bounds.width - 0.5) * 12),
         );
         const y = Math.max(
-          -4,
-          Math.min(4, ((event.clientY - bounds.top) / bounds.height - 0.5) * 8),
+          -5,
+          Math.min(5, ((event.clientY - bounds.top) / bounds.height - 0.5) * 10),
         );
         window.cancelAnimationFrame(frame);
         frame = window.requestAnimationFrame(() => {
@@ -565,13 +788,14 @@ export function LandingMotion() {
         reduced.removeEventListener("change", reset);
       };
     });
+
     return () => {
       cleanupMagnetic.forEach((cleanup) => cleanup());
       reduced.removeEventListener("change", onPreference);
-      observer.disconnect();
       window.removeEventListener("scroll", syncHeader);
-      document.documentElement.classList.remove("motion-ready");
+      observer.disconnect();
     };
   }, []);
+
   return null;
 }

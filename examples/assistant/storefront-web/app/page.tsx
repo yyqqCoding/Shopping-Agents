@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { equipment, equipmentById } from "@/lib/catalog";
-import { assistantLink } from "@/lib/navigation";
 import { SiteHeader, SiteFooter, Arrow } from "@/components/SiteChrome";
-import EquipmentCard from "@/components/EquipmentCard";
 import {
-  GearPrint,
   HeroTable,
   LandingMotion,
   TripEntry,
@@ -13,7 +10,8 @@ import {
 import { ExpeditionTelemetryHUD } from "@/components/ExpeditionTelemetryHUD";
 import { InteractiveSceneCard } from "@/components/InteractiveSceneCard";
 import { TentBenchmarkStage } from "@/components/TentBenchmarkStage";
-import { FeaturedSpotlightGrid } from "@/components/FeaturedSpotlightGrid";
+import { GearHallGrid } from "@/components/GearHallGrid";
+import { TechMarquee } from "@/components/TechMarquee";
 
 const scenes = [
   {
@@ -173,26 +171,14 @@ export default function WelcomePage() {
           </div>
         </section>
 
-        {/* Section 3: Flagship Tent Dual Benchmark (Apple Tech Specs Style) */}
+        {/* Section 3: Flagship Tent Dual Benchmark (Lando Dual Mode) */}
         <section className="section-stage compare-stage" id="how-it-works">
-          <div className="stage-ambient compare-ambient" aria-hidden="true">
-            <div className="ambient-lab-grid" />
-            <div className="compare-spotlight spotlight-left" />
-            <div className="compare-spotlight spotlight-right" />
-            <div className="lab-spec-crosshairs">
-              <span className="crosshair ch-1">+</span>
-              <span className="crosshair ch-2">+</span>
-              <span className="crosshair ch-3">+</span>
-              <span className="crosshair ch-4">+</span>
-            </div>
-            <div className="lab-watermark-tag">TACTICAL BENCHMARK LAB // WEIGHT-TO-VOLUME FIELD TEST</div>
-          </div>
           <div className="compare-section section-wrap">
             <TentBenchmarkStage products={compare} />
           </div>
         </section>
 
-        {/* Section 4: Featured Equipment Catalog Grid */}
+        {/* Section 4: Gear Hall of Fame */}
         <section className="section-stage featured-stage">
           <div className="stage-ambient featured-ambient" aria-hidden="true">
             <div className="ambient-contour-lines" />
@@ -215,9 +201,12 @@ export default function WelcomePage() {
                 </Link>
               </div>
             </div>
-            <FeaturedSpotlightGrid products={picks} />
+            <GearHallGrid products={picks} />
           </div>
         </section>
+
+        {/* Section 4.5: Material & Tech Marquee */}
+        <TechMarquee />
 
         {/* Section 5: Mission Departure Terminal */}
         <section className="section-stage departure-stage">

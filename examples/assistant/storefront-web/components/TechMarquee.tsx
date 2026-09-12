@@ -18,7 +18,7 @@ export function TechMarquee() {
   const row = [...MATERIALS, ...MATERIALS];
   return (
     <div className="tech-marquee" aria-hidden="true">
-      <div className="tech-marquee-track">
+      <div className="tech-marquee-track" data-marquee-track>
         {row.map((item, i) => (
           <span key={`${item}-${i}`} className="tech-marquee-item">
             <span className="marquee-tick" />

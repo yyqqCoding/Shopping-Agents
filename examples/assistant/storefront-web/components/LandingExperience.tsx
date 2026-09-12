@@ -610,32 +610,6 @@ export function HeroTable({
   );
 }
 
-export function TripEntry() {
-  return (
-    <form action="/chat" className="trip-entry paper tactical-trip-entry">
-      <div className="trip-entry-label-wrap">
-        <div className="trip-entry-beacon">
-          <span className="beacon-pulse" />
-          <span className="beacon-text">BASE CAMP TERMINAL // 指令就绪</span>
-        </div>
-        <label htmlFor="trip-draft">你的下一程任务，录入指令。</label>
-      </div>
-      <div>
-        <input
-          id="trip-draft"
-          name="draft"
-          maxLength={1200}
-          required
-          placeholder="例如：两人周末自驾露营，预算 2000 元…"
-        />
-        <button type="submit" aria-label="带着行程进入助手">
-          <Arrow />
-        </button>
-      </div>
-    </form>
-  );
-}
-
 /** A photograph print laid on the cloth, linking to the equipment it shows. */
 export function GearPrint({
   product,

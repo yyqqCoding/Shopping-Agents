@@ -6,6 +6,8 @@ import { ProductImage } from "./ProductTile";
  * Gear Hall of Fame — chamfered SVG frame cards in the spirit of the
  * Lando "Helmets Hall of Fame" grid: a cut-corner outline that ignites
  * in safety orange on hover while the print lifts inside the frame.
+ * Each card carries data-hall-item so the landing motion layer can
+ * stagger columns on scroll.
  */
 
 const FRAME_PATH =
@@ -48,12 +50,13 @@ function ChamferFrame() {
 
 export function GearHallGrid({ products }: { products: Product[] }) {
   return (
-    <div className="gear-hall-grid" data-reveal>
+    <div className="gear-hall-grid">
       {products.map((product, index) => (
         <Link
           key={product.product_id}
           href={`/equipment/${product.product_id}`}
           className="gear-hall-card"
+          data-hall-item
           style={{ "--i": index } as React.CSSProperties}
           aria-label={`查看${product.title}`}
         >

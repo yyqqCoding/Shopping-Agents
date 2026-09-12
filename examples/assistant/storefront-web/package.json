@@ -8,6 +8,8 @@
     "start": "next start -p 3004"
   },
   "dependencies": {
+    "gsap": "^3.13.0",
+    "lenis": "^1.1.20",
     "next": "^16.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

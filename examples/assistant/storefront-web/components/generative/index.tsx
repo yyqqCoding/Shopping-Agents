@@ -42,6 +42,7 @@ export default function GenerativeBlock({
         <ComparisonGrid
           payload={block.payload as ComparisonPayload}
           partial={partial}
+          onAdd={onAdd}
         />
       );
     case "plan":

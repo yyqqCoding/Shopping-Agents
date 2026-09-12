@@ -244,16 +244,8 @@ function ProductDetail({
         </div>
       </div>
 
-      {product.product_id.startsWith("OD-") ? (
-        <Link
-          className="text-link mt-3"
-          href={`/equipment/${product.variant_of ?? product.product_id}`}
-        >
-          打开完整商品页
-        </Link>
-      ) : null}
       {reason ? (
-        <p className="mt-2 text-[15px] leading-snug text-(--ink)">{reason}</p>
+        <p className="mt-2 text-[16px] leading-snug text-(--ink)">{reason}</p>
       ) : null}
       {failed ? (
         <p role="status" className="mt-2 text-[15px] text-(--warn)">

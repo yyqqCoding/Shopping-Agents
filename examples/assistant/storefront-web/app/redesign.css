@@ -29,16 +29,16 @@
   --card: var(--paper);
   --chrome: #e7ebe3;
   --well: #edf0e8;
-  --ink: #1c3a2e;
-  --ink-2: #4a6156;
-  --ink-soft: #586e60;
-  --ink-faint: #7f9085;
-  --line: rgba(28, 58, 46, 0.11);
-  --line-strong: rgba(28, 58, 46, 0.24);
+  --ink: #0f241a;
+  --ink-2: #1e382b;
+  --ink-soft: #2e4a3b;
+  --ink-faint: #446152;
+  --line: rgba(28, 58, 46, 0.14);
+  --line-strong: rgba(28, 58, 46, 0.28);
   --accent: #2b5a44;
-  --accent-strong: #1c3a2e;
+  --accent-strong: #143324;
   --accent-soft: #e1e9dc;
-  --accent-ink: #1c3a2e;
+  --accent-ink: #0f241a;
   --marker: #d8541c;
   --marker-ink: #b3420e;
   --marker-soft: rgba(216, 84, 28, 0.16);
@@ -74,14 +74,15 @@
 }
 
 html {
+  font-size: 17px;
   scroll-padding-top: 110px;
 }
 
 body {
   overflow-x: hidden;
   color: var(--ink);
-  font-size: 1.125rem;
-  line-height: 1.75;
+  font-size: 1.1875rem;
+  line-height: 1.8;
   caret-color: var(--accent);
   background:
     radial-gradient(ellipse at 80% 0, rgba(255, 253, 247, 0.9), transparent 55%),
@@ -2357,14 +2358,15 @@ main.catalog-empty {
 .store-workspace .user-bubble,
 .store-workspace .markdown,
 .store-workspace .composer-dock textarea {
-  font-size: 1.125rem;
-  line-height: 1.75;
+  font-size: 1.2rem;
+  line-height: 1.8;
 }
 
 .store-workspace .user-bubble {
   border-radius: 22px 22px 6px 22px;
   background: var(--ink);
   color: var(--paper);
+  padding: 14px 22px;
   box-shadow: 0 4px 18px -4px rgba(28, 58, 46, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.16);
 }
@@ -2573,9 +2575,9 @@ main.catalog-empty {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-  font-size: 1.0625rem;
-  font-weight: 650;
-  line-height: 1.45;
+  font-size: 1.2rem;
+  font-weight: 750;
+  line-height: 1.4;
   color: var(--ink);
   text-wrap: pretty;
 }
@@ -2584,14 +2586,15 @@ main.catalog-empty {
 .product-tile-options,
 .product-unavailable {
   color: var(--ink-soft);
-  font-size: 0.875rem;
+  font-size: 0.95rem;
+  font-weight: 550;
   line-height: 1.5;
 }
 
 .product-tile-price {
   color: var(--ink);
-  font-size: 1.375rem;
-  font-weight: 700;
+  font-size: 1.55rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.015em;
   line-height: 1.35;
@@ -2602,30 +2605,33 @@ main.catalog-empty {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   color: var(--ink-2);
-  font-size: 0.9375rem;
+  font-size: 1.02rem;
   line-height: 1.65;
 }
 
 .product-tile-attributes {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px 8px;
+  gap: 6px 10px;
   color: var(--ink-soft);
-  font-size: 0.8125rem;
+  font-size: 0.92rem;
   line-height: 1.5;
 }
 
 .product-tile-attributes > span {
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--well);
-  padding: 3px 7px;
+  padding: 4px 10px;
+  font-weight: 600;
+  color: var(--ink-2);
 }
 
 .product-tile-copy .product-tile-delivery {
   color: var(--ink-soft);
-  font-size: 0.8125rem;
+  font-size: 0.9rem;
+  font-weight: 550;
   line-height: 1.5;
 }
 
@@ -2634,7 +2640,7 @@ main.catalog-empty {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   margin-top: auto;
   padding-top: 8px;
@@ -3285,26 +3291,27 @@ main.catalog-empty {
 }
 
 .comparison-label-column {
-  width: 100px;
+  width: 120px;
 }
 
 .comparison-table th,
 .comparison-table td {
-  padding: 16px 20px;
+  padding: 20px 24px;
   border-bottom: 1px solid var(--line);
   vertical-align: top;
-  font-size: 0.9375rem;
-  font-weight: 400;
-  line-height: 1.75;
+  font-size: 1.08rem;
+  font-weight: 550;
+  line-height: 1.8;
   overflow-wrap: anywhere;
+  color: var(--ink);
 }
 
 .comparison-table tbody th,
 .comparison-table .comparison-corner {
-  padding-inline: 8px 14px;
-  color: var(--ink-soft);
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding-inline: 12px 18px;
+  color: var(--ink);
+  font-size: 1.12rem;
+  font-weight: 750;
 }
 
 .comparison-table .comparison-corner {
@@ -3312,95 +3319,132 @@ main.catalog-empty {
 }
 
 .comparison-table .comparison-choice {
-  background: rgba(225, 233, 220, 0.42);
+  background: rgba(43, 90, 68, 0.08);
 }
 
-.comparison-product {
+.comparison-product-header-btn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 14px;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: transform 220ms var(--ease-out);
+}
+
+.comparison-product-header-btn:hover {
+  transform: translateY(-4px);
 }
 
 .comparison-photo {
   display: block;
-  width: 142px;
-  height: 142px;
-  border-radius: 16px;
+  width: 154px;
+  height: 154px;
+  border-radius: 18px;
   object-fit: cover;
   mix-blend-mode: normal;
+  box-shadow: 0 4px 14px -4px rgba(28, 58, 46, 0.12);
 }
 
 .comparison-product-title {
   display: block;
-  font-size: 1.0625rem;
-  font-weight: 650;
-  line-height: 1.5;
+  font-size: 1.25rem;
+  font-weight: 750;
+  line-height: 1.4;
+  color: var(--ink);
 }
 
 .comparison-price {
   display: block;
   margin-top: 6px;
-  font-size: 1.375rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-  line-height: 1.4;
+  line-height: 1.35;
+  color: var(--ink);
 }
 
 .comparison-terms {
   margin: 0;
-  padding: 0 0 0 16px;
+  padding: 0 0 0 18px;
   list-style: disc;
 }
 
+.comparison-terms > li {
+  font-size: 1.08rem;
+  line-height: 1.75;
+  color: var(--ink);
+  font-weight: 550;
+}
+
 .comparison-terms > li + li {
-  margin-top: 9px;
+  margin-top: 10px;
 }
 
 .comparison-terms > li::marker {
-  color: var(--ink-soft);
+  color: var(--accent);
 }
 
 .comparison-tradeoffs td {
-  color: var(--ink-2);
+  color: var(--ink);
 }
 
 .comparison-missing,
-.comparison-dimensions,
 .comparison-loading {
   color: var(--ink-soft);
-  font-size: 0.875rem;
+  font-size: 1rem;
   line-height: 1.6;
 }
 
-.comparison-dimensions,
-.comparison-loading {
-  margin-top: 16px;
+.comparison-dimensions {
+  color: var(--ink-2);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 20px;
+  padding-inline: 4px;
 }
 
 .comparison-actions th,
 .comparison-actions td {
   border-bottom: 0;
+  padding-top: 24px;
 }
 
-.comparison-detail-link {
+.comparison-detail-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 36px;
-  border-radius: 8px;
-  color: var(--ink);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
+  min-height: 44px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--ink);
+  box-shadow: 0 4px 14px -3px rgba(28, 58, 46, 0.35);
+  transition: all 220ms var(--ease-out);
 }
 
-.comparison-detail-link svg {
+.comparison-detail-button:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px -4px rgba(43, 90, 68, 0.45);
+}
+
+.comparison-detail-button svg {
   flex-shrink: 0;
   transition: transform 200ms var(--ease-out);
 }
 
-.comparison-detail-link:hover svg {
+.comparison-detail-button:hover svg {
   transform: translate(2px, -2px);
 }
 

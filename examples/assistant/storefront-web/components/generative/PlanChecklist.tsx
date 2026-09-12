@@ -3,9 +3,11 @@
 
 "use client";
 
+import { useState } from "react";
 import { formatMoney } from "web-shared";
 import type { PlanPayload, Product } from "@/lib/types";
 import ProductTile, { ProductRow } from "../ProductTile";
+import ProductDetailModal from "../ProductDetailModal";
 
 const SEGMENT_CLASSES = [
   "plan-seg-0",
@@ -82,6 +84,7 @@ export default function PlanChecklist({
   onAdd?: (product: Product) => boolean | void | Promise<boolean | void>;
   partial?: boolean;
 }) {
+  const [modalProduct, setModalProduct] = useState<Product | null>(null);
   const steps = payload.steps ?? [];
   return (
     <section className="plan-checklist rounded-xl border border-(--line) bg-(--card) p-5">
@@ -122,6 +125,7 @@ export default function PlanChecklist({
                       product={product}
                       compact
                       onAdd={onAdd}
+                      onOpen={(p) => setModalProduct(p)}
                     />
                   ))}
                 </div>
@@ -143,6 +147,13 @@ export default function PlanChecklist({
           </li>
         ) : null}
       </ol>
+
+      <ProductDetailModal
+        product={modalProduct}
+        isOpen={modalProduct !== null}
+        onClose={() => setModalProduct(null)}
+        onAdd={onAdd}
+      />
     </section>
   );
 }

@@ -1,10 +1,13 @@
 // Copyright 2026 Anthropic PBC
 // SPDX-License-Identifier: Apache-2.0
 
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
 import { formatMoney, priceLabel } from "web-shared";
-import type { ComparisonPayload } from "@/lib/types";
+import type { ComparisonPayload, Product } from "@/lib/types";
 import { ProductImage, ProductTitle } from "../ProductTile";
+import ProductDetailModal from "../ProductDetailModal";
 
 const SHARED_ATTRIBUTES = [
   { key: "weight_g", label: "重量", unit: "g" },
@@ -28,10 +31,13 @@ function Terms({ items }: { items?: string[] }) {
 export default function ComparisonGrid({
   payload,
   partial,
+  onAdd,
 }: {
   payload: ComparisonPayload;
   partial?: boolean;
+  onAdd?: (product: Product) => boolean | void | Promise<boolean | void>;
 }) {
+  const [modalProduct, setModalProduct] = useState<Product | null>(null);
   const entries = payload.entries ?? [];
   const currencies = new Set(
     entries.map((entry) => entry.product.currency ?? "USD"),
@@ -59,7 +65,7 @@ export default function ComparisonGrid({
     <section className="comparison-grid">
       <header className="comparison-heading">
         <h3 className="recommendation-heading">
-          {payload.title ?? "把差异看清楚"}
+          {payload.title ?? "装备对比分析"}
         </h3>
         {delta ? (
           <span className="comparison-delta">
@@ -70,8 +76,8 @@ export default function ComparisonGrid({
       {recommended ? (
         <div className="comparison-verdict">
           <svg
-            width="20"
-            height="20"
+            width="22"
+            height="22"
             viewBox="0 0 24 24"
             fill="none"
             aria-hidden="true"
@@ -79,13 +85,13 @@ export default function ComparisonGrid({
             <path
               d="m5 12 4 4L19 6"
               stroke="currentColor"
-              strokeWidth="1.8"
+              strokeWidth="2.2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
           <span>
-            优先考虑 <strong>{recommended.product.title}</strong>
+            建议优先考虑 <strong>{recommended.product.title}</strong>
           </span>
         </div>
       ) : null}
@@ -98,7 +104,7 @@ export default function ComparisonGrid({
         >
           <table
             className="comparison-table"
-            style={{ minWidth: `${Math.max(540, entries.length * 240 + 100)}px` }}
+            style={{ minWidth: `${Math.max(580, entries.length * 260 + 120)}px` }}
           >
             <caption className="sr-only">{payload.title ?? "装备对比"}</caption>
             <colgroup>
@@ -118,13 +124,18 @@ export default function ComparisonGrid({
                     key={entry.product_id}
                     className={choiceClass(entry.product_id)}
                   >
-                    <div className="comparison-product">
+                    <button
+                      type="button"
+                      className="comparison-product-header-btn"
+                      onClick={() => setModalProduct(entry.product)}
+                      aria-label={`查看${entry.product.title}详情`}
+                    >
                       <ProductImage
                         product={entry.product}
                         className="comparison-photo"
                         sizes="180px"
                       />
-                      <div>
+                      <div className="comparison-product-info">
                         <ProductTitle
                           title={entry.product.title}
                           className="comparison-product-title"
@@ -133,7 +144,7 @@ export default function ComparisonGrid({
                           {priceLabel(entry.product)}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   </th>
                 ))}
               </tr>
@@ -194,27 +205,27 @@ export default function ComparisonGrid({
                   {entries.map(({ product, product_id }) => (
                     <td key={product_id} className={choiceClass(product_id)}>
                       {product.product_id.startsWith("OD-") ? (
-                        <Link
-                          className="comparison-detail-link"
-                          href={`/equipment/${product.variant_of ?? product.product_id}`}
+                        <button
+                          type="button"
+                          className="comparison-detail-button"
+                          onClick={() => setModalProduct(product)}
+                          aria-label={`弹窗查看${product.title}详情`}
                         >
-                          查看装备详情
+                          <span>查看装备详情</span>
                           <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 20 20"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
                             fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                             aria-hidden="true"
                           >
-                            <path
-                              d="M5 15 15 5M5 5h10v10"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
+                            <path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                           </svg>
-                        </Link>
+                        </button>
                       ) : null}
                     </td>
                   ))}
@@ -229,9 +240,17 @@ export default function ComparisonGrid({
       ) : null}
       {payload.dimensions?.length ? (
         <p className="comparison-dimensions">
-          本次关注：{payload.dimensions.join(" · ")}
+          本次关注维度：{payload.dimensions.join(" · ")}
         </p>
       ) : null}
+
+      {/* In-Chat Modal Dialog for Product Inspection */}
+      <ProductDetailModal
+        product={modalProduct}
+        isOpen={modalProduct !== null}
+        onClose={() => setModalProduct(null)}
+        onAdd={onAdd}
+      />
     </section>
   );
 }

@@ -236,7 +236,7 @@ export default function ProductDetailModal({
               </div>
             ) : loading ? (
               <div className="modal-loading-notice">
-                <span className="beacon-dot" /> 正在加载工程深度参数…
+                正在加载规格参数…
               </div>
             ) : null}
 
@@ -250,7 +250,7 @@ export default function ProductDetailModal({
                   disabled={addPhase !== "idle"}
                 >
                   {addPhase === "busy" ? (
-                    "正在装配…"
+                    "正在加入…"
                   ) : addPhase === "done" ? (
                     "✓ 已加入购物车"
                   ) : addPhase === "error" ? (

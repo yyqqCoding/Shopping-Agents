@@ -27,6 +27,7 @@ import ProductTile, {
   ProductTileSkeleton,
   Rating,
 } from "../ProductTile";
+import ProductDetailModal from "../ProductDetailModal";
 
 function PriceIntelligenceRow({ intel }: { intel: PriceIntelligence }) {
   const { series, low, high } = intel;
@@ -390,10 +391,14 @@ export default function ProductCarousel({
   );
   const open = expandedId != null && expandedId === renderedId;
 
-  const toggle = (product: Product) =>
-    setExpandedId((current) =>
-      current === product.product_id ? null : product.product_id,
-    );
+  const [modalItem, setModalItem] = useState<{
+    product: Product;
+    reason?: string | null;
+  } | null>(null);
+
+  const toggle = (product: Product, reason?: string | null) => {
+    setModalItem({ product, reason });
+  };
 
   return (
     <section className="product-carousel">
@@ -415,8 +420,8 @@ export default function ProductCarousel({
                 hideDelivery={Boolean(sharedDelivery)}
                 fluid={layout !== "carousel"}
                 onAdd={onAdd}
-                onOpen={toggle}
-                selected={product.product_id === expandedId}
+                onOpen={(p) => toggle(p, reason)}
+                selected={product.product_id === modalItem?.product.product_id}
               />
             </div>
           ))}
@@ -478,6 +483,14 @@ export default function ProductCarousel({
           ) : null}
         </div>
       </div>
+      {/* In-Chat Tactile Product Detail Modal (弹窗式商品详情，不脱离会话) */}
+      <ProductDetailModal
+        product={modalItem?.product ?? null}
+        reason={modalItem?.reason}
+        isOpen={modalItem !== null}
+        onClose={() => setModalItem(null)}
+        onAdd={onAdd}
+      />
     </section>
   );
 }

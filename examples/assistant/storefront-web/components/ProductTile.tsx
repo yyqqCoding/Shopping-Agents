@@ -336,6 +336,15 @@ export default function ProductTile({
       data-selected={selected}
     >
       <div className="product-tile-media">
+        <div className="tactical-brackets" aria-hidden="true">
+          <span className="bracket tl" />
+          <span className="bracket br" />
+        </div>
+        {reason ? (
+          <span className="product-match-badge" aria-hidden="true">
+            <span className="badge-beacon" /> 智能精选
+          </span>
+        ) : null}
         {onOpen ? (
           <button
             type="button"
@@ -394,25 +403,23 @@ export default function ProductTile({
           {onOpen ? (
             <button
               type="button"
-              className="product-detail-action"
+              className="product-detail-action tactical-inspect-action"
               onClick={() => onOpen(product)}
               aria-expanded={selected}
             >
-              {selected ? "收起详情" : "查看详情"}
+              <span>查看详情</span>
               <svg
-                width="14"
-                height="14"
-                viewBox="0 0 20 20"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
                 fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 aria-hidden="true"
               >
-                <path
-                  d={selected ? "m5 12 5-5 5 5" : "m5 8 5 5 5-5"}
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                <path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
               </svg>
             </button>
           ) : product.rating != null ? (

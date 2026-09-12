@@ -613,7 +613,13 @@ export function HeroTable({
 export function TripEntry() {
   return (
     <form action="/chat" className="trip-entry paper tactical-trip-entry">
-      <label htmlFor="trip-draft">你的下一程任务，录入指令。</label>
+      <div className="trip-entry-label-wrap">
+        <div className="trip-entry-beacon">
+          <span className="beacon-pulse" />
+          <span className="beacon-text">BASE CAMP TERMINAL // 指令就绪</span>
+        </div>
+        <label htmlFor="trip-draft">你的下一程任务，录入指令。</label>
+      </div>
       <div>
         <input
           id="trip-draft"

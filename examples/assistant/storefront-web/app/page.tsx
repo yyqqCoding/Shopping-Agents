@@ -10,6 +10,10 @@ import {
   TripEntry,
   type HeroKit,
 } from "@/components/LandingExperience";
+import { ExpeditionTelemetryHUD } from "@/components/ExpeditionTelemetryHUD";
+import { InteractiveSceneCard } from "@/components/InteractiveSceneCard";
+import { TentBenchmarkStage } from "@/components/TentBenchmarkStage";
+import { FeaturedSpotlightGrid } from "@/components/FeaturedSpotlightGrid";
 
 const scenes = [
   {
@@ -112,16 +116,11 @@ export default function WelcomePage() {
     (id) => equipmentById(id)!,
   );
   const compare = ["OD-1001", "OD-1002"].map((id) => equipmentById(id)!);
-  const rows: [string, (p: (typeof compare)[number]) => string][] = [
-    ["重量", (p) => p.specs?.["重量"] ?? p.attributes?.highlight_1 ?? ""],
-    ["内帐尺寸", (p) => p.specs?.["内帐尺寸"] ?? ""],
-    ["适合", (p) => p.specs?.["适合场景"] ?? p.attributes?.activity ?? ""],
-    ["价格", (p) => `¥${p.price.toLocaleString("zh-CN")}`],
-  ];
 
   return (
     <>
       <LandingMotion />
+      <ExpeditionTelemetryHUD />
       <SiteHeader overlay />
       <main id="main-content" className="editorial-home">
         <section className="welcome-table" aria-labelledby="hero-title">
@@ -141,167 +140,104 @@ export default function WelcomePage() {
         </section>
 
         {/* Section 2: Curated Outdoor Journeys (Apple Gallery Style) */}
-        <section className="scenes-section section-wrap" id="journeys">
-          <div className="section-heading">
-            <h2 data-reveal>
-              总有一种出发，
-              <br />
-              是你想要的。
-            </h2>
-            <p data-reveal>
-              不必一开始就懂所有装备。选一个心仪的场景，我们从这里聊起。
-            </p>
+        <section className="section-stage scenes-stage" id="journeys">
+          <div className="stage-ambient scenes-ambient" aria-hidden="true">
+            <div
+              className="ambient-landscape-fog"
+              style={{ backgroundImage: "url('/images/hiking.webp')" }}
+            />
+            <div className="ambient-topo-grid" />
+            <div className="ambient-corridor-strip">
+              <span className="corridor-dot" />
+              <span className="corridor-tag">EXPEDITION CORRIDOR // SECTORS 01 — 03</span>
+              <span className="corridor-elev">ELEV +1,420M ~ +840M</span>
+              <span className="corridor-coords">30°18'N ~ 31°14'N · TRAIL NETWORK</span>
+            </div>
           </div>
-          <div className="scene-row">
-            {scenes.map((scene, index) => (
-              <Link
-                href={assistantLink(scene.prompt)}
-                className="scene luxury-scene-card"
-                key={scene.image}
-              >
-                <span
-                  className="print scene-print luxury-scene-print"
-                  data-land
-                  style={{ "--tilt": `${scene.tilt}deg`, "--i": index } as React.CSSProperties}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/images/${scene.image}.webp`}
-                    alt={scene.alt}
-                    loading="lazy"
-                    width={1024}
-                    height={1536}
-                  />
-                  <div className="card-liquid-sheen" aria-hidden="true" />
-                </span>
-
-                <span className="scene-caption luxury-scene-caption">
-                  <strong className="scene-card-title">{scene.title}</strong>
-                  <span className="scene-card-copy">{scene.copy}</span>
-
-                  <span className="scene-specs-row">
-                    {scene.specs.map((spec) => (
-                      <span key={spec} className="scene-spec-pill">
-                        {spec}
-                      </span>
-                    ))}
-                  </span>
-
-                  <span className="scene-go luxury-scene-go">
-                    <span>从这里聊起</span>
-                    <span className="scene-go-icon">
-                      <Arrow />
-                    </span>
-                  </span>
-                </span>
-              </Link>
-            ))}
+          <div className="scenes-section section-wrap">
+            <div className="section-heading">
+              <h2 data-reveal>
+                总有一种出发，
+                <br />
+                是你想要的。
+              </h2>
+              <p data-reveal>
+                不必一开始就懂所有装备。选一个心仪的场景，我们从这里聊起。
+              </p>
+            </div>
+            <div className="scene-row">
+              {scenes.map((scene, index) => (
+                <InteractiveSceneCard key={scene.image} scene={scene} index={index} />
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Section 3: Flagship Tent Dual Benchmark (Apple Tech Specs Style) */}
-        <section className="compare-section section-wrap" id="how-it-works">
-          <div className="compare-words">
-            <h2 data-reveal>
-              轻一点，
-              <br />
-              还是宽敞一点？
-            </h2>
-            <p data-reveal>
-              价格之外，更有关键体验的取舍。把两顶旗舰帐篷摊开对比，重量与空间的差异一目了然。
-            </p>
-            <div className="compare-highlights-box" data-reveal>
-              <div className="diff-item">
-                <span className="diff-tag">重量减负</span>
-                <span className="diff-val highlight-orange">-1,350 g (轻量 42%)</span>
-              </div>
-              <div className="diff-item">
-                <span className="diff-tag">内帐空间</span>
-                <span className="diff-val highlight-green">+35% 舒适睡眠空间</span>
-              </div>
-              <div className="diff-item">
-                <span className="diff-tag">预算差额</span>
-                <span className="diff-val">¥200.00 投资取舍</span>
-              </div>
+        <section className="section-stage compare-stage" id="how-it-works">
+          <div className="stage-ambient compare-ambient" aria-hidden="true">
+            <div className="ambient-lab-grid" />
+            <div className="compare-spotlight spotlight-left" />
+            <div className="compare-spotlight spotlight-right" />
+            <div className="lab-spec-crosshairs">
+              <span className="crosshair ch-1">+</span>
+              <span className="crosshair ch-2">+</span>
+              <span className="crosshair ch-3">+</span>
+              <span className="crosshair ch-4">+</span>
             </div>
-            <Link
-              className="field-button luxury-field-button"
-              data-magnetic
-              data-reveal
-              href={assistantLink(
-                "请比较双人三季徒步帐篷 OD-1001 和双人宽居营地帐篷 OD-1002，解释重量、空间与价格的取舍。",
-              )}
-            >
-              <span>让助手讲清楚</span> <Arrow />
-            </Link>
+            <div className="lab-watermark-tag">TACTICAL BENCHMARK LAB // WEIGHT-TO-VOLUME FIELD TEST</div>
           </div>
-
-          <div className="compare-cloth luxury-compare-cloth">
-            {compare.map((product, index) => {
-              const isUltralight = product.product_id === "OD-1001";
-              return (
-                <div className="compare-item luxury-compare-item" key={product.product_id}>
-                  <div className="compare-print-wrap">
-                    <GearPrint product={product} tilt={index ? 1.4 : -1.8} index={index} />
-                  </div>
-
-                  <div className="paper spec-slip luxury-spec-slip" data-reveal>
-                    <h3>
-                      <Link href={`/equipment/${product.product_id}`}>{product.title}</Link>
-                    </h3>
-
-                    <dl>
-                      {rows.map(([label, read]) => {
-                        const val = read(product);
-                        const isWeight = label === "重量";
-                        const isSize = label === "内帐尺寸";
-                        return (
-                          <div key={label} className={isWeight || isSize ? "spec-row-highlight" : ""}>
-                            <dt>{label}</dt>
-                            <dd>
-                              <span>{val}</span>
-                              {isWeight && isUltralight ? (
-                                <em className="spec-tag-sub orange">超轻 1.8kg</em>
-                              ) : null}
-                              {isSize && !isUltralight ? (
-                                <em className="spec-tag-sub green">加宽 160cm</em>
-                              ) : null}
-                            </dd>
-                          </div>
-                        );
-                      })}
-                    </dl>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="compare-section section-wrap">
+            <TentBenchmarkStage products={compare} />
           </div>
         </section>
 
         {/* Section 4: Featured Equipment Catalog Grid */}
-        <section className="featured-section section-wrap">
-          <div className="section-heading">
-            <h2 data-reveal>
-              好装备，
-              <br />
-              也要刚好适合你。
-            </h2>
-            <div data-reveal>
-              <p>从用途到参数，把每一个选择看清楚。</p>
-              <Link href="/equipment" className="text-link luxury-more-link">
-                <span>探索全部 {equipment.length} 款精选装备</span> <Arrow />
-              </Link>
+        <section className="section-stage featured-stage">
+          <div className="stage-ambient featured-ambient" aria-hidden="true">
+            <div className="ambient-contour-lines" />
+            <div className="featured-ambient-glow" />
+            <div className="featured-watermark-strip">
+              <span>FIELD EQUIPMENT // TESTED ON RIDGE & TRAIL · 4-SEASON SYSTEM</span>
             </div>
           </div>
-          <div className="featured-grid luxury-featured-grid">
-            {picks.map((product, index) => (
-              <EquipmentCard key={product.product_id} product={product} index={index} />
-            ))}
+          <div className="featured-section section-wrap">
+            <div className="section-heading">
+              <h2 data-reveal>
+                好装备，
+                <br />
+                也要刚好适合你。
+              </h2>
+              <div data-reveal>
+                <p>从用途到参数，把每一个选择看清楚。</p>
+                <Link href="/equipment" className="text-link luxury-more-link">
+                  <span>探索全部 {equipment.length} 款精选装备</span> <Arrow />
+                </Link>
+              </div>
+            </div>
+            <FeaturedSpotlightGrid products={picks} />
           </div>
         </section>
 
-        <section className="departure-section section-wrap">
-          <TripEntry />
+        {/* Section 5: Mission Departure Terminal */}
+        <section className="section-stage departure-stage">
+          <div className="stage-ambient departure-ambient" aria-hidden="true">
+            <div
+              className="departure-landscape-mist"
+              style={{ backgroundImage: "url('/images/hero.webp')" }}
+            />
+            <div className="departure-radar-rings">
+              <div className="radar-circle rc-1" />
+              <div className="radar-circle rc-2" />
+              <div className="radar-circle rc-3" />
+              <div className="radar-axis-h" />
+              <div className="radar-axis-v" />
+              <div className="radar-sweep" />
+            </div>
+          </div>
+          <div className="departure-section section-wrap">
+            <TripEntry />
+          </div>
         </section>
       </main>
       <SiteFooter />

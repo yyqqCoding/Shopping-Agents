@@ -127,35 +127,27 @@ export default function ProductDetailModal({
       role="dialog"
     >
       <div className="tactical-modal-dialog" ref={modalRef}>
-        {/* Top Tactical Window Bar */}
-        <div className="modal-tactical-header">
+        {/* Top Clean Header */}
+        <div className="modal-tactical-header luxury-modal-header">
           <div className="modal-header-left">
-            <span className="modal-beacon" />
-            <span className="modal-code">GEAR TELEMETRY // {activeProduct.product_id}</span>
-            <span className="modal-cat">{full.attributes?.category_label || "EQUIPMENT"}</span>
+            <span className="modal-cat">{full.attributes?.category_label || "户外精选"}</span>
+            <span className="modal-code">{activeProduct.product_id}</span>
           </div>
           <button
             type="button"
             className="modal-close-btn"
             onClick={onClose}
-            aria-label="关闭商品详情弹窗"
+            aria-label="关闭商品详情"
           >
             ✕
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="modal-tactical-body">
-          {/* Left Column: Tactical Media Viewport */}
+        <div className="modal-tactical-body luxury-modal-body">
+          {/* Left Column: Studio Photo Stage */}
           <div className="modal-media-col">
-            <div className="modal-photo-stage">
-              <div className="laser-scanner" aria-hidden="true" />
-              <div className="tactical-brackets" aria-hidden="true">
-                <span className="bracket tl" />
-                <span className="bracket tr" />
-                <span className="bracket bl" />
-                <span className="bracket br" />
-              </div>
+            <div className="modal-photo-stage luxury-photo-stage">
               <ProductImage
                 product={activeProduct}
                 priority
@@ -168,7 +160,7 @@ export default function ProductDetailModal({
             {/* In-Stock & Delivery Guarantee */}
             <div className="modal-stock-row">
               <span className={`modal-stock-pill ${inStock ? "in-stock" : "out-of-stock"}`}>
-                {inStock ? "● 现货就绪，可随时装配" : "✕ 暂时售罄"}
+                {inStock ? "● 现货在仓，顺丰速达" : "✕ 暂时售罄"}
               </span>
               <DeliveryPromise product={activeProduct} className="modal-delivery" />
             </div>

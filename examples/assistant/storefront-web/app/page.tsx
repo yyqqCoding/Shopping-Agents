@@ -140,49 +140,30 @@ export default function WelcomePage() {
           </HeroTable>
         </section>
 
-        {/* Section 2: Expedition Routes Holographic Cards */}
+        {/* Section 2: Curated Outdoor Journeys (Apple Gallery Style) */}
         <section className="scenes-section section-wrap" id="journeys">
           <div className="section-heading">
-            <div className="tactical-section-badge" data-reveal>
-              <span className="badge-beacon" />
-              <span>EXPEDITION PROTOCOL // 场景航路推演</span>
-            </div>
             <h2 data-reveal>
               总有一种出发，
               <br />
               是你想要的。
             </h2>
             <p data-reveal>
-              不必一开始就懂所有装备。选定目标环境，AI 助理为你自动推演装备配比与减负策略。
+              不必一开始就懂所有装备。选一个心仪的场景，我们从这里聊起。
             </p>
           </div>
           <div className="scene-row">
             {scenes.map((scene, index) => (
               <Link
                 href={assistantLink(scene.prompt)}
-                className="scene tactical-scene-card"
+                className="scene luxury-scene-card"
                 key={scene.image}
               >
-                {/* Sector Telemetry Bar */}
-                <div className="scene-telemetry-header">
-                  <span className="scene-sector-code">{scene.sector}</span>
-                  <span className="scene-coord">{scene.coord}</span>
-                  <span className="scene-elev">{scene.elev}</span>
-                </div>
-
                 <span
-                  className="print scene-print tactical-scene-print"
+                  className="print scene-print luxury-scene-print"
                   data-land
                   style={{ "--tilt": `${scene.tilt}deg`, "--i": index } as React.CSSProperties}
                 >
-                  <div className="laser-scanner" aria-hidden="true" />
-                  <div className="tactical-brackets" aria-hidden="true">
-                    <span className="bracket tl" />
-                    <span className="bracket tr" />
-                    <span className="bracket bl" />
-                    <span className="bracket br" />
-                  </div>
-                  <span className="scene-env-chip">{scene.tag}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/images/${scene.image}.webp`}
@@ -194,7 +175,7 @@ export default function WelcomePage() {
                   <div className="card-liquid-sheen" aria-hidden="true" />
                 </span>
 
-                <span className="scene-caption tactical-scene-caption">
+                <span className="scene-caption luxury-scene-caption">
                   <strong className="scene-card-title">{scene.title}</strong>
                   <span className="scene-card-copy">{scene.copy}</span>
 
@@ -206,8 +187,8 @@ export default function WelcomePage() {
                     ))}
                   </span>
 
-                  <span className="scene-go tactical-scene-go">
-                    <span>启动航路推演</span>
+                  <span className="scene-go luxury-scene-go">
+                    <span>从这里聊起</span>
                     <span className="scene-go-icon">
                       <Arrow />
                     </span>
@@ -218,72 +199,53 @@ export default function WelcomePage() {
           </div>
         </section>
 
-        {/* Section 3: Tactical Dual Schematics Benchmark */}
+        {/* Section 3: Flagship Tent Dual Benchmark (Apple Tech Specs Style) */}
         <section className="compare-section section-wrap" id="how-it-works">
           <div className="compare-words">
-            <div className="tactical-section-badge" data-reveal>
-              <span className="badge-beacon" />
-              <span>DUAL BENCHMARK // 规格对抗分析</span>
-            </div>
             <h2 data-reveal>
               轻一点，
               <br />
               还是宽敞一点？
             </h2>
             <p data-reveal>
-              价格之外，还有值得认真精算的工程参数。把两顶帐篷置于对抗台，重量、空间与风阻差异一目了然。
+              价格之外，更有关键体验的取舍。把两顶旗舰帐篷摊开对比，重量与空间的差异一目了然。
             </p>
             <div className="compare-highlights-box" data-reveal>
               <div className="diff-item">
-                <span className="diff-tag">重量差额</span>
+                <span className="diff-tag">重量减负</span>
                 <span className="diff-val highlight-orange">-1,350 g (轻量 42%)</span>
               </div>
               <div className="diff-item">
                 <span className="diff-tag">内帐空间</span>
-                <span className="diff-val highlight-green">+35% 自由翻身空间</span>
+                <span className="diff-val highlight-green">+35% 舒适睡眠空间</span>
               </div>
               <div className="diff-item">
-                <span className="diff-tag">预算差价</span>
+                <span className="diff-tag">预算差额</span>
                 <span className="diff-val">¥200.00 投资取舍</span>
               </div>
             </div>
             <Link
-              className="field-button tactical-field-button"
+              className="field-button luxury-field-button"
               data-magnetic
               data-reveal
               href={assistantLink(
                 "请比较双人三季徒步帐篷 OD-1001 和双人宽居营地帐篷 OD-1002，解释重量、空间与价格的取舍。",
               )}
             >
-              <span>让助理深度剖析参数</span> <Arrow />
+              <span>让助手讲清楚</span> <Arrow />
             </Link>
           </div>
 
-          <div className="compare-cloth tactical-compare-cloth">
-            {/* Center VS Laser Divider */}
-            <div className="vs-divider" aria-hidden="true">
-              <span className="vs-line" />
-              <span className="vs-badge">VS</span>
-              <span className="vs-line" />
-            </div>
-
+          <div className="compare-cloth luxury-compare-cloth">
             {compare.map((product, index) => {
               const isUltralight = product.product_id === "OD-1001";
               return (
-                <div className="compare-item tactical-compare-item" key={product.product_id}>
+                <div className="compare-item luxury-compare-item" key={product.product_id}>
                   <div className="compare-print-wrap">
                     <GearPrint product={product} tilt={index ? 1.4 : -1.8} index={index} />
-                    <span className={`tactical-badge-flag ${isUltralight ? "flag-orange" : "flag-green"}`}>
-                      {isUltralight ? "⚡ 极致轻装型" : "⛺ 宽居舒适型"}
-                    </span>
                   </div>
 
-                  <div className="paper spec-slip tactical-spec-slip" data-reveal>
-                    <div className="slip-micro-header">
-                      <span className="slip-code">{product.product_id}</span>
-                      <span className="slip-cat">{product.attributes?.category_label || "TENT"}</span>
-                    </div>
-
+                  <div className="paper spec-slip luxury-spec-slip" data-reveal>
                     <h3>
                       <Link href={`/equipment/${product.product_id}`}>{product.title}</Link>
                     </h3>
@@ -319,23 +281,19 @@ export default function WelcomePage() {
         {/* Section 4: Featured Equipment Catalog Grid */}
         <section className="featured-section section-wrap">
           <div className="section-heading">
-            <div className="tactical-section-badge" data-reveal>
-              <span className="badge-beacon" />
-              <span>ARSENAL MATRIX // 精选军械库</span>
-            </div>
             <h2 data-reveal>
               好装备，
               <br />
               也要刚好适合你。
             </h2>
             <div data-reveal>
-              <p>从户外极限用途到严苛材料参数，把每一个选择看得真真切切。</p>
-              <Link href="/equipment" className="text-link tactical-more-link">
-                <span>探索全部 {equipment.length} 款战术户外装备</span> <Arrow />
+              <p>从用途到参数，把每一个选择看清楚。</p>
+              <Link href="/equipment" className="text-link luxury-more-link">
+                <span>探索全部 {equipment.length} 款精选装备</span> <Arrow />
               </Link>
             </div>
           </div>
-          <div className="featured-grid tactical-featured-grid">
+          <div className="featured-grid luxury-featured-grid">
             {picks.map((product, index) => (
               <EquipmentCard key={product.product_id} product={product} index={index} />
             ))}

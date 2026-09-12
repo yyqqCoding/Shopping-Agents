@@ -336,15 +336,6 @@ export default function ProductTile({
       data-selected={selected}
     >
       <div className="product-tile-media">
-        <div className="tactical-brackets" aria-hidden="true">
-          <span className="bracket tl" />
-          <span className="bracket br" />
-        </div>
-        {reason ? (
-          <span className="product-match-badge" aria-hidden="true">
-            <span className="badge-beacon" /> 智能精选
-          </span>
-        ) : null}
         {onOpen ? (
           <button
             type="button"

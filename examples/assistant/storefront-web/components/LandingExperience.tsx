@@ -358,23 +358,15 @@ export function HeroTable({
       </div>
 
       <div className="table" data-playing={playing}>
-        {/* Left: Mission Command Terminal & Sector Selector */}
+        {/* Left: Interactive Departure Table & Scene Selector */}
         <div className="table-words">
           {children}
 
-          {/* Tactical Mission Dispatch Terminal (Slip) with Liquid Glass */}
-          <div className="mission-terminal-wrap" data-hero="slip">
-            {/* HUD Status Header */}
-            <div className="mission-hud-bar" aria-hidden="true">
-              <span className="hud-beacon" />
-              <span className="hud-code">PROTOCOL // {sceneData.sector}</span>
-              <span className="hud-metric">{sceneData.coords}</span>
-              <span className="hud-elev">{sceneData.elev}</span>
-            </div>
-
+          {/* Frosted Liquid Glass Departure Slip */}
+          <div className="departure-slip-wrap" data-hero="slip">
             <form
               action="/chat"
-              className="slip tactical-slip"
+              className="slip luxury-slip"
               onSubmit={(event) => {
                 if (draft.trim()) return;
                 event.preventDefault();
@@ -382,7 +374,7 @@ export function HeroTable({
               }}
             >
               <label htmlFor="hero-draft" className="sr-only">
-                描述你的下一程任务需求
+                描述你的下一程出行需求
               </label>
 
               <div className="slip-field">
@@ -419,8 +411,8 @@ export function HeroTable({
 
               <button
                 type="submit"
-                className="tactical-submit-btn"
-                aria-label="带着这段行程进入智能助理"
+                className="luxury-submit-btn"
+                aria-label="带着这段行程进入智能助手"
               >
                 <Arrow />
                 <span className="btn-glow" aria-hidden="true" />
@@ -428,12 +420,12 @@ export function HeroTable({
             </form>
           </div>
 
-          {/* Sector Navigation & Playback Controls */}
+          {/* Clean Scene Selector & Playback Controls */}
           <div className="table-scenes" data-hero="scenes">
             <div
-              className="table-scene-options tactical-sectors"
+              className="table-scene-options editorial-scenes"
               role="group"
-              aria-label="切换勘测扇区与示例行程"
+              aria-label="切换场景与示例行程"
             >
               {kits.map(({ scene }, index) => {
                 const s = HERO_SCENES[scene];
@@ -442,20 +434,18 @@ export function HeroTable({
                   <button
                     key={scene}
                     type="button"
-                    className="sector-btn"
+                    className="scene-pill-btn"
                     aria-pressed={isSelected}
                     onClick={() => setPlayback({ start: index, playing: false })}
                   >
-                    <span className="sector-tag">{s.sector.replace("SECTOR ", "#0")}</span>
-                    <span className="sector-title">{s.label}</span>
-                    {isSelected && <span className="sector-active-dot" />}
+                    <span>{s.label}</span>
                   </button>
                 );
               })}
             </div>
 
             <button
-              className="table-playback tactical-playback-btn"
+              className="table-playback editorial-playback-btn"
               type="button"
               disabled={reducedMotion || focused || draft.length > 0}
               aria-label={playbackLabel}
@@ -484,9 +474,9 @@ export function HeroTable({
           </div>
         </div>
 
-        {/* Right: 3D Holographic Gear Array & Tactical Loadout Manifest */}
-        <div className="table-cloth tactical-stage" data-hero="cloth">
-          {/* Depth-staged 3D Holographic Gear Prints with Laser Scanning */}
+        {/* Right: Studio-grade Floating Gear Prints & Packing Manifest */}
+        <div className="table-cloth luxury-stage" data-hero="cloth">
+          {/* 3D Spring-physics Floating Gear Prints */}
           <div className="table-prints" aria-hidden="true">
             {kits.map((entry, k) =>
               entry.items.map(({ product, qty }, index) => {
@@ -497,45 +487,26 @@ export function HeroTable({
                 // 3D Spring tilt transform style
                 const dynamicTiltStyle = isHovered
                   ? {
-                      transform: `translateZ(75px) rotateY(${cardTilt.x}deg) rotateX(${cardTilt.y}deg) scale(1.05)`,
+                      transform: `translateZ(75px) rotateY(${cardTilt.x}deg) rotateX(${cardTilt.y}deg) scale(1.04)`,
                       transition: "transform 80ms ease-out",
                     }
                   : undefined;
 
                 return (
                   <div
-                    className={`print table-print table-print-${index} tactical-print`}
+                    className={`print table-print table-print-${index} luxury-gear-print`}
                     key={`${k}-${product.product_id}`}
                     data-landed={isLanded}
                     onMouseMove={(e) => handleCardMouseMove(e, index)}
                     onMouseLeave={handleCardMouseLeave}
                     style={dynamicTiltStyle}
                   >
-                    {/* Laser Assembly Scan Beam */}
-                    <div className="laser-scanner" aria-hidden="true" />
-
-                    {/* Corner Reticle Brackets (机能蓝图装配角标) */}
-                    <div className="tactical-brackets" aria-hidden="true">
-                      <span className="bracket tl" />
-                      <span className="bracket tr" />
-                      <span className="bracket bl" />
-                      <span className="bracket br" />
-                    </div>
-
-                    {/* Spec Technical Badge */}
-                    <div className="tactical-spec-chip" aria-hidden="true">
-                      <span className="chip-code">{product.product_id}</span>
-                      <span className="chip-attr">
-                        {product.attributes?.highlight_1 || "GEAR"}
-                      </span>
-                    </div>
-
                     <ProductImage
                       product={product}
                       sizes="(max-width: 820px) 44vw, 420px"
                     />
 
-                    {/* Liquid glass light reflection overlay */}
+                    {/* Subtle liquid glass light reflection */}
                     <div className="card-liquid-sheen" aria-hidden="true" />
                   </div>
                 );
@@ -543,21 +514,17 @@ export function HeroTable({
             )}
           </div>
 
-          {/* Tactical Loadout Manifest (Packing List) with Liquid Glass & Odometer */}
-          <div className="paper packing-list tactical-manifest" data-settled={settled}>
-            {/* Header & Slots Progress Meter */}
+          {/* Editorial Packing List (Departure Manifest) with Odometer */}
+          <div className="paper packing-list luxury-manifest" data-settled={settled}>
             <header>
               <div className="manifest-title-row">
-                <span className="manifest-label">战备挂载清单</span>
-                <span className="manifest-status-badge">
-                  {settled ? "ASSEMBLY LOCKED" : "CONFIGURING"}
-                </span>
+                <span className="manifest-label">出发装备清单</span>
               </div>
               <div className="manifest-count-row">
                 <span className="manifest-count">
-                  {settled ? `${count} 槽位就绪` : `${landed} / ${count} 装备装配`}
+                  {settled ? `${count} 件已就绪` : `${landed} / ${count} 装备搭配`}
                 </span>
-                {/* Segmented Loadout Slots */}
+                {/* Segmented Progress Dots */}
                 <div className="slots-meter" aria-hidden="true">
                   {Array.from({ length: count }).map((_, i) => (
                     <span
@@ -569,7 +536,7 @@ export function HeroTable({
               </div>
             </header>
 
-            {/* Gear Items List with Snap-lock animations */}
+            {/* Gear Items List */}
             <ol>
               {current.items.map(({ product, qty }, index) => {
                 const isChecked = index < landed;
@@ -579,13 +546,13 @@ export function HeroTable({
                     data-checked={isChecked}
                     className="manifest-item"
                   >
-                    <span className="tick tactical-tick" aria-hidden="true">
+                    <span className="tick luxury-tick" aria-hidden="true">
                       <svg viewBox="0 0 20 20" width="18" height="18">
                         <path
                           d="M4 10.5 8.2 14.5 16 6"
                           fill="none"
                           stroke="currentColor"
-                          strokeWidth="2.8"
+                          strokeWidth="2.4"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
@@ -604,9 +571,7 @@ export function HeroTable({
 
               {/* Pending Gear Recommendation */}
               <li className="packing-pending manifest-pending" data-shown={settled}>
-                <span className="tick tactical-tick" aria-hidden="true">
-                  <span className="pending-pulse-dot" />
-                </span>
+                <span className="tick luxury-tick" aria-hidden="true" />
                 <span className="packing-name manifest-item-name">
                   <strong>建议追加 {current.pending.product.title}</strong>
                   <em>{current.pending.note}</em>
@@ -620,8 +585,7 @@ export function HeroTable({
             {/* Manifest Footer with Animated Rolling Counter */}
             <footer>
               <div className="footer-label-col">
-                <span>预估预算</span>
-                <span className="sub-label">TAX INCL.</span>
+                <span>预估总计</span>
               </div>
               <div className="footer-total-col">
                 <strong>
@@ -633,7 +597,7 @@ export function HeroTable({
                   {current.budget ? (
                     <span className="budget-target">
                       {" "}
-                      / 上限 {yuan(current.budget)}
+                      / 预算 {yuan(current.budget)}
                     </span>
                   ) : null}
                 </strong>
@@ -681,15 +645,11 @@ export function GearPrint({
   return (
     <Link
       href={`/equipment/${product.product_id}`}
-      className="print gear-print tactical-gear-print"
+      className="print gear-print luxury-gear-print"
       data-land
       style={{ "--tilt": `${tilt}deg`, "--i": index } as React.CSSProperties}
       aria-label={`查看${product.title}`}
     >
-      <div className="tactical-brackets" aria-hidden="true">
-        <span className="bracket tl" />
-        <span className="bracket br" />
-      </div>
       <ProductImage
         product={product}
         priority={priority}

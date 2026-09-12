@@ -5,7 +5,7 @@ import type { ProductDetails } from "@/lib/types";
 import { useLenis } from "./motion/useLenis";
 import { useLandingMotion } from "./motion/useLandingMotion";
 import { LandingHero } from "./LandingHero";
-import { OtotSection } from "./OtotSection";
+import { DuelSection } from "./DuelSection";
 import { GearHallSection } from "./GearHallSection";
 import { SceneGallery } from "./SceneGallery";
 import { TechMarquee } from "../TechMarquee";
@@ -43,7 +43,7 @@ export function LandingPage({
     <div ref={rootRef} className="landing-root">
       <LandingHero kits={kits} />
       <TechMarquee />
-      <OtotSection compare={compare} />
+      <DuelSection compare={compare} />
       <GearHallSection picks={hallPicks} equipmentCount={equipmentCount} />
       <SceneGallery scenes={galleryScenes} />
       <LandingFooter />

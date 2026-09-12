@@ -4,8 +4,8 @@
  * Landing page motion primitives, ported from the rebuild's home.ts /
  * layout.ts / text.ts:
  * - ovalReveal: elliptical clip-path title unveil with char stagger
- * - ototConverge: two full-height images converging from ±14rem, text from ±4rem
- * - bottomParallax: wide closing image drifting up with a slight scale
+ * - duelStage: diagonal halves counter-parallax, tent plates slide in,
+ *   ratio axes grow from zero
  * - columnParallax: grid columns starting at i*5rem offsets, settling on scroll
  * - marqueeLoop: scroll-direction-linked infinite marquee
  */
@@ -60,42 +60,60 @@ function ovalReveal(el: HTMLElement): () => void {
   };
 }
 
-/** Two portrait images converge from opposite sides while text columns settle. */
-function ototConverge(section: HTMLElement | null) {
+/** Duel stage: diagonal halves drift in counter-parallax, tent plates slide
+ * in from their side, and the ratio axes grow from zero on entry. */
+function duelStage(section: HTMLElement | null) {
   if (!section) return;
-  const img1 = section.querySelector("[data-otot-img='1']");
-  const img2 = section.querySelector("[data-otot-img='2']");
-  const col1 = section.querySelector("[data-otot-col='1']");
-  const col2 = section.querySelector("[data-otot-col='2']");
-  if (!img1 || !img2 || !col1 || !col2) return;
-  gsap.set(img1, { x: "-14rem" });
-  gsap.set(img2, { x: "14rem" });
-  gsap.set(col1, { x: "-4rem", autoAlpha: 0 });
-  gsap.set(col2, { x: "4rem", autoAlpha: 0 });
-  gsap.to([img1, img2], {
-    x: 0,
-    ease: "power2.out",
-    scrollTrigger: { trigger: section, start: "top bottom", end: "bottom bottom", scrub: true },
-  });
-  gsap.to([col1, col2], {
-    x: 0,
-    autoAlpha: 1,
-    ease: "none",
-    scrollTrigger: { trigger: section, start: "top 80%", end: "55% bottom", scrub: true },
-  });
-}
+  const left = section.querySelector("[data-duel-half='left']");
+  const right = section.querySelector("[data-duel-half='right']");
+  const tents = section.querySelectorAll("[data-duel-tent]");
+  const bars = section.querySelectorAll<HTMLElement>(".axis-bar");
 
-/** Wide closing image drifts up and scales as it passes through the viewport. */
-function bottomParallax(section: HTMLElement | null) {
-  if (!section) return;
-  const img = section.querySelector("img");
-  if (!img) return;
-  gsap.to(img, {
-    y: "-16vh",
-    scale: 1.08,
-    ease: "none",
-    scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true },
+  if (left && right) {
+    gsap.fromTo(
+      left,
+      { x: "-4%" },
+      {
+        x: "2%",
+        ease: "none",
+        scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true },
+      },
+    );
+    gsap.fromTo(
+      right,
+      { x: "4%" },
+      {
+        x: "-2%",
+        ease: "none",
+        scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true },
+      },
+    );
+  }
+
+  tents.forEach((tent, i) => {
+    gsap.from(tent, {
+      x: i === 0 ? "-5rem" : "5rem",
+      autoAlpha: 0,
+      y: "2rem",
+      duration: 1.1,
+      ease: "power3.out",
+      scrollTrigger: { trigger: section, start: "top 62%", once: true },
+    });
   });
+
+  if (bars.length) {
+    gsap.fromTo(
+      bars,
+      { scaleX: 0 },
+      {
+        scaleX: 1,
+        duration: 1.2,
+        ease: "power3.inOut",
+        stagger: 0.12,
+        scrollTrigger: { trigger: section, start: "top 48%", once: true },
+      },
+    );
+  }
 }
 
 /** Grid columns start staggered by i*step and settle into place on scroll. */
@@ -148,8 +166,7 @@ export function useLandingMotion(rootRef: React.RefObject<HTMLElement | null>) {
       root
         .querySelectorAll<HTMLElement>("[data-oval-title]")
         .forEach((el) => ovalCleanups.push(ovalReveal(el)));
-      ototConverge(root.querySelector("[data-otot-stage]"));
-      bottomParallax(root.querySelector("[data-otot-bottom]"));
+      duelStage(root.querySelector("[data-duel-stage]"));
       columnParallax(root.querySelector("[data-hall-grid]"));
       marqueeLoop(root.querySelector("[data-marquee-track]"));
     }, root);

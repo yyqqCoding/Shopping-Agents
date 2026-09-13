@@ -1,0 +1,21 @@
+{
+  "generator": "Built-in imagegen",
+  "usage": "Homepage editorial derivatives of fictional authored catalog photography; original catalog images and product specifications remain authoritative.",
+  "assets": [
+    {
+      "output": "storefront-web/public/images/landing/backpack-white.png",
+      "reference": "storefront-web/public/products/generated/OD-3006.webp",
+      "prompt": "Edit this exact backpack photo. Change ONLY the beige background and floor to perfectly uniform pure white RGB #FFFFFF. This is NOT a transparency request. No checkerboard pattern. No texture, no gradient, no shadow, no floor or horizon line: every background pixel white. Preserve backpack faithfully including all straps, buckles and color and angle. Full backpack large centered with 5% white margin, photorealistic detailed. Single image."
+    },
+    {
+      "output": "storefront-web/public/images/landing/hiking-tent-white.png",
+      "reference": "storefront-web/public/products/generated/OD-1001.webp",
+      "prompt": "Edit this exact gray-green hiking tent photo. Change ONLY the beige background and floor to perfectly uniform pure white RGB #FFFFFF. This is NOT a transparency request. No checkerboard. No texture, no gradient, no shadow, no floor or horizon. Keep original tent with all poles, guy lines, mesh panels, colors, proportions, angle unchanged. Full tent centered, fit 90% width with white margin. Detailed product photograph."
+    },
+    {
+      "output": "storefront-web/public/images/landing/camping-tent-white.png",
+      "reference": "storefront-web/public/products/generated/OD-1002.webp",
+      "prompt": "Edit this exact olive camping tent photo. Change ONLY the beige background and floor to perfectly uniform pure white RGB #FFFFFF. NOT transparency. No checkerboard. No texture, gradient, shadow, floor or horizon. Preserve exact original tent structure, olive and gray colors, poles, guy lines, round mesh doorway, proportions and angle. Full tent centered at 90% width with margin. Detailed product photograph."
+    }
+  ]
+}

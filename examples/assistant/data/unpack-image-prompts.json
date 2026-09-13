@@ -1,0 +1,65 @@
+{
+  "generator": "Built-in imagegen and deterministic alpha extraction",
+  "usage": "Desktop homepage unpack animation sprites; illustrative derivatives, not product specifications.",
+  "assets": [
+    {
+      "output": "storefront-web/public/images/landing/backpack-closed-alpha.png",
+      "reference": "storefront-web/public/images/landing/backpack-white.png",
+      "prompt": "Background extraction only. Erase the white backdrop to actual alpha transparency. Preserve exact original canvas framing, scale, angle and pixels. Output RGBA PNG with alpha=0 outside the backpack. Do not draw a checkerboard.",
+      "method": "Deterministic near-white background removal was used after the reference imagegen attempt produced a painted checkerboard."
+    },
+    {
+      "output": "storefront-web/public/images/landing/backpack-open-alpha.png",
+      "reference": "storefront-web/public/images/landing/backpack-open.png",
+      "prompt": "Remove only the white background from the open backpack image. Preserve the lifted lid, dark interior and lower body. Output a real transparent alpha channel PNG, no checkerboard and no backdrop."
+    },
+    {
+      "output": "storefront-web/public/images/landing/packed-tent-alpha.png",
+      "prompt": "Photorealistic unbranded olive grey cylindrical tent stuff sack, tightly packed nylon with black compression straps and drawcord, isolated on an actual transparent alpha background. Single object, no text, logo, floor, shadow plane, checkerboard or other items."
+    },
+    {
+      "output": "storefront-web/public/images/landing/bottle-alpha.png",
+      "prompt": "Isolated unbranded matte charcoal outdoor water bottle with screw cap and carry loop, upright three-quarter view, actual transparent alpha background PNG. Single object, no floor, shadow plane, text, logo or checkerboard."
+    },
+    {
+      "output": "storefront-web/public/images/landing/headlamp-alpha.png",
+      "reference": "storefront-web/public/products/generated/OD-6001.webp",
+      "prompt": "Preserve the exact green and charcoal headlamp and full circular strap, removing the product-photo background and shadow to a real alpha channel PNG. Keep original proportions and small hardware details.",
+      "method": "Imagegen isolation followed by deterministic foreground segmentation to guarantee alpha=0 outside the product."
+    },
+    {
+      "output": "storefront-web/public/images/landing/stove-alpha.png",
+      "reference": "storefront-web/public/products/generated/OD-7005.webp",
+      "prompt": "Preserve the exact silver and olive compact camping stove, pot supports, burner and adjustment knob, removing the product-photo background and shadow to a real alpha channel PNG. Keep original proportions and metal details.",
+      "method": "Imagegen isolation followed by deterministic foreground segmentation to guarantee alpha=0 outside the product."
+    },
+    {
+      "output": "storefront-web/public/images/landing/{product_id}-alpha.png",
+      "reference": "storefront-web/public/products/generated/{product_id}.webp",
+      "derived_assets": [
+        "OD-7008",
+        "OD-7009",
+        "OD-7010",
+        "OD-7011",
+        "OD-7001",
+        "OD-2003",
+        "OD-2004",
+        "OD-2005",
+        "OD-2006",
+        "OD-2007",
+        "OD-6001",
+        "OD-6002",
+        "OD-6003",
+        "OD-6004",
+        "OD-6005",
+        "OD-7005",
+        "OD-7003",
+        "OD-7006",
+        "OD-7004",
+        "OD-7007"
+      ],
+      "prompt": "Remove the warm stone product-photo background and cast shadow while preserving the exact outdoor product. Output a true RGBA alpha cutout with clean edges and no checkerboard.",
+      "method": "Local u2netp foreground matting was used to create the chapter variant sprites."
+    }
+  ]
+}

@@ -60,30 +60,30 @@ function ovalReveal(el: HTMLElement): () => void {
   };
 }
 
-/** Duel stage: diagonal halves drift in counter-parallax, tent plates slide
+/** Duel stage: watermark pair drifts in counter-parallax, tent stands slide
  * in from their side, and the ratio axes grow from zero on entry. */
 function duelStage(section: HTMLElement | null) {
   if (!section) return;
-  const left = section.querySelector("[data-duel-half='left']");
-  const right = section.querySelector("[data-duel-half='right']");
+  const wmLeft = section.querySelector("[data-duel-wm='left']");
+  const wmRight = section.querySelector("[data-duel-wm='right']");
   const tents = section.querySelectorAll("[data-duel-tent]");
   const bars = section.querySelectorAll<HTMLElement>(".axis-bar");
 
-  if (left && right) {
+  if (wmLeft && wmRight) {
     gsap.fromTo(
-      left,
-      { x: "-4%" },
+      wmLeft,
+      { x: "-6%" },
       {
-        x: "2%",
+        x: "4%",
         ease: "none",
         scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true },
       },
     );
     gsap.fromTo(
-      right,
-      { x: "4%" },
+      wmRight,
+      { x: "6%" },
       {
-        x: "-2%",
+        x: "-4%",
         ease: "none",
         scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: true },
       },

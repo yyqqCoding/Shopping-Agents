@@ -42,9 +42,12 @@ export function LandingPage({
   return (
     <div ref={rootRef} className="landing-root">
       <LandingHero kits={kits} />
-      <TechMarquee />
-      <DuelSection compare={compare} />
-      <GearHallSection picks={hallPicks} equipmentCount={equipmentCount} />
+      {/* Dark chapter: marquee prelude, tent duel, gear hall */}
+      <div className="dark-chapter">
+        <TechMarquee />
+        <DuelSection compare={compare} />
+        <GearHallSection picks={hallPicks} equipmentCount={equipmentCount} />
+      </div>
       <SceneGallery scenes={galleryScenes} />
       <LandingFooter />
     </div>

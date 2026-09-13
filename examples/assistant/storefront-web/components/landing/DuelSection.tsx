@@ -1,24 +1,23 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { ProductDetails } from "@/lib/types";
 import { assistantLink } from "@/lib/navigation";
 import { Arrow } from "../SiteChrome";
 import { ProductImage } from "../ProductTile";
 
 /**
- * Duel Stage — the tent comparison as a proportion duel.
+ * Duel Stage — dark chapter opener.
  *
- * Two scene photographs meet on a 10° diagonal seam; hovering either side
- * slides the seam and cedes the stage. The tents render as plates whose
- * widths follow their true inner widths (125cm : 160cm), and three
- * head-to-head axes grow to real value ratios on entry.
+ * The two flagship tents stand plateless on one horizon line inside a
+ * pine-ink showroom; their white studio prints read as backlit display
+ * windows on the dark ground. Widths follow the true inner-width ratio
+ * (125cm : 160cm), and three head-to-head axes glow to real value
+ * proportions at the center of the viewport.
  */
 
 const AXES: {
   label: string;
   left: { text: string; p: number };
   right: { text: string; p: number };
-  note?: string;
 }[] = [
   {
     label: "打包重量",
@@ -43,19 +42,14 @@ export function DuelSection({ compare }: { compare: ProductDetails[] }) {
 
   return (
     <section className="duel-stage" data-duel-stage aria-label="轻一点还是宽敞一点">
-      {/* Diagonal split scenes */}
-      <div className="duel-bg" aria-hidden="true">
-        <div className="duel-half is-left" data-duel-half="left">
-          <Image src="/images/hiking.webp" alt="" fill sizes="60vw" />
-        </div>
-        <div className="duel-half is-right" data-duel-half="right">
-          <Image src="/images/camping.webp" alt="" fill sizes="60vw" />
-        </div>
-        <div className="duel-seam" aria-hidden="true">
-          <span className="seam-tick is-1" />
-          <span className="seam-tick is-2" />
-          <span className="seam-tick is-3" />
-        </div>
+      {/* Oversized outline watermark pair behind the tents */}
+      <div className="duel-watermark" aria-hidden="true">
+        <span className="duel-wm is-left" data-duel-wm="left">
+          ON RIDGE
+        </span>
+        <span className="duel-wm is-right" data-duel-wm="right">
+          IN CAMP
+        </span>
       </div>
 
       <div className="duel-content">
@@ -66,42 +60,55 @@ export function DuelSection({ compare }: { compare: ProductDetails[] }) {
             <br />
             还是宽敞一点？
           </h2>
+          <p className="duel-sub">
+            两顶旗舰帐篷摊开在同一地平线上。空间与重量的取舍，一眼可见。
+          </p>
         </header>
 
-        {/* Proportion-true tent plates */}
+        {/* Plateless tents on one horizon, true width ratio 125 : 160 */}
         <div className="duel-tents">
           <figure className="duel-tent is-left" data-duel-tent="left">
             <Link
-              href={assistantLink("想走轻装徒步路线，请介绍双人三季徒步帐篷 OD-1001 的重量与适用场景。")}
-              className="duel-plate"
-              style={{ "--plate-w": "26rem" } as React.CSSProperties}
+              href={assistantLink(
+                "想走轻装徒步路线，请介绍双人三季徒步帐篷 OD-1001 的重量与适用场景。",
+              )}
+              className="duel-stand"
+              style={{ "--stand-w": "24rem" } as React.CSSProperties}
             >
-              <span className="duel-plate-tag">ON RIDGE · 山脊轻装</span>
-              <ProductImage product={ridge} sizes="(max-width: 900px) 70vw, 420px" />
-              <span className="duel-plate-name">{ridge.title}</span>
+              <span className="duel-stand-tag">ON RIDGE · 山脊轻装</span>
+              <span className="duel-stand-img">
+                <ProductImage product={ridge} sizes="(max-width: 900px) 72vw, 384px" />
+              </span>
+              <span className="duel-stand-name">{ridge.title}</span>
             </Link>
             <figcaption className="duel-measure">
               <span className="measure-line" />
-              <span className="measure-text">宽 125 cm</span>
+              <span className="measure-text">125 cm · 1,850 g</span>
               <span className="measure-line" />
             </figcaption>
+            <span className="duel-contact-shadow" aria-hidden="true" />
           </figure>
 
           <figure className="duel-tent is-right" data-duel-tent="right">
             <Link
-              href={assistantLink("计划周末自驾露营，请介绍双人宽居营地帐篷 OD-1002 的空间与舒适度。")}
-              className="duel-plate"
-              style={{ "--plate-w": "33.3rem" } as React.CSSProperties}
+              href={assistantLink(
+                "计划周末自驾露营，请介绍双人宽居营地帐篷 OD-1002 的空间与舒适度。",
+              )}
+              className="duel-stand"
+              style={{ "--stand-w": "30.7rem" } as React.CSSProperties}
             >
-              <span className="duel-plate-tag green">IN CAMP · 营地宽居</span>
-              <ProductImage product={camp} sizes="(max-width: 900px) 80vw, 540px" />
-              <span className="duel-plate-name">{camp.title}</span>
+              <span className="duel-stand-tag green">IN CAMP · 营地宽居</span>
+              <span className="duel-stand-img">
+                <ProductImage product={camp} sizes="(max-width: 900px) 84vw, 490px" />
+              </span>
+              <span className="duel-stand-name">{camp.title}</span>
             </Link>
             <figcaption className="duel-measure">
               <span className="measure-line" />
-              <span className="measure-text">宽 160 cm</span>
+              <span className="measure-text">160 cm · 3,200 g</span>
               <span className="measure-line" />
             </figcaption>
+            <span className="duel-contact-shadow" aria-hidden="true" />
           </figure>
           <div className="duel-ground" aria-hidden="true" />
         </div>

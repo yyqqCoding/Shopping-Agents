@@ -588,7 +588,7 @@
 }
 .field-footer {
   padding: 70px 5% 30px;
-  border-top: 1px solid #cdcec0;
+  border-top: 0;
 }
 .field-footer > p {
   font-size: 18px;
@@ -630,7 +630,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 30px;
-  border-top: 1px solid #cdcec0;
+  border-top: 0;
   padding-top: 28px;
   font-size: 13px;
 }
@@ -1888,8 +1888,25 @@
   inset: 0;
   background:
     linear-gradient(90deg, rgb(242 240 233 / 92%) 0%, rgb(242 240 233 / 78%) 31%, rgb(242 240 233 / 24%) 44%, transparent 58%),
-    linear-gradient(180deg, rgb(242 240 233 / 95%), transparent 18%, transparent 83%, rgb(242 240 233 / 95%));
+    linear-gradient(180deg, rgb(242 240 233 / 95%), transparent 18%, transparent 78%, #f2f0e9 100%);
   content: "";
+}
+/* Anchor the final fade outside the scaled scene and its animated camera. */
+.field-chapter-cook::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 40px;
+  z-index: 1;
+  background: linear-gradient(to bottom, transparent, var(--field-paper) 80%);
+  pointer-events: none;
+}
+.field-footer {
+  position: relative;
+  margin-top: -2px;
+  background: var(--field-paper);
 }
 .field-scene-aside {
   position: absolute;
@@ -2215,4 +2232,158 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 14px 28px;
+}
+
+/* Homepage controls: defined edges, measured spacing, and small press feedback. */
+.field-home {
+  --control-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.field-chapter-progress { grid-template-columns: 1fr auto auto; }
+.field-home :is(a, button) { -webkit-tap-highlight-color: transparent; }
+.field-home :is(a, button):focus-visible {
+  outline: 2px solid var(--chapter-accent, var(--field-orange));
+  outline-offset: 4px;
+}
+.field-button,
+.field-chapter-link {
+  min-height: 42px;
+  padding: 10px 15px 10px 18px;
+  gap: 24px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  transition: color 0.22s, background 0.22s, border-color 0.22s, transform 0.22s var(--control-ease), box-shadow 0.22s;
+}
+.field-button {
+  background: var(--field-ink);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 12%);
+}
+.field-chapter-link {
+  color: var(--chapter-text);
+  border-color: color-mix(in srgb, var(--chapter-text) 28%, transparent);
+  background: color-mix(in srgb, var(--chapter-surface) 88%, transparent);
+}
+.field-button:is(:hover, :focus-visible) {
+  background: var(--field-orange);
+  transform: translateY(-1px);
+}
+.field-chapter-link:is(:hover, :focus-visible) {
+  color: var(--chapter-surface);
+  background: var(--chapter-text);
+  border-color: var(--chapter-text);
+  transform: translateY(-1px);
+}
+.field-button svg,
+.field-chapter-link svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform 0.3s var(--control-ease);
+}
+.field-button:is(:hover, :focus-visible) svg,
+.field-chapter-link:is(:hover, :focus-visible) svg { transform: translate(2px, -2px); }
+.field-button:active,
+.field-chapter-link:active { transform: translateY(1px) scale(0.985); }
+.field-chapter-nav a {
+  min-height: 36px;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 5px;
+  transition: color 0.2s, background 0.2s;
+}
+.field-chapter-nav a:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--chapter-text) 6%, transparent);
+}
+.field-chapter-nav a::after {
+  left: 9px;
+  right: 9px;
+  transition: transform 0.3s var(--control-ease), opacity 0.2s;
+}
+.field-chapter-catalog,
+.field-nav nav > a:not(.field-button),
+.field-footer-bottom nav a {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: color 0.2s, background 0.2s;
+}
+.field-chapter-catalog:is(:hover, :focus-visible),
+.field-nav nav > a:not(.field-button):is(:hover, :focus-visible),
+.field-footer-bottom nav a:is(:hover, :focus-visible) {
+  color: var(--chapter-accent, var(--field-orange));
+  background: color-mix(in srgb, var(--chapter-text, var(--field-ink)) 5%, transparent);
+}
+.field-chapter-progress > a {
+  min-height: 40px;
+  gap: 12px;
+  padding: 5px 0 5px 12px;
+  border-radius: 6px;
+  transition: color 0.2s;
+}
+.field-chapter-progress > a svg {
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--chapter-text) 25%, transparent);
+  border-radius: 50%;
+  transition: color 0.22s, background 0.22s, border-color 0.22s, transform 0.25s var(--control-ease);
+}
+.field-chapter-progress > a:is(:hover, :focus-visible) { color: var(--chapter-accent); }
+.field-chapter-progress > a:is(:hover, :focus-visible) svg {
+  color: var(--chapter-surface);
+  background: var(--chapter-text);
+  border-color: var(--chapter-text);
+  transform: translateX(2px);
+}
+.field-chapter-motion {
+  min-height: 36px;
+  padding: 7px 10px;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--chapter-text);
+  transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.field-chapter-motion:is(:hover, :focus-visible) {
+  border-color: var(--chapter-line);
+  background: color-mix(in srgb, var(--chapter-text) 5%, transparent);
+}
+.field-chapter-motion[aria-pressed="true"] { color: var(--chapter-accent); }
+.field-chapter-motion:active { transform: scale(0.97); }
+.field-footer-arrow {
+  width: clamp(72px, 7vw, 112px);
+  height: clamp(72px, 7vw, 112px);
+  background: transparent;
+  color: var(--field-orange);
+  border: 1px solid color-mix(in srgb, var(--field-orange) 65%, transparent);
+  transition: background 0.3s, color 0.3s, border-color 0.3s, transform 0.3s var(--control-ease);
+}
+.field-footer-arrow svg {
+  width: 38%;
+  height: 38%;
+  transition: transform 0.3s var(--control-ease);
+}
+.field-footer-cta:is(:hover, :focus-visible) .field-footer-arrow {
+  background: var(--field-orange);
+  color: var(--field-paper);
+  border-color: var(--field-orange);
+  transform: none;
+}
+.field-footer-cta:is(:hover, :focus-visible) .field-footer-arrow svg { transform: translate(2px, -2px); }
+.field-footer-cta:active .field-footer-arrow { transform: scale(0.97); }
+.field-chapter-specs dd,
+.field-chapter-price { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .field-home :is(a, button):is(:hover, :focus-visible, :active),
+  .field-home :is(a, button):is(:hover, :focus-visible, :active) svg,
+  .field-footer-cta:is(:hover, :focus-visible, :active) .field-footer-arrow { transform: none; }
+}
+.field-chapter-photo .field-chapter-body {
+  bottom: 15%;
 }

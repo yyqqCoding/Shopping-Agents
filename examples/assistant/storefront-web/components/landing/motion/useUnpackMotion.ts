@@ -184,27 +184,28 @@ export function useUnpackMotion(
             );
           }
 
-          // The landscape appears behind the closed backpack as it recedes.
-          // Keep this reveal full-frame so the foreground stays intact.
+          // Each material opens differently; all masks fully clear for reading.
           if (isFirst) {
             sequence.fromTo(
               chapter,
-              { autoAlpha: 0 },
-              { autoAlpha: 1, duration: 0.92, ease: "power2.inOut" },
+              { autoAlpha: 0, clipPath: "circle(0% at 68% 62%)" },
+              { autoAlpha: 1, clipPath: "circle(150% at 68% 62%)", duration: 1.05, ease: "power2.inOut" },
               start,
             );
           } else {
             sequence.fromTo(
               chapter,
               {
+                autoAlpha: 0,
                 clipPath:
                   kind === "light"
-                    ? "inset(0% 100% 0% 0%)"
-                    : "inset(100% 0% 0% 0%)",
+                    ? "polygon(52% 53%, 100% 50%, 100% 56%, 52% 53%)"
+                    : kind === "sleep" ? "ellipse(75% 0% at 50% 0%)" : "inset(100% 0% 0% 0% round 45% 45% 0 0)",
               },
               {
-                clipPath: "inset(0% 0% 0% 0%)",
-                duration: 0.72,
+                autoAlpha: 1,
+                clipPath: kind === "light" ? "polygon(-100% -100%, 200% -100%, 200% 200%, -100% 200%)" : kind === "sleep" ? "ellipse(150% 150% at 50% 0%)" : "inset(0% 0% 0% 0% round 0% 0% 0 0)",
+                duration: 0.95,
                 ease: "power3.out",
               },
               start,

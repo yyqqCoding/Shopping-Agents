@@ -19,7 +19,6 @@ const chapterDefinitions = [
     title: "饮水",
     headline: ["走一程，", "喝一口。"],
     description: "把水带在身边，把脚步留给山野。随身的一壶，或是留给营地的储备，各有用处。",
-    note: "水在身边，路在脚下。",
     roles: ["随手喝一口", "把温热带上", "边走边补水", "留给营地", "坐下来慢饮"],
     ids: ["OD-7008", "OD-7009", "OD-7010", "OD-7011", "OD-7001"],
   },
@@ -29,7 +28,6 @@ const chapterDefinitions = [
     title: "睡眠",
     headline: ["把好梦，", "装进行囊。"],
     description: "夜色交给山野，温暖留给自己。从舒适温度开始，找到今晚的睡眠搭档。",
-    note: "睡袋留住温暖，睡垫隔开地面。",
     roles: ["春秋轻装", "低温扎营", "翻身自在", "夏夜轻行", "隔开地面"],
     ids: ["OD-2003", "OD-2004", "OD-2005", "OD-2006", "OD-2007"],
   },
@@ -39,7 +37,6 @@ const chapterDefinitions = [
     title: "照明",
     headline: ["天黑了，", "也有方向。"],
     description: "头灯照顾脚下，营地灯照顾停留。让一束光，陪你把夜晚慢慢展开。",
-    note: "移动鼠标，让光跟着你。",
     roles: ["营地走走", "随行备用", "为夜行准备", "远近光切换", "帐篷里的光"],
     ids: ["OD-6001", "OD-6002", "OD-6003", "OD-6004", "OD-6005"],
   },
@@ -49,7 +46,6 @@ const chapterDefinitions = [
     title: "炊具",
     headline: ["山野间，", "好好吃饭。"],
     description: "架起炉具，摆好碗筷。一个人的热汤，两个人的晚餐，都让这一程有了滋味。",
-    note: "把一顿热饭，安排进风景里。",
     roles: ["架起炉具", "两人的一餐", "轻装开饭", "围坐分享", "摆好碗筷"],
     ids: ["OD-7005", "OD-7003", "OD-7006", "OD-7004", "OD-7007"],
   },
@@ -183,7 +179,6 @@ function ChapterScene({ chapter }: { chapter: ChapterKey }) {
             </g>
             <path className="field-sleep-orbit" d="M32 601C165 371 774 240 963 402M78 647C239 422 804 326 1007 462" />
           </svg>
-          <div className="field-scene-aside">今夜，山野是卧室。</div>
         </>
       )}
       {chapter === "light" && (
@@ -193,7 +188,6 @@ function ChapterScene({ chapter }: { chapter: ChapterKey }) {
             <path d="M474 626a255 255 0 0 0 0-510M548 688a333 333 0 0 0 0-666M627 762a422 422 0 0 0 0-844" />
             <path className="field-light-axis" d="m251 410 669-202" />
           </svg>
-          <div className="field-scene-aside">一束光，也是一份安心。</div>
         </>
       )}
     </div>
@@ -205,7 +199,6 @@ export function LandingPage({ products }: { products: ProductDetails[] }) {
   const [selectedVariants, setSelectedVariants] = useState<Record<string, number>>({});
   const [motionPaused, setMotionPaused] = useState(false);
   useUnpackMotion(root, motionPaused);
-
   const revealVariant = (chapterKey: string, variantIndex: number) => {
     setSelectedVariants((current) =>
       current[chapterKey] === variantIndex
@@ -420,12 +413,11 @@ export function LandingPage({ products }: { products: ProductDetails[] }) {
                     <div className="field-chapter-progress">
                       <i aria-hidden="true" />
                       <span className="field-chapter-position">{chapter.number}<span> / 04</span></span>
-                      <p>{chapter.note}</p>
                       <div className="field-chapter-tools">
-                        <span className="field-chapter-help">悬停了解 · 点击查看</span>
                         <button
                           type="button"
                           className="field-chapter-motion"
+                          aria-pressed={motionPaused}
                           onClick={() => setMotionPaused((current) => !current)}
                         >
                           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">

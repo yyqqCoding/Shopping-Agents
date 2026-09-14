@@ -7,6 +7,8 @@ import type { ProductDetails } from "@/lib/types";
 import { assistantLink } from "@/lib/navigation";
 import { Arrow } from "../SiteChrome";
 import OutdoorMark from "../OutdoorMark";
+import { HeroWater } from "./HeroWater";
+import { BackpackReveal } from "./BackpackReveal";
 import { useUnpackMotion } from "./motion/useUnpackMotion";
 
 const bottlePrompt =
@@ -18,7 +20,6 @@ const chapterDefinitions = [
     number: "01",
     title: "饮水",
     headline: ["走一程，", "喝一口。"],
-    description: "把水带在身边，把脚步留给山野。随身的一壶，或是留给营地的储备，各有用处。",
     roles: ["随手喝一口", "把温热带上", "边走边补水", "留给营地", "坐下来慢饮"],
     ids: ["OD-7008", "OD-7009", "OD-7010", "OD-7011", "OD-7001"],
   },
@@ -27,7 +28,6 @@ const chapterDefinitions = [
     number: "02",
     title: "睡眠",
     headline: ["把好梦，", "装进行囊。"],
-    description: "夜色交给山野，温暖留给自己。从舒适温度开始，找到今晚的睡眠搭档。",
     roles: ["春秋轻装", "低温扎营", "翻身自在", "夏夜轻行", "隔开地面"],
     ids: ["OD-2003", "OD-2004", "OD-2005", "OD-2006", "OD-2007"],
   },
@@ -36,7 +36,6 @@ const chapterDefinitions = [
     number: "03",
     title: "照明",
     headline: ["天黑了，", "也有方向。"],
-    description: "头灯照顾脚下，营地灯照顾停留。让一束光，陪你把夜晚慢慢展开。",
     roles: ["营地走走", "随行备用", "为夜行准备", "远近光切换", "帐篷里的光"],
     ids: ["OD-6001", "OD-6002", "OD-6003", "OD-6004", "OD-6005"],
   },
@@ -45,7 +44,6 @@ const chapterDefinitions = [
     number: "04",
     title: "炊具",
     headline: ["山野间，", "好好吃饭。"],
-    description: "架起炉具，摆好碗筷。一个人的热汤，两个人的晚餐，都让这一程有了滋味。",
     roles: ["架起炉具", "两人的一餐", "轻装开饭", "围坐分享", "摆好碗筷"],
     ids: ["OD-7005", "OD-7003", "OD-7006", "OD-7004", "OD-7007"],
   },
@@ -241,6 +239,7 @@ export function LandingPage({ products }: { products: ProductDetails[] }) {
         <div className="field-unpack">
           <div className="field-unpack-stage">
             <section className="field-hero" aria-labelledby="field-title">
+              <HeroWater />
               <div className="field-contours" aria-hidden="true">
                 <svg
                   viewBox="0 0 1600 1000"
@@ -265,22 +264,13 @@ export function LandingPage({ products }: { products: ProductDetails[] }) {
                   <div className="field-hero-tilt">
                     <div className="field-hero-float">
                       <div className="field-bag-shell">
-                        <Image
-                          className="field-bag-closed"
-                          src="/images/landing/backpack-closed-alpha.png"
-                          alt="深灰绿色徒步背包，带着装备向山野出发"
-                          width={1254}
-                          height={1254}
-                          priority
-                          sizes="54vw"
-                        />
+                        <BackpackReveal />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <a href="#chapter-water" className="field-scroll">
-                <span>往下，走进山野</span>
+              <a href="#chapter-water" className="field-scroll" aria-label="查看装备章节">
                 <span className="field-scroll-arrow">
                   <Arrow />
                 </span>
@@ -333,7 +323,6 @@ export function LandingPage({ products }: { products: ProductDetails[] }) {
                           <span className="field-visually-hidden">{chapter.title}，</span>
                           {chapter.headline.map((line) => <span key={line}>{line}</span>)}
                         </h2>
-                        <p>{chapter.description}</p>
                       </div>
                       <div className="field-chapter-info" data-chapter-info>
                         <div className="field-chapter-selection">
@@ -443,7 +432,6 @@ export function LandingPage({ products }: { products: ProductDetails[] }) {
         </div>
       </main>
       <footer className="field-footer" id="field-finish">
-        <p>下一程，从这里开始。</p>
         <Link href={assistantLink(bottlePrompt)} className="field-footer-cta">
           <span>准备，出发。</span>
           <span className="field-footer-arrow">

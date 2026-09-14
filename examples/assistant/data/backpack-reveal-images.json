@@ -1,0 +1,22 @@
+{
+  "tool": "built-in image_gen",
+  "purpose": "Original fictional overnight camping backpack exterior and cutaway, used as registered website textures",
+  "assets": [
+    {
+      "path": "storefront-web/public/images/landing/backpack-packed-exterior.png",
+      "source": "exec-46c7061a-f1d0-4965-895c-79c0109b0a72.png",
+      "prompt": "Preserve olive/gray backpack perspective. Add water bottle seated in left pocket and graphite accordion foam mat attached below with two taut straps. Repair checkerboard background to uniform RGB(242,240,233). No brands, text or floor shadow."
+    },
+    {
+      "path": "storefront-web/public/images/landing/backpack-packed-interior.png",
+      "source": "exec-1aa3779e-3f91-4e69-9636-1d3f9621251e.png",
+      "prompt": "Preserve exact exterior framing, bottle, mat, straps and lid. Reveal main front panel only: compression-sack sleeping bag at bottom, nested cooking pot and food pouch in middle, packed insulating clothes and rain shell above, headlamp in upper mesh pocket. Realistic dark lining, depth and contact shadows. Uniform RGB(242,240,233) background. No fuel canister, labels or logos."
+    },
+    {
+      "path": "storefront-web/public/images/landing/backpack-packed-interior-wide.png",
+      "source": "exec-535505aa-6114-405f-8379-6ec04e631304.png",
+      "prompt": "Registered edit of original interior: extend cutaway into top lid and visible left side. Shallow lid contains compact red first-aid pouch and folded map. Side shows same clothing and sleeping bag, no duplicated equipment. Preserve exact camera, pack silhouette, straps, hardware, exterior bottle and bottom foam mat. Realistic lining and contact shadows. Uniform #f2f0e9 background; no logos or labels."
+    }
+  ],
+  "rendering": "Connected background matte removed once at load. Registered lid, main compartment and flank masks preserve original external hardware. Local WebGL damped wave feedback advects reveal and refracts textures; Canvas soft reveal is fallback."
+}

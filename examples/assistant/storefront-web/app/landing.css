@@ -2387,3 +2387,45 @@
 .field-chapter-photo .field-chapter-body {
   bottom: 15%;
 }
+
+/* The cutaway shares the bag's existing float, tilt and scroll transforms. */
+.field-pack-reveal {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  border-radius: 0;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.field-pack-reveal canvas,
+.field-pack-reveal .field-pack-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.field-pack-reveal canvas { opacity: 0; }
+.field-pack-reveal[data-ready="true"] canvas { opacity: 1; }
+.field-pack-reveal[data-ready="true"] .field-pack-fallback { visibility: hidden; }
+.field-hero[inert] .field-pack-reveal { pointer-events: none; }
+.field-pack-reveal:focus-visible {
+  outline-offset: -12px;
+  outline-style: dashed;
+}
+
+.field-hero-water {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(1.5px);
+}

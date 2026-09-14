@@ -56,3 +56,7 @@ python scripts/prepare_catalog.py --check
 - 查看购物车和结算摘要。结算不创建订单、扣款或发货。
 
 模型、记忆提取与长对话摘要都使用 Anthropic Messages API。网关必须支持 `/v1/messages` 和 SSE；`SHOPPING_MODEL` 与 `SHOPPING_MEMORY_MODEL` 都须在该网关可用。协议和部署参数见 [部署说明](../../docs/deployment.md)。
+
+`storefront-web/components/landing/BackpackReveal.tsx` 将背包外观与内部装载纹理在 Canvas 中局部混合，鼠标轨迹只作用于主包腔。水壶、绑带和泡沫垫保持外观图。图片失败回退原背包，滚动与暂停时清除揭露；键盘可切换内部示意。素材与提示词记录在 `data/backpack-reveal-images.json`。 Local ripple feedback and refraction live in `components/landing/motion/backpackWater.ts`; registered lid and flank cutaways preserve exterior attachments.
+
+`components/landing/HeroWater.tsx` owns the first-screen pointer wave field, background trail and local headline/contour displacement. It stops on scroll, pause, blur and reduced motion.

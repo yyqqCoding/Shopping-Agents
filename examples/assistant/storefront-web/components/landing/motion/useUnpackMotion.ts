@@ -364,11 +364,9 @@ export function useUnpackMotion(
       stage.addEventListener("pointermove", pointer);
       stage.addEventListener("pointerleave", reset);
 
-      Promise.all(
-        Array.from(stage.querySelectorAll<HTMLImageElement>("img"), (image) =>
-          image.decode().catch(() => {}),
-        ),
-      ).then(() => {
+      // Image boxes have fixed dimensions; lazy chapter images must not gate
+      // scroll restoration or force decoding every texture during startup.
+      const refreshFrame = requestAnimationFrame(() => {
         if (disposed) return;
         ScrollTrigger.refresh();
         const position = chapterPosition(window.location.hash);
@@ -377,6 +375,7 @@ export function useUnpackMotion(
 
       return () => {
         disposed = true;
+        cancelAnimationFrame(refreshFrame);
         playback.current = null;
         observer.disconnect();
         document.removeEventListener("visibilitychange", updatePlayback);

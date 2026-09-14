@@ -104,7 +104,8 @@ function ChapterScene({ chapter }: { chapter: ChapterKey }) {
             alt=""
             fill
             sizes="100vw"
-            loading="eager"
+            loading={chapter === "water" ? "eager" : "lazy"}
+            fetchPriority="low"
             unoptimized
           />
           <svg
@@ -374,11 +375,11 @@ export function LandingPage({ products }: { products: ProductDetails[] }) {
                             <div className="field-product-object">
                               <div className="field-product-drift">
                                 <Image
-                                  src={`/images/landing/${variant.product_id}-alpha.png`}
+                                  src={`/images/landing/${variant.product_id}-alpha.webp`}
                                   alt=""
                                   width={1024}
                                   height={1024}
-                                  sizes={hasPhoto ? "8vw" : variantIndex === 0 ? "36vw" : "22vw"}
+                                  sizes={hasPhoto ? "(max-width: 760px) 20vw, 8vw" : variantIndex === 0 ? "(max-width: 760px) 70vw, 36vw" : "(max-width: 760px) 42vw, 22vw"}
                                 />
                               </div>
                             </div>

@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { BackpackWater } from "./motion/backpackWater";
 
-const exteriorUrl = "/images/landing/backpack-packed-exterior.png";
-const interiorUrl = "/images/landing/backpack-packed-interior-wide.png";
+const exteriorUrl = "/images/landing/backpack-packed-exterior-alpha.webp";
+const interiorUrl = "/images/landing/backpack-packed-interior-wide.webp";
 const SIZE = 1000;
 const LIFETIME = 2100;
 type Stroke = { x: number; y: number; time: number; angle: number };
@@ -13,42 +13,6 @@ type Stroke = { x: number; y: number; time: number; angle: number };
 function surface() {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = SIZE;
-  return canvas;
-}
-
-// The supplied texture has a uniform paper background. Remove only connected
-// background pixels, preserving light details enclosed by the pack silhouette.
-function exteriorTexture(image: HTMLImageElement) {
-  const canvas = surface();
-  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
-  ctx.drawImage(image, 0, 0, SIZE, SIZE);
-  const frame = ctx.getImageData(0, 0, SIZE, SIZE);
-  const pixels = frame.data;
-  const visited = new Uint8Array(SIZE * SIZE);
-  const queue = new Int32Array(SIZE * SIZE);
-  let head = 0, tail = 0;
-  const enqueue = (index: number) => {
-    if (visited[index]) return;
-    visited[index] = 1;
-    const i = index * 4;
-    const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
-    if (r > 215 && g > 212 && b > 200 && Math.max(r, g, b) - Math.min(r, g, b) < 24) {
-      queue[tail++] = index;
-    }
-  };
-  for (let i = 0; i < SIZE; i++) {
-    enqueue(i); enqueue((SIZE - 1) * SIZE + i);
-    enqueue(i * SIZE); enqueue(i * SIZE + SIZE - 1);
-  }
-  while (head < tail) {
-    const index = queue[head++];
-    pixels[index * 4 + 3] = 0;
-    if (index % SIZE) enqueue(index - 1);
-    if (index % SIZE < SIZE - 1) enqueue(index + 1);
-    if (index >= SIZE) enqueue(index - SIZE);
-    if (index < SIZE * (SIZE - 1)) enqueue(index + SIZE);
-  }
-  ctx.putImageData(frame, 0, 0);
   return canvas;
 }
 
@@ -213,13 +177,15 @@ export function BackpackReveal() {
     reduced.addEventListener("change", reset);
     const load = async (url: string) => {
       const image = new window.Image();
+      image.fetchPriority = "high";
       image.src = url;
       await image.decode();
       return image;
     };
     Promise.all([load(exteriorUrl), load(interiorUrl)]).then(([outside, inside]) => {
       if (disposed) return;
-      outer = exteriorTexture(outside);
+      outer = surface();
+      outer.getContext("2d")!.drawImage(outside, 0, 0, SIZE, SIZE);
       inner = inside;
       try { water = new BackpackWater(outer, inside, region); }
       catch { water = null; } // Soft reveal remains available without WebGL.
@@ -244,12 +210,15 @@ export function BackpackReveal() {
   }, []);
 
   return (
+    <>
+    <link rel="preload" as="image" href={interiorUrl} fetchPriority="high" />
     <button ref={buttonRef} className="field-pack-reveal" type="button"
       aria-label="查看背包内部装载：睡袋、炊具、食物、衣物、头灯、急救包和地图；水壶与泡沫垫固定在包外"
       aria-pressed="false">
-      <Image className="field-pack-fallback" src="/images/landing/backpack-closed-alpha.png"
-        alt="" width={1254} height={1254} priority sizes="54vw" />
+      <Image className="field-pack-fallback" src={exteriorUrl}
+        alt="" width={SIZE} height={SIZE} priority unoptimized sizes="54vw" />
       <canvas ref={canvasRef} width={SIZE} height={SIZE} aria-hidden="true" />
     </button>
+    </>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { gsap, ScrollTrigger } from "./gsapSetup";
 
-/** One reversible scroll performance: the backpack opens, then four gear chapters take turns. */
+/** One reversible scroll performance: leave the backpack hero and enter four outdoor chapters. */
 export function useUnpackMotion(
   root: RefObject<HTMLElement | null>,
   paused: boolean,
@@ -40,8 +40,8 @@ export function useUnpackMotion(
       let intro: gsap.core.Timeline;
       let phase = -1;
       let resetTilt: (() => void) | null = null;
-      const firstChapterStart = 0.72;
-      const chapterGap = 2.2;
+      const firstChapterStart = 0.32;
+      const chapterGap = 2.45;
 
       const setPhase = (next: number) => {
         if (phase === next) return;
@@ -63,15 +63,17 @@ export function useUnpackMotion(
       };
 
       const updatePlayback = () => {
-        const running =
+        const sceneRunning =
           visible &&
           !document.hidden &&
-          page.dataset.motionPaused !== "true" &&
-          (!sequence || sequence.progress() < 0.025);
+          page.dataset.motionPaused !== "true";
+        page.dataset.scenePlayback = sceneRunning ? "running" : "paused";
+        const atHero = !sequence || sequence.time() < 0.06;
+        const running = sceneRunning && atHero;
         if (!running && hero.dataset.active === "true") resetTilt?.();
         hero.dataset.active = String(running);
         if (intro && intro.progress() < 1) {
-          if (sequence && sequence.progress() >= 0.025) intro.progress(1);
+          if (!atHero) intro.progress(1);
           else running ? intro.play() : intro.pause();
         }
       };
@@ -105,11 +107,11 @@ export function useUnpackMotion(
         const h = () => stage.clientHeight;
         sequence = gsap.timeline({
           defaults: { ease: "power2.inOut" },
-          onUpdate: () => updatePhase(sequence.progress() * 10),
+          onUpdate: () => updatePhase(sequence.time()),
           scrollTrigger: {
             trigger: stage,
             start: "top top",
-            end: () => "+=" + h() * 12.2,
+            end: () => "+=" + h() * 9.2,
             pin: true,
             scrub: 0.16,
             anticipatePin: 1,
@@ -119,136 +121,131 @@ export function useUnpackMotion(
         });
 
         sequence
-          .to(
-            ".field-hero-title > span:first-child",
-            { xPercent: -75, y: -60, opacity: 0, duration: 0.55 },
-            0.2,
-          )
-          .to(
-            ".field-hero-title > span:last-child",
-            { xPercent: 75, y: 80, opacity: 0, duration: 0.55 },
-            0.2,
-          )
-          .to(
-            ".field-hero-note, .field-scroll, .field-hero-bottom",
-            { opacity: 0, y: -25, duration: 0.35 },
-            0.22,
-          )
-          .to(
-            bag,
-            { scale: 1.08, rotation: -5, y: () => h() * 0.045, duration: 0.5 },
-            0,
-          )
-          .to(".field-bag-closed", { opacity: 0, duration: 0.3 }, 0.28)
           .fromTo(
-            ".field-bag-open",
-            { opacity: 0, y: 18 },
-            { opacity: 1, y: 0, duration: 0.32 },
-            0.28,
+            ".field-hero-title",
+            { opacity: 1, y: 0 },
+            { opacity: 0, y: () => -h() * 0.065, duration: 0.48 },
+            0.06,
+          )
+          .to(
+            ".field-scroll",
+            { opacity: 0, y: -14, duration: 0.22 },
+            0.04,
           )
           .fromTo(
-            ".field-bag-front",
-            { opacity: 0 },
-            { opacity: 1, duration: 0.28 },
-            0.32,
-          )
-          .to(
             bag,
+            { x: 0, y: 0, scale: 1, rotation: 0 },
             {
-              x: () => -stage.clientWidth * 0.26,
-              y: () => h() * 0.07,
-              scale: 0.5,
-              rotation: 0,
-              duration: 0.72,
-              ease: "power3.inOut",
+              x: () => -stage.clientWidth * 0.075,
+              y: () => -h() * 0.11,
+              scale: 0.66,
+              rotation: -7,
+              duration: 1.02,
+              ease: "power2.inOut",
             },
-            0.5,
+            0.06,
           )
           .fromTo(
-            ".field-chapter-rail",
-            { opacity: 0, x: -22 },
-            { opacity: 1, x: 0, duration: 0.6 },
-            0.62,
-          )
-          .to(
             ".field-bag-shell",
-            {
-              opacity: 0,
-              scale: 0.82,
-              y: 24,
-              duration: 0.52,
-              ease: "power3.in",
-            },
-            0.92,
+            { opacity: 1 },
+            { opacity: 0, duration: 0.54, ease: "power2.inOut" },
+            0.47,
+          )
+          .fromTo(
+            ".field-contours",
+            { opacity: 1 },
+            { opacity: 0, duration: 0.78 },
+            0.18,
+          )
+          .fromTo(
+            hero,
+            { autoAlpha: 1 },
+            { autoAlpha: 0, duration: 0.08, immediateRender: false },
+            1.02,
           );
 
         chapters.forEach((chapter, chapterIndex) => {
           const start = firstChapterStart + chapterIndex * chapterGap;
+          const isFirst = chapterIndex === 0;
+          const kind = chapter.dataset.chapterKey;
+          const hasPhoto = chapter.classList.contains("field-chapter-photo");
           const variants = Array.from(
             chapter.querySelectorAll<HTMLElement>("[data-chapter-variant]"),
           );
+
+          // Each opaque chapter stays under its successor. Reversing the scroll
+          // reveals that complete scene instead of the empty hero backdrop.
           if (chapterIndex > 0) {
-            sequence.to(
-              chapters[chapterIndex - 1],
-              { opacity: 0, yPercent: -10, duration: 0.52 },
-              start - 0.18,
+            sequence.fromTo(
+              chapters[chapterIndex - 1].querySelector<HTMLElement>("[data-chapter-body]"),
+              { opacity: 1, y: 0 },
+              { opacity: 0, y: -18, duration: 0.4, immediateRender: false },
+              start + 0.25,
             );
           }
 
+          // The landscape appears behind the closed backpack as it recedes.
+          // Keep this reveal full-frame so the foreground stays intact.
+          if (isFirst) {
+            sequence.fromTo(
+              chapter,
+              { autoAlpha: 0 },
+              { autoAlpha: 1, duration: 0.92, ease: "power2.inOut" },
+              start,
+            );
+          } else {
+            sequence.fromTo(
+              chapter,
+              {
+                clipPath:
+                  kind === "light"
+                    ? "inset(0% 100% 0% 0%)"
+                    : "inset(100% 0% 0% 0%)",
+              },
+              {
+                clipPath: "inset(0% 0% 0% 0%)",
+                duration: 0.72,
+                ease: "power3.out",
+              },
+              start,
+            );
+          }
           sequence.fromTo(
-            chapter,
-            {
-              opacity: 0,
-              yPercent: 12,
-              scale: 0.985,
-              clipPath: "inset(12% 0 0 0)",
-            },
-            {
-              opacity: 1,
-              yPercent: 0,
-              scale: 1,
-              clipPath: "inset(0% 0 0 0)",
-              duration: 0.72,
-              ease: "power3.out",
-            },
+            chapter.querySelector<HTMLElement>("[data-chapter-scene]"),
+            { scale: isFirst ? 1.055 : hasPhoto ? 1.04 : 1.06 },
+            { scale: 1, duration: chapterGap, ease: "none" },
             start,
-          );
-          sequence.to(
-            bag,
-            {
-              y: () => h() * (0.07 + (chapterIndex % 2) * 0.012),
-              rotation: chapterIndex % 2 ? 2.5 : -2.5,
-              duration: 0.42,
-              ease: "back.out(1.8)",
-            },
-            start,
-          );
-          sequence.to(
-            bag,
-            { rotation: 0, duration: 0.5, ease: "sine.out" },
-            start + 0.42,
           );
 
           variants.forEach((variant, variantIndex) => {
             const isPrimary = variantIndex === 0;
-            const variantStart = start + 0.12 + variantIndex * 0.17;
+            const variantStart = start + (isFirst ? 0.52 : 0.12) + variantIndex * 0.09;
+            const direction = variantIndex % 2 ? 1 : -1;
+            const entrance =
+              hasPhoto
+                ? { x: 0, y: 24, scale: 0.94, rotation: 0 }
+                : kind === "sleep"
+                  ? {
+                      x: () => direction * stage.clientWidth * 0.06,
+                      y: () => h() * 0.09,
+                      scale: 0.86,
+                      rotation: direction * 15,
+                    }
+                  : { x: 65, y: 0, scale: 0.92, rotation: 0 };
             sequence.fromTo(
               variant,
               {
                 opacity: 0,
-                x: () => -stage.clientWidth * (0.42 - variantIndex * 0.035),
-                y: () => h() * (0.08 + variantIndex * 0.035),
-                scale: isPrimary ? 0.12 : 0.08,
-                rotation: variantIndex % 2 ? 22 : -24,
+                ...entrance,
               },
               {
                 opacity: 1,
                 x: 0,
                 y: 0,
                 scale: 1,
-                rotation: isPrimary ? 0 : variantIndex % 2 ? 3 : -3,
-                duration: isPrimary ? 1.12 : 0.92,
-                ease: isPrimary ? "back.out(1.7)" : "power3.out",
+                rotation: 0,
+                duration: hasPhoto ? 0.6 : isPrimary ? 1.08 : 0.86,
+                ease: "power3.out",
               },
               variantStart,
             );
@@ -256,34 +253,40 @@ export function useUnpackMotion(
 
           sequence
             .fromTo(
+              chapter.querySelector<HTMLElement>(".field-chapter-topline"),
+              { opacity: 0, y: -12 },
+              { opacity: 1, y: 0, duration: 0.5 },
+              start + (isFirst ? 0.52 : 0.2),
+            )
+            .fromTo(
               chapter.querySelector<HTMLElement>(".field-chapter-copy")!,
               { opacity: 0, x: -42 },
               { opacity: 1, x: 0, duration: 0.65, ease: "power3.out" },
-              start + 0.3,
+              start + (isFirst ? 0.78 : 0.3),
             )
             .fromTo(
               chapter.querySelector<HTMLElement>(".field-chapter-info")!,
               { opacity: 0, y: 34 },
               { opacity: 1, y: 0, duration: 0.64, ease: "power3.out" },
-              start + 0.62,
+              start + (isFirst ? 0.82 : 0.62),
             )
             .fromTo(
               chapter.querySelectorAll<HTMLElement>(
-                ".field-chapter-specs span",
+                ".field-chapter-specs > div",
               ),
               { opacity: 0, y: 18 },
               { opacity: 1, y: 0, duration: 0.42, stagger: 0.08 },
-              start + 0.83,
+              start + (isFirst ? 0.98 : 0.83),
             )
             .fromTo(
               chapter.querySelector<HTMLElement>(".field-chapter-progress i")!,
               { scaleX: 0 },
-              { scaleX: 1, duration: 1.5, ease: "none" },
-              start + 0.7,
+              { scaleX: 1, duration: chapterGap - 0.25, ease: "none" },
+              start + 0.25,
             );
         });
 
-        sequence.to({}, { duration: 1.2 }, 10.05);
+        sequence.to({}, { duration: 0.2 });
         setPhase(0);
       }, page);
 
@@ -294,27 +297,26 @@ export function useUnpackMotion(
       observer.observe(stage);
       document.addEventListener("visibilitychange", updatePlayback);
 
+      const chapterPosition = (hash: string) => {
+        const chapterIndex = chapters.findIndex(
+          (chapter) => `#${chapter.id}` === hash,
+        );
+        if (chapterIndex < 0) return null;
+        const trigger = sequence.scrollTrigger!;
+        const position = firstChapterStart + chapterIndex * chapterGap + 1.5;
+        return trigger.start + ((trigger.end - trigger.start) * position) / sequence.duration();
+      };
       const navigate = (event: MouseEvent) => {
         const link = (event.target as Element).closest<HTMLAnchorElement>(
           'a[href^="#chapter-"]',
         );
-        if (
-          !link ||
-          event.metaKey ||
-          event.ctrlKey ||
-          event.shiftKey ||
-          event.altKey
-        )
+        if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
           return;
-        const chapterIndex = chapters.findIndex(
-          (chapter) => `#${chapter.id}` === link.hash,
-        );
-        if (chapterIndex < 0) return;
+        const position = chapterPosition(link.hash);
+        if (position === null) return;
         event.preventDefault();
-        const trigger = sequence.scrollTrigger!;
-        const position = firstChapterStart + chapterIndex * chapterGap;
         window.scrollTo({
-          top: trigger.start + ((trigger.end - trigger.start) * position) / 10,
+          top: position,
           behavior: "smooth",
         });
         history.replaceState(null, "", link.hash);
@@ -322,11 +324,21 @@ export function useUnpackMotion(
       page.addEventListener("click", navigate);
 
       const tilt = get(".field-hero-tilt");
+      const beam = get(".field-light-beam");
       const pointer = (event: PointerEvent) => {
-        if (hero.dataset.active !== "true") return;
+        if (page.dataset.scenePlayback !== "running") return;
         const bounds = stage.getBoundingClientRect();
-        const dx = (event.clientX / bounds.width - 0.5) * 2;
+        const dx = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
         const dy = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
+        if (chapters[phase - 1]?.dataset.chapterKey === "light") {
+          gsap.to(beam, {
+            rotation: -26 + dy * 17 + dx * 8,
+            duration: 0.7,
+            ease: "power3.out",
+            overwrite: true,
+          });
+        }
+        if (hero.dataset.active !== "true") return;
         gsap.to(tilt, {
           rotationY: dx * 9,
           rotationX: -dy * 4,
@@ -337,6 +349,7 @@ export function useUnpackMotion(
         });
       };
       const reset = () => {
+        gsap.to(beam, { rotation: -26, duration: 0.7, overwrite: true });
         gsap.to(tilt, {
           rotationY: 0,
           rotationX: 0,
@@ -355,7 +368,10 @@ export function useUnpackMotion(
           image.decode().catch(() => {}),
         ),
       ).then(() => {
-        if (!disposed) ScrollTrigger.refresh();
+        if (disposed) return;
+        ScrollTrigger.refresh();
+        const position = chapterPosition(window.location.hash);
+        if (position !== null) window.scrollTo({ top: position, behavior: "instant" });
       });
 
       return () => {
@@ -366,7 +382,7 @@ export function useUnpackMotion(
         page.removeEventListener("click", navigate);
         stage.removeEventListener("pointermove", pointer);
         stage.removeEventListener("pointerleave", reset);
-        gsap.killTweensOf(tilt);
+        gsap.killTweensOf([tilt, beam]);
         context.revert();
         originals.forEach(([element, style]) =>
           style === null
@@ -378,6 +394,7 @@ export function useUnpackMotion(
           delete section.dataset.active;
         });
         page.classList.remove("is-unpacking");
+        delete page.dataset.scenePlayback;
         delete hero.dataset.motion;
         delete hero.dataset.active;
         delete hero.dataset.entered;

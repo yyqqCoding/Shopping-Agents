@@ -1,6 +1,6 @@
 {
-  "generator": "Built-in imagegen",
-  "usage": "Homepage editorial derivatives of fictional authored catalog photography; original catalog images and product specifications remain authoritative.",
+  "generator": "Built-in imagegen; scene assets declare their generator separately.",
+  "usage": "Homepage product derivatives and fictional outdoor scenes. Catalog photography and product specifications remain authoritative.",
   "assets": [
     {
       "output": "storefront-web/public/images/landing/backpack-white.png",
@@ -16,6 +16,27 @@
       "output": "storefront-web/public/images/landing/camping-tent-white.png",
       "reference": "storefront-web/public/products/generated/OD-1002.webp",
       "prompt": "Edit this exact olive camping tent photo. Change ONLY the beige background and floor to perfectly uniform pure white RGB #FFFFFF. NOT transparency. No checkerboard. No texture, gradient, shadow, floor or horizon. Preserve exact original tent structure, olive and gray colors, poles, guy lines, round mesh doorway, proportions and angle. Full tent centered at 90% width with margin. Detailed product photograph."
+    },
+    {
+      "output": "storefront-web/public/images/landing/water-scene.webp",
+      "source": "storefront-web/public/images/landing/water-scene.png",
+      "generator": "ChatGPT desktop, supplied by the user; model unspecified",
+      "width": 1672,
+      "height": 941,
+      "source_sha256": "756cadcc210df9daef4e9bb901347509bb796c367891eb344310db20a7e9f11d",
+      "prompt": "请直接生成一张原创的户外饮水场景摄影图，用于桌面网站的全屏背景。单幅画面，横向 16:9，尽可能高分辨率，写实自然的摄影质感（photorealistic）。\n\n场景：\n清晨的山野休息点，近景表现“停下脚步，倒水喝一口”。画面右上方伸入一只自然持壶的手，仅露出手和少量无标识袖口。手中是一只原创、无品牌、深橄榄绿色的半透明宽口水壶，瓶盖已经取下，壶身轻轻倾斜。一股细而连续的清水从真实瓶口流出，落入右下方的哑光钛金属杯中。杯子稳稳放在平整的浅灰色石面上，杯内有轻微水纹和少量真实水珠。\n\n构图：\n倒水动作集中在画面右侧约 60% 区域，瓶口、水线和杯口之间的关系清楚。左侧约 40% 保持低细节、低对比的浅暖灰与米白空间，接近 #f2f0e9，供网页叠加标题和参数。左右自然过渡，不要形成拼接或硬分界。上下边缘留出裁切余量。\n\n光线与颜色：\n柔和晨光透过瓶身，形成细微水光与自然投影。整体为低饱和米白、浅青灰、少量橄榄绿与金属灰。背景仅有轻微虚化的树影，清凉、安静、通透。保留水流、金属和石面的真实材质，避免过度锐化。\n\n限制：\n手部结构与持握动作自然，水流必须进入杯内。不要人物面部、宏大山景、瀑布、夸张飞溅或发光特效。不要文字、数字、标志、水印、边框、按钮或网页界面。所有器物均为原创无品牌设计。",
+      "processing": "Converted with sharp to WebP at quality 88 and effort 5, preserving the original dimensions and source PNG."
+    },
+    {
+      "output": "storefront-web/public/images/landing/cook-scene.webp",
+      "source": "storefront-web/public/images/landing/cook-scene.png",
+      "generator": "ChatGPT desktop, supplied by the user; model unspecified",
+      "width": 1672,
+      "height": 941,
+      "source_sha256": "512401a9d50e0e9170c2f69538aedf9f8e86a4d08db6e7280f523360ed73c7af",
+      "prompt": "请直接生成一张原创的户外用餐场景摄影图，用于桌面网站的全屏背景。单幅画面，横向 16:9，尽可能高分辨率，写实自然的摄影质感（photorealistic）。\n\n场景：\n傍晚的露营餐桌，表现“热饭刚做好，准备开饭”的瞬间。画面右侧是一角浅木色露营桌，以轻微俯视的三分之四视角拍摄。一口原创、无品牌、深灰绿色的户外金属锅盛着刚煮好的蔬菜面汤，锅盖自然放在旁边。附近摆着两只小金属碗，其中一碗已经盛好食物，搭配简洁的折叠勺叉。餐具摆放自然，有使用感，数量克制。\n\n构图：\n锅、热汤、碗和餐具组成清楚的用餐场景，集中在画面右侧约 60% 区域。左侧约 40% 保留安静、低对比的浅暖灰与米白空间，接近 #f2f0e9，供网页叠加标题和参数。桌面和背景自然延伸到留白区域，不要硬分界。主体周围及上下边缘保留裁切余量。\n\n光线与颜色：\n柔和的傍晚侧光落在桌面上，形成温暖而真实的阴影。整体使用低饱和米白、浅木色、柔和琥珀色、少量橄榄绿与金属灰。细薄、半透明的蒸汽从锅内和热汤表面自然升起，来源明确，不要遮住食物。食物分量朴素真实，传达山野里吃一顿热饭的温暖。\n\n限制：\n器物必须稳稳落在桌面上，透视、接触阴影和餐具结构合理。不要悬浮物体、满桌宴席、浓烟、夸张火焰、人物面部或繁杂露营道具。不要文字、数字、标志、水印、边框、按钮或网页界面。所有器物均为原创无品牌设计。",
+      "user_refinement": "The supplied final composition has more ivory negative space on the left and cookware, soup, bowls and cutlery grouped on the right. The exact refinement prompt was not supplied.",
+      "processing": "Converted with sharp to WebP at quality 88 and effort 5, preserving the original dimensions and source PNG."
     }
   ]
 }

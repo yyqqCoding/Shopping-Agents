@@ -16,7 +16,7 @@ python scripts/run_demo.py --no-install     # API :8004，页面 :3004
 
 - `api/main.py` 组合 `ShoppingAgent`、目录后端和 `demo_common.experience`，读取模型与 Supabase 配置。设置 `CATALOG_BACKEND=sql`（已配置 Supabase 时默认启用）使用 PostgreSQL 目录查询；未配置数据库时使用本地夹具。
 - `api/mock_retail.py` 提供本地夹具行为；`api/sql_retail.py` 将模型抽取的结构化条件交给固定的 PostgreSQL RPC 查询。购物车通过 `demo_common.persistence.PersistentCarts` 保存。
-- `scripts/import_catalog.py` 将当前及历史目录、规格和政策可重复导入 `catalog_*` 表；先执行 `supabase/migrations/003_catalog.sql`。
+- `scripts/import_catalog.py` 将当前及历史目录、规格、政策和证据可重复导入 `catalog_*` 表；先执行 `supabase/migrations/003_catalog.sql`。已有执行过 003 的数据库还需执行一次 `004_catalog_evidence_variants.sql`，因为证据也包含规格变体 ID。
 - `scripts/outdoor_catalog.py` 定义 8 类、96 个无品牌中文主商品及 120 个尺码变体，使用人民币独立定价；`data/catalog.json` 为固化输出。`evidence.json` 保存模拟价格和评价，`policies.json` 为前后端共享的配送、退货与选购依据。
 - `shopping-agent/skills/outdoor-equipment/SKILL.md` 指导人数、气温、背负、睡眠系统、分层穿衣、照明与装备搭配；不声称提供实时天气或路线服务。
 - `storefront-web/app/page.tsx` 从目录读取首页章节商品。`components/landing/LandingPage.tsx` 提供桌面首页及本地导航和页尾；`app/landing.css` 限定首页样式，`components/landing/motion/useUnpackMotion.ts` 用一条固定画面的滚动时间线从背包首屏进入饮水、睡眠、照明和炊具四章。闭合背包缩小退场，山野背景从其背后显现，后续转场保留背景并覆盖交接。饮水与炊具使用原创场景背景和左侧商品选择栏，睡眠与照明保留夜色中的装备展台；水流涟漪、睡袋与星光、锅口蒸汽仅在当前章节播放，并可手动暂停。每章包含五件透明商品、用途标注和常驻参数价格，支持悬停选择、章节跳转和详情浏览。`public/images/landing/` 保存主视觉、章节透明素材和场景 PNG 原图及 WebP 副本，来源与提示词见 `data/landing-image-prompts.json` 与 `data/unpack-image-prompts.json`。
@@ -38,7 +38,7 @@ python scripts/prepare_catalog.py --check
 
 JSON 仍作为可重复导入的主数据样本；SQL 模式运行时不从 JSON 读取目录，Supabase 保存目录以及身份、对话、购物车、长期记忆和处理进度。旧的本地记忆文件保留，不导入匿名用户。
 
-新安装顺序执行 `001_agent_experience.sql`、`002_outdoor_cart_currency.sql`、`003_catalog.sql`，再运行 `python scripts/import_catalog.py`。已有安装按部署窗口执行新增迁移。迁移保留所有旧购物车的 USD 金额；新购物车使用 CNY，非空购物车拒绝混合币种，清空后可加入人民币商品。具体命令见 [户外版本升级](../../docs/deployment.md#户外版本升级)。
+新安装顺序执行 `001_agent_experience.sql`、`002_outdoor_cart_currency.sql`、`003_catalog.sql` 和 `004_catalog_evidence_variants.sql`，再运行 `python scripts/import_catalog.py`。已有安装按部署窗口执行新增迁移。迁移保留所有旧购物车的 USD 金额；新购物车使用 CNY，非空购物车拒绝混合币种，清空后可加入人民币商品。具体命令见 [户外版本升级](../../docs/deployment.md#户外版本升级)。
 
 首次进入户外聊天创建空对话；原身份、长期偏好与左侧全部历史保留。之后恢复当前选中的对话。订单工具在户外部署中关闭，`data/users.json`、`orders.json` 仅保留本地夹具用途。
 

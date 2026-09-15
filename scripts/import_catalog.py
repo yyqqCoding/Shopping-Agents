@@ -191,12 +191,19 @@ def main() -> None:
     with httpx.Client(timeout=30.0) as client:
         _upsert(client, base, key, "catalog_products", rows)
         _upsert(client, base, key, "catalog_variants", variant_rows)
-        _upsert(client, base, key, "catalog_policies", _policy_rows(DATA_DIR))
+        policy_rows = _policy_rows(DATA_DIR)
+        _upsert(client, base, key, "catalog_policies", policy_rows)
         evidence_rows = _evidence_rows(DATA_DIR)
         if (legacy_dir / "evidence.json").exists():
             evidence_rows.extend(_evidence_rows(legacy_dir))
+        # A rerun can combine current and legacy fixtures.  Keep one row per id
+        # so the request remains valid if two sources ever share an evidence id.
+        evidence_rows = list({row["product_id"]: row for row in evidence_rows}.values())
         _upsert(client, base, key, "catalog_evidence", evidence_rows)
-    print(f"Imported {len(rows)} products, {len(variant_rows)} variants and policies.")
+    print(
+        f"Imported {len(rows)} products, {len(variant_rows)} variants, "
+        f"{len(policy_rows)} policies and {len(evidence_rows)} evidence rows."
+    )
 
 
 if __name__ == "__main__":

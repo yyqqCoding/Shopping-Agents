@@ -47,7 +47,10 @@ create table if not exists public.catalog_policies (
 );
 
 create table if not exists public.catalog_evidence (
-    product_id text primary key references public.catalog_products(product_id) on delete cascade,
+    -- Evidence is authored for both family products and concrete variants.  Keep
+    -- this table independent from catalog_products so a variant id does not fail
+    -- the import even though variants live in catalog_variants.
+    product_id text primary key,
     payload jsonb not null,
     updated_at timestamptz not null default now()
 );

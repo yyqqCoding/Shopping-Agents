@@ -13,7 +13,7 @@
 本地与服务器沿用同一个已验证的 Supabase 项目和模型配置。已有数据库迁移不重复执行；以下步骤用于首次接入项目。
 
 1. 建立 Supabase 项目，在 Authentication 的 Sign In / Providers 中启用 Anonymous Sign-ins。将 Site URL 设置为体验站的 HTTPS 域名；本地开发可使用 `http://localhost:3004`。
-2. 新项目依次执行 [001 存储迁移](../supabase/migrations/001_agent_experience.sql)、[002 购物车币种迁移](../supabase/migrations/002_outdoor_cart_currency.sql) 和 [003 商品目录迁移](../supabase/migrations/003_catalog.sql)，各执行一次。已有 `001` 和 `002` 的项目只执行 `003`。迁移不清空对话或记忆，不导入 `demo-user` 偏好。
+2. 新项目依次执行 [001 存储迁移](../supabase/migrations/001_agent_experience.sql)、[002 购物车币种迁移](../supabase/migrations/002_outdoor_cart_currency.sql)、[003 商品目录迁移](../supabase/migrations/003_catalog.sql) 和 [004 证据变体迁移](../supabase/migrations/004_catalog_evidence_variants.sql)，各执行一次。已有 `001` 和 `002` 的项目执行 `003`、`004`；如果 `003` 已经执行，只补执行 `004`。迁移不清空对话或记忆，不导入 `demo-user` 偏好。
 3. 在服务器仓库根目录 `.env` 填写 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（或旧版 `SUPABASE_ANON_KEY`）和同项目的旧版 `SUPABASE_SERVICE_ROLE_KEY` JWT。服务端密钥只给 API，不能放入 `NEXT_PUBLIC_*` 或 Web 镜像。
 4. 在 Authentication 的 Rate Limits 配置匿名注册频率。公开项目还应按容量设置网关流量限制。模型频率、并发与每日回合额度由 API 和数据库控制。
 
@@ -127,14 +127,14 @@ git pull --ff-only origin main && bash scripts/deploy.sh
 
 本版本自带 96 个户外主商品和 120 个尺码变体。首次升级需要在 Supabase 建立商品表并导入目录；之后商品查询由 PostgreSQL 固定 SQL 函数完成，API 运行时不从 JSON 搜索。沿用现有模型、Supabase、域名及匿名访问配置。
 
-从旧商品版本升级，在服务器拉取代码后，先在同一个 Supabase 项目的 SQL Editor 中执行一次 [003_catalog.sql](../supabase/migrations/003_catalog.sql)，再运行部署脚本：
+从旧商品版本升级，在服务器拉取代码后，先在同一个 Supabase 项目的 SQL Editor 中执行一次 [003_catalog.sql](../supabase/migrations/003_catalog.sql) 和 [004_catalog_evidence_variants.sql](../supabase/migrations/004_catalog_evidence_variants.sql)，再运行部署脚本：
 
 ```bash
 cd /opt/shopping-agents
 bash scripts/deploy.sh
 ```
 
-部署脚本会在临时 API 容器中运行 `import_catalog.py`。如果 `003_catalog.sql` 尚未执行，导入会失败，旧服务会在切换前保持运行。
+部署脚本会在临时 API 容器中运行 `import_catalog.py`。如果 `003_catalog.sql` 或 `004_catalog_evidence_variants.sql` 尚未执行，导入会失败，旧服务会在切换前保持运行。004 允许把 `evidence.json` 中的规格变体 ID 写入证据表；不执行它会在导入阶段收到 409 冲突。
 
 如果 `002` 已完成，脚本直接部署，无需额外操作。如果提示缺少购物车币种列，此时镜像已构建、旧服务仍在运行，先停止旧 API：
 

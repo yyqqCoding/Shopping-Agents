@@ -2,7 +2,7 @@
 
 ## 状态与目标
 
-本文记录已确认的设计和采用的默认策略，是后续实施依据；不表示数据库迁移或代码改造已完成。
+本文记录已确认的设计和采用的默认策略。第一版迁移、固定查询函数和 SQL 目录后端已经落地；真实 Supabase 项目的迁移、导入和执行计划仍需按部署步骤完成。
 
 模型理解用户需求并抽取结构化条件。后端校验条件，按固定规则构造参数化 SQL。数据库完成匹配、筛选、排序和分页，后端只向模型返回有数量边界的商品摘要。
 
@@ -10,11 +10,13 @@
 
 ## 当前实现
 
-- `examples/assistant/api/mock_retail.py` 从 JSON 加载商品、库存、政策和证据，在内存中搜索商品。
-- `examples/demo_common/storefront_fixtures.py` 的 `rank_products()` 完成内存筛选、相关性评分、排序和结果截取。
+- `examples/assistant/api/mock_retail.py` 保留本地夹具模式，用于无数据库开发和回退验证。
+- `supabase/migrations/003_catalog.sql` 建立商品、规格、政策、证据表以及固定的 SQL 搜索函数；`004_catalog_evidence_variants.sql` 允许证据关联规格变体。
+- `examples/assistant/api/sql_retail.py` 将模型抽取的结构化条件交给白名单参数和 Supabase RPC，数据库完成匹配、筛选、排序和分页。
+- `scripts/import_catalog.py` 把当前及历史目录、规格、政策和证据可重复导入 SQL 表。
 - `shopping-agent/core/shopping_agent/backend.py` 定义 `StorefrontBackend`，作为数据库实现的替换接口。
 - `shopping-agent/core/shopping_agent/executor.py` 校验工具参数并限制单次返回数量。
-- `examples/assistant/api/main.py` 已接入 Supabase 会话、购物车和长期记忆持久化；实际连接和迁移状态仍需检查。
+- `examples/assistant/api/main.py` 已接入 Supabase 会话、购物车、长期记忆和 SQL 目录后端。
 - `examples/assistant/storefront-web/lib/catalog.ts` 直接导入商品 JSON，商品浏览需要同步改为读取数据库支持的服务端接口。
 
 ## 架构与职责
@@ -41,9 +43,9 @@
 
 ## 数据库与迁移范围
 
-沿用现有 Supabase PostgreSQL。商品查询优先由 Python 后端通过连接池直连数据库并执行 SQL；实施前验证连接方式和权限。现有身份、会话、购物车和记忆持久化接入保留。
+沿用现有 Supabase PostgreSQL。商品查询由 Python 后端调用固定的 Supabase RPC；RPC 内部执行参数化 SQL，模型不能提交 SQL 文本。现有身份、会话、购物车和记忆持久化接入保留。
 
-拟议逻辑表如下，最终字段和约束由现有数据核对后确定：
+当前逻辑表如下：
 
 | 表 | 内容 |
 | --- | --- |
@@ -152,4 +154,4 @@
 - 保留历史商品 ID 和下架行为，购物车来源门控继续有效。
 - 导入可重复执行且不误覆盖业务数据，主要查询在代表性数据量下具有合理执行计划。
 
-当前第一版实现已提供 `supabase/migrations/003_catalog.sql`、`examples/assistant/api/sql_retail.py` 和 `scripts/import_catalog.py`。迁移应用、数据导入以及真实数据库上的执行计划验证仍需在目标 Supabase 项目中执行。
+当前第一版实现已提供 `supabase/migrations/003_catalog.sql`、`supabase/migrations/004_catalog_evidence_variants.sql`、`examples/assistant/api/sql_retail.py` 和 `scripts/import_catalog.py`。迁移应用、数据导入以及真实数据库上的执行计划验证仍需在目标 Supabase 项目中执行。

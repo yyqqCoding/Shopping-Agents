@@ -177,6 +177,21 @@ def install_catalog_routes(
         limit: int = Query(24, ge=1, le=100),
         offset: int = Query(0, ge=0),
     ) -> dict:
+        # Database-backed storefronts expose a bounded async page.  The fixture
+        # backend keeps the original in-memory path for local demos and tests.
+        list_from_database = getattr(backend, "list_products", None)
+        if list_from_database is not None:
+            page = await list_from_database(category, limit, offset)
+            return {
+                "products": [
+                    product.model_dump(exclude=set(SUMMARY_EXCLUDES))
+                    if isinstance(product, ProductDetails)
+                    else product.model_dump(exclude=set(SUMMARY_EXCLUDES))
+                    for product in page["products"]
+                ],
+                "has_more": page["has_more"],
+                "total": page.get("total"),
+            }
         products = [product for pid in backend.products if (product := read_product(pid))]
         if category:
             products = [product for product in products if product.category == category]
@@ -189,6 +204,12 @@ def install_catalog_routes(
 
     @app.get("/api/products/{product_id:path}")
     async def get_product(product_id: str) -> dict:
+        get_from_database = getattr(backend, "get_product_details", None)
+        if get_from_database is not None and not backend.products:
+            product = await get_from_database(None, product_id)
+            if product is None:
+                raise HTTPException(status_code=404, detail="未找到这件商品。")
+            return detail_of(product)
         product = read_product(product_id)
         if product is None:
             raise HTTPException(status_code=404, detail="未找到这件商品。")

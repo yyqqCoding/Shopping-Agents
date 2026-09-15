@@ -10,6 +10,7 @@ Everything these methods return reaches the model as fenced data (fencing.py).
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from typing import Any
 
 from .types import (
@@ -63,6 +64,7 @@ class StorefrontBackend(ABC):
         query: str,
         filters: SearchFilters | None = None,
         limit: int = 8,
+        cursor: Mapping[str, Any] | None = None,
     ) -> list[Product]:
         """The closest text matches, best first, at most ``limit`` (already clamped to the
         config's ceiling); an empty list when nothing matches. A family is one result

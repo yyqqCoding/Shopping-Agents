@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY examples/demo_common ./examples/demo_common
 COPY examples/assistant/api ./examples/assistant/api
 COPY examples/assistant/data ./examples/assistant/data
+COPY scripts/import_catalog.py ./scripts/import_catalog.py
 RUN useradd --create-home --uid 10001 app
 USER app
 EXPOSE 8004

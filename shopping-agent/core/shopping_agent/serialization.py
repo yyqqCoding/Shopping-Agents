@@ -8,7 +8,7 @@ form adds that ids resolve through get_product_details). Only the count varies."
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from commerce_common.fencing import MAX_FENCED_CHARS
@@ -91,7 +91,11 @@ def search_result_header(count: int) -> str:
 
 
 def search_result_text(
-    query: str, products: Sequence[Product], max_chars: int = MAX_FENCED_CHARS
+    query: str,
+    products: Sequence[Product],
+    max_chars: int = MAX_FENCED_CHARS,
+    *,
+    page: Mapping[str, Any] | None = None,
 ) -> str:
     """The whole search_products result: the header line, then the fenced payload."""
     payload = {
@@ -99,6 +103,11 @@ def search_result_text(
         "result_count": len(products),
         "results": [compact_product(p) for p in products],
     }
+    if page:
+        payload["pagination"] = {
+            "has_more": bool(page.get("has_more")),
+            "next_cursor": page.get("next_cursor"),
+        }
     fenced = STOREFRONT_FENCE.fence_payload(payload, max_chars)
     return search_result_header(len(products)) + "\n" + fenced
 

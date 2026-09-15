@@ -36,6 +36,7 @@ from shopping_agent import ProductDetails, ShoppingAgentConfig
 from shopping_agent_runtime import ShoppingAgent
 
 from .mock_retail import MockRetail
+from .sql_retail import SqlRetail
 
 EXAMPLE_ROOT = REPO_ROOT / "examples" / "assistant"
 DATA_DIR = EXAMPLE_ROOT / "data"
@@ -88,6 +89,7 @@ def build_config() -> ShoppingAgentConfig:
         context_recent_turns=int(os.environ.get("SHOPPING_CONTEXT_RECENT_TURNS", "4")),
         context_reserve_tokens=int(os.environ.get("SHOPPING_CONTEXT_RESERVE_TOKENS", "4096")),
         context_summary_timeout_s=float(os.environ.get("SHOPPING_CONTEXT_SUMMARY_TIMEOUT_S", "25")),
+        search_page_size=int(os.environ.get("SHOPPING_SEARCH_PAGE_SIZE", "6")),
         policy_intent_terms=defaults.policy_intent_terms
         + ("退货", "退款", "保修", "运费", "政策", "换货", "配送费用"),
         policy_intent_cues=defaults.policy_intent_cues
@@ -107,7 +109,17 @@ def build_config() -> ShoppingAgentConfig:
 
 
 database = Supabase(SupabaseSettings.from_env())
-backend = MockRetail(cart_store=PersistentCarts(database, require_currency_schema=True))
+_catalog_backend = os.environ.get("CATALOG_BACKEND", "").strip().lower()
+if _catalog_backend not in {"json", "sql"}:
+    # A configured Supabase deployment uses SQL by default.  Local contributors can
+    # still run the fixture demo without setting database credentials explicitly.
+    _catalog_backend = "sql" if database.settings.configured else "json"
+_cart_store = PersistentCarts(database, require_currency_schema=True)
+backend = (
+    SqlRetail(database, cart_store=_cart_store)
+    if _catalog_backend == "sql"
+    else MockRetail(cart_store=_cart_store)
+)
 agent = ShoppingAgent(
     backend=backend,
     skills_dir=REPO_ROOT / "shopping-agent" / "skills",

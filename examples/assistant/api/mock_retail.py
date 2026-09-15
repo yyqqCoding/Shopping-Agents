@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 import re
+from collections.abc import Mapping
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -170,9 +171,22 @@ _STORE_OPENS, _STORE_CLOSES = 9, 21
 
 class MockRetail(StorefrontBackend):
     def __init__(
-        self, data_dir: Path = DATA_DIR, *, cart_store: PersistentCarts | None = None
+        self,
+        data_dir: Path = DATA_DIR,
+        *,
+        cart_store: PersistentCarts | None = None,
+        load_catalog_files: bool = True,
     ) -> None:
-        catalog, self.products, self.variants = load_catalog(data_dir)
+        # ``SqlRetail`` reuses the cart, policy and fulfillment behavior below while
+        # setting ``load_catalog_files=False``.  That mode is important: a database
+        # deployment must not silently load the catalog into memory and then search it
+        # locally.  The default remains the fixture-backed implementation used by tests
+        # and by developers who run the demo without a database.
+        catalog = {"store_name": "户外装备助手", "currency": "CNY", "products": []}
+        if load_catalog_files:
+            catalog, self.products, self.variants = load_catalog(data_dir)
+        else:
+            self.products, self.variants = {}, {}
         self._search_terms = {
             p["product_id"]: " ".join(p.get("search_terms", [])) for p in catalog["products"]
         }
@@ -181,12 +195,18 @@ class MockRetail(StorefrontBackend):
         }
         evidence_path = data_dir / "evidence.json"
         self._evidence = (
-            json.loads(evidence_path.read_text(encoding="utf-8")) if evidence_path.exists() else {}
+            (
+                json.loads(evidence_path.read_text(encoding="utf-8"))
+                if evidence_path.exists()
+                else {}
+            )
+            if load_catalog_files
+            else {}
         )
         self._legacy_products: dict[str, ProductDetails] = {}
         self._legacy_variants: dict[str, ProductDetails] = {}
         legacy_dir = data_dir / "legacy"
-        if (legacy_dir / "catalog.json").exists():
+        if load_catalog_files and (legacy_dir / "catalog.json").exists():
             _, self._legacy_products, self._legacy_variants = load_catalog(legacy_dir)
             for product in [*self._legacy_products.values(), *self._legacy_variants.values()]:
                 product.in_stock = False
@@ -201,15 +221,20 @@ class MockRetail(StorefrontBackend):
                 )
         self.store_name: str = catalog.get("store_name", "户外装备助手")
         self.currency: str = catalog.get("currency", "USD")
-        policy_data = json.loads((data_dir / "policies.json").read_text(encoding="utf-8"))
+        policy_data = (
+            json.loads((data_dir / "policies.json").read_text(encoding="utf-8"))
+            if load_catalog_files
+            else {"terms": {}, "policies": []}
+        )
         self._terms = policy_data.get("terms", {})
-        self._users = load_users(data_dir)
-        self._orders = load_orders(data_dir)
-        self._policies = load_policies(data_dir)
+        self._users = load_users(data_dir) if load_catalog_files else {}
+        self._orders = load_orders(data_dir) if load_catalog_files else []
+        self._policies = load_policies(data_dir) if load_catalog_files else []
         self._carts = SessionCarts(currency=self.currency)
         self._cart_store = cart_store
-        self._stamp_delivery_promises()
-        self._stamp_low_stock(data_dir)
+        if load_catalog_files:
+            self._stamp_delivery_promises()
+            self._stamp_low_stock(data_dir)
 
     def _stamp_delivery_promises(self) -> None:
         """A policy-aligned estimate that does not expire during a long-running demo."""
@@ -346,8 +371,9 @@ class MockRetail(StorefrontBackend):
         query: str,
         filters: SearchFilters | None = None,
         limit: int = 8,
+        cursor: Mapping[str, Any] | None = None,
     ) -> list[Product]:
-        del session
+        del session, cursor
         ranked = rank_products(
             self.products.values(),
             query,

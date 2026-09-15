@@ -13,8 +13,8 @@
 本地与服务器沿用同一个已验证的 Supabase 项目和模型配置。已有数据库迁移不重复执行；以下步骤用于首次接入项目。
 
 1. 建立 Supabase 项目，在 Authentication 的 Sign In / Providers 中启用 Anonymous Sign-ins。将 Site URL 设置为体验站的 HTTPS 域名；本地开发可使用 `http://localhost:3004`。
-2. 新项目依次执行 [001 存储迁移](../supabase/migrations/001_agent_experience.sql) 和 [002 购物车币种迁移](../supabase/migrations/002_outdoor_cart_currency.sql)，各执行一次。已有 `001` 的项目只执行 `002`，顺序见下文“户外版本升级”。迁移不清空对话或记忆，不导入 `demo-user` 偏好。
-3. 在根目录 `.env` 填写 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（或旧版 `SUPABASE_ANON_KEY`）和同项目的旧版 `SUPABASE_SERVICE_ROLE_KEY` JWT。服务端密钥只给 API，不能放入 `NEXT_PUBLIC_*` 或 Web 镜像。
+2. 新项目依次执行 [001 存储迁移](../supabase/migrations/001_agent_experience.sql)、[002 购物车币种迁移](../supabase/migrations/002_outdoor_cart_currency.sql) 和 [003 商品目录迁移](../supabase/migrations/003_catalog.sql)，各执行一次。已有 `001` 和 `002` 的项目只执行 `003`。迁移不清空对话或记忆，不导入 `demo-user` 偏好。
+3. 在服务器仓库根目录 `.env` 填写 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（或旧版 `SUPABASE_ANON_KEY`）和同项目的旧版 `SUPABASE_SERVICE_ROLE_KEY` JWT。服务端密钥只给 API，不能放入 `NEXT_PUBLIC_*` 或 Web 镜像。
 4. 在 Authentication 的 Rate Limits 配置匿名注册频率。公开项目还应按容量设置网关流量限制。模型频率、并发与每日回合额度由 API 和数据库控制。
 
 相关产品边界见 [匿名身份](https://supabase.com/docs/guides/auth/auth-anonymous) 和 [API keys](https://supabase.com/docs/guides/api/api-keys)。匿名身份凭证存于浏览器；清除本站数据后不承诺找回旧身份，服务端旧记录也不会被自动删除。
@@ -40,13 +40,7 @@ git clone --branch main --single-branch https://github.com/yyqqCoding/Shopping-A
 cd /opt/shopping-agents
 ```
 
-将本地已验证的根目录 `.env` 单独通过 SSH 复制到服务器。下面命令在本地项目根目录的 PowerShell 执行：
-
-```powershell
-scp .env root@8.211.184.175:/opt/shopping-agents/.env
-```
-
-回到服务器，将文件权限设为 `600`，在现有内容中设置或更新以下两项：
+服务器不需要本地 Python、Node.js、虚拟环境或本地导入。登录服务器后直接创建并编辑配置文件：
 
 ```bash
 cd /opt/shopping-agents
@@ -57,9 +51,11 @@ nano .env
 ```dotenv
 SHOPPING_DOMAIN=jobb.lol
 SHOPPING_MAX_CONCURRENT_TURNS=1
+CATALOG_BACKEND=sql
+SHOPPING_SEARCH_PAGE_SIZE=6
 ```
 
-模型与 Supabase 的值保持和本地一致；`.env` 不进入 GitHub。Linux 容器根据仓库文件安装本平台依赖，`node_modules`、`.next` 和虚拟环境均不上传。
+把模型和 Supabase 的值填入服务器 `.env`；`.env` 不进入 GitHub。Linux 容器根据仓库文件安装本平台依赖，`node_modules`、`.next` 和虚拟环境均不上传。
 
 沿用同一个 Supabase 项目时，先停止连接该项目的本地 API，再启动服务器 API。本地后端测试也要先停止线上 API；当前回合恢复机制要求每个项目同时只有一个本应用 API 实例。切换域名会改变浏览器存储来源，域名首次访问创建新的匿名身份，旧身份的记录仍留在数据库。
 
@@ -79,7 +75,7 @@ Caddy 管理 HTTPS，将 `/api/*` 直接转发给 API 并立即刷新 SSE 输出
 
 ### 一条命令部署
 
-完成 `.env`、DNS 和首次数据库迁移后，在服务器仓库根目录运行：
+完成服务器 `.env`、DNS 和首次数据库迁移后，在服务器仓库根目录运行：
 
 ```bash
 bash scripts/deploy.sh
@@ -90,8 +86,9 @@ bash scripts/deploy.sh
 1. 检查 Docker、Compose 与配置；`config --quiet` 不输出环境中的密钥。同一工作副本不能同时运行两次部署脚本。
 2. 顺序构建 API、Web 镜像，Web 构建使用 768 MiB 的 Node.js 堆上限。
 3. 在临时容器中只读检查 Supabase 连接和购物车币种列，不返回用户行，不调用模型或启动第二个 API；本地没有 Caddy 镜像时先下载。
-4. 停止旧 API，重建 API、Web、Caddy 容器并保持一个 API 实例。重新创建代理会加载最新的 `Caddyfile`，保留已有证书卷。
-5. 等待 API 与 Web 健康检查通过，输出容器状态。切换期间聊天短暂不可用。
+4. 在临时 API 容器中执行 `scripts/import_catalog.py`，把 Git 中的商品 JSON 导入 `catalog_*` 表；不在宿主机安装 Python，也不启动第二个 API。
+5. 停止旧 API，重建 API、Web、Caddy 容器并保持一个 API 实例。重新创建代理会加载最新的 `Caddyfile`，保留已有证书卷。
+6. 等待 API 与 Web 健康检查通过，输出容器状态。切换期间聊天短暂不可用。
 
 构建或部署前检查失败时，脚本不会停止旧服务。切换开始后失败会返回非零退出码并给出排查命令，不自动回滚。查看状态和日志：
 
@@ -128,14 +125,16 @@ git pull --ff-only origin main && bash scripts/deploy.sh
 
 ### 户外版本升级
 
-本版本自带 96 个户外主商品和 120 个尺码变体。商品、库存、模拟评价和政策从 Git 中的 JSON 加载，不需要在 Supabase 建商品表或再次生成数据。沿用现有模型、Supabase、域名及匿名访问配置。
+本版本自带 96 个户外主商品和 120 个尺码变体。首次升级需要在 Supabase 建立商品表并导入目录；之后商品查询由 PostgreSQL 固定 SQL 函数完成，API 运行时不从 JSON 搜索。沿用现有模型、Supabase、域名及匿名访问配置。
 
-从旧商品版本升级，在服务器拉取代码后运行部署脚本：
+从旧商品版本升级，在服务器拉取代码后，先在同一个 Supabase 项目的 SQL Editor 中执行一次 [003_catalog.sql](../supabase/migrations/003_catalog.sql)，再运行部署脚本：
 
 ```bash
 cd /opt/shopping-agents
 bash scripts/deploy.sh
 ```
+
+部署脚本会在临时 API 容器中运行 `import_catalog.py`。如果 `003_catalog.sql` 尚未执行，导入会失败，旧服务会在切换前保持运行。
 
 如果 `002` 已完成，脚本直接部署，无需额外操作。如果提示缺少购物车币种列，此时镜像已构建、旧服务仍在运行，先停止旧 API：
 

@@ -67,15 +67,19 @@ echo "[3/5] 构建 Web 镜像，Node.js 构建堆上限为 768 MiB"
 "${compose[@]}" build --build-arg BUILD_NODE_OPTIONS=--max-old-space-size=768 web
 
 stage="检查 Supabase 配置与购物车迁移"
-echo "[4/5] 只读检查数据库，不启动第二个 API 进程"
+echo "[4/6] 只读检查数据库，不启动第二个 API 进程"
 # Run only the checker, without API lifespan/recovery or dependent services.
 "${compose[@]}" run --rm --no-deps -T --entrypoint python --workdir /app/examples api - \
   < deploy/check_database.py
+stage="导入 SQL 商品目录"
+echo "[5/6] 在临时 API 容器中导入商品、规格、政策和证据"
+"${compose[@]}" run --rm --no-deps -T --entrypoint python --workdir /app api \
+  /app/scripts/import_catalog.py
 # Fetch Caddy before stopping the API, only if its image is missing locally.
 "${compose[@]}" pull --policy missing proxy
 
 stage="切换服务与检查健康状态"
-echo "[5/5] 停止旧 API，更新服务并等待 API 与 Web 就绪"
+echo "[6/6] 停止旧 API，更新服务并等待 API 与 Web 就绪"
 services_changed=1
 "${compose[@]}" stop api
 # Recreate the proxy too so a changed bind-mounted Caddyfile is loaded.

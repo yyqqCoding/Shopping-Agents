@@ -77,6 +77,14 @@ class BaseAgentConfig(BaseModel):
     # grow with every round long before the window is the limit.
     max_context_chars: int = Field(default=2000, ge=0)
     max_search_results: int = Field(default=8, ge=1, le=25)
+    # The deployment can keep a smaller first page while retaining the hard maximum
+    # above for an explicit "show more" request.
+    search_page_size: int = Field(default=8, ge=1, le=25)
+    # A result cap alone still allows a model to issue many near-duplicate searches.
+    # These per-turn budgets keep broad browsing finite while allowing a coordinated
+    # plan to search several distinct equipment categories.
+    max_search_calls_per_turn: int = Field(default=4, ge=1, le=16)
+    max_search_results_per_turn: int = Field(default=24, ge=1, le=100)
     max_fenced_chars: int = MAX_FENCED_CHARS
     compact_history_above_tokens: int = Field(default=100_000, ge=0)
     context_window_tokens: int = Field(default=131072, ge=8192)

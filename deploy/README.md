@@ -1,6 +1,6 @@
 # 中文体验站部署
 
-这组文件启动一个 API worker、Next.js 页面和 Caddy HTTPS 代理。用户数据保存在外部 Supabase 项目，商品数据与现有图片随镜像发布。
+这组文件启动一个 API worker、Next.js 页面和 Caddy HTTPS 代理。用户数据和运行时商品目录保存在外部 Supabase 项目；导入脚本与商品 JSON 随 API 镜像发布，用于部署前导入和更新。
 
 首次部署从 GitHub 克隆 `main`，将已验证的 `.env` 单独复制到服务器并完成数据库迁移。之后在仓库根目录运行：
 

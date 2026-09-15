@@ -107,7 +107,9 @@ def build_tools(
                 "Search the catalog; returns products with id, title, brand, price, rating, "
                 "and availability; a product with options shows its lowest in-stock price "
                 "and its options. Use a specific query and put stated constraints in filters. "
-                "Run one search per distinct item a request names."
+                "Run one search per distinct item a request names. Results are one bounded "
+                "page; when pagination.has_more is true, repeat with pagination.next_cursor "
+                "only when the customer asks to see more."
             ),
             "input_schema": {
                 "type": "object",
@@ -122,6 +124,18 @@ def build_tools(
                         "minimum": 1,
                         "maximum": config.max_search_results,
                         "description": "Maximum results to return.",
+                    },
+                    "cursor": {
+                        "type": "object",
+                        "description": "Opaque cursor returned by an earlier search when more results are available.",
+                        "properties": {
+                            "id": {"type": "string"},
+                            "price": {"type": "number"},
+                            "rating": {"type": "number"},
+                            "relevance": {"type": "number"},
+                            "display_order": {"type": "integer"},
+                        },
+                        "additionalProperties": False,
                     },
                 },
                 "required": ["query"],

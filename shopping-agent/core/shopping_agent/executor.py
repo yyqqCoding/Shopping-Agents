@@ -76,6 +76,11 @@ class ShoppingToolExecutor(BaseToolExecutor):
     )
     absent_text = "{name} is not something this store offers; say so plainly and do not suggest it."
 
+    def _search_limit(self, raw: Any) -> int:
+        """Use the deployment's first-page size, while honoring explicit larger pages."""
+        default = min(self._config.search_page_size, self._config.max_search_results)
+        return clamp_limit(raw, default, self._config.max_search_results)
+
     def __init__(
         self,
         *,
@@ -89,6 +94,8 @@ class ShoppingToolExecutor(BaseToolExecutor):
         inline_context: bool = False,
     ) -> None:
         self._inline_context = inline_context
+        self._search_calls = 0
+        self._search_results = 0
         super().__init__(
             backend=backend,
             config=config,
@@ -137,9 +144,34 @@ class ShoppingToolExecutor(BaseToolExecutor):
             else None
         )
         limit = self._search_limit(tool_input.get("limit"))
-        products = await self._backend.search_products(self._session, query, filters, limit)
+        if self._search_calls >= self._config.max_search_calls_per_turn:
+            return ToolOutcome.error(
+                "本轮搜索次数已达到上限，请基于已经返回的候选继续回答，或等待用户缩小范围。"
+            )
+        remaining = self._config.max_search_results_per_turn - self._search_results
+        if remaining <= 0:
+            return ToolOutcome.error(
+                "本轮候选数量已达到上限，请基于已经返回的候选继续回答，或等待用户缩小范围。"
+            )
+        limit = min(limit, remaining)
+        self._search_calls += 1
+        self._search_results += limit
+        cursor = tool_input.get("cursor")
+        if cursor is None:
+            products = await self._backend.search_products(self._session, query, filters, limit)
+        else:
+            products = await self._backend.search_products(
+                self._session, query, filters, limit, cursor=cursor
+            )
         self._state.remember_products(products)
-        return ToolOutcome(search_result_text(query, products, self._config.max_fenced_chars))
+        return ToolOutcome(
+            search_result_text(
+                query,
+                products,
+                self._config.max_fenced_chars,
+                page=getattr(self._backend, "last_page", None),
+            )
+        )
 
     async def _get_product_details(self, tool_input: dict[str, Any]) -> ToolOutcome:
         product_id = str(tool_input.get("product_id", ""))

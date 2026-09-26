@@ -18,12 +18,14 @@ GATEWAY_VARS = ("SHOPPING_MODEL", "SHOPPING_MEMORY_MODEL", "SHOPPING_THINKING_EF
 def test_health_lists_the_agent_surface(client: TestClient) -> None:
     health = client.get("/api/health").json()
     assert health["ok"] is True
-    assert health["store"] == "ACME"
-    assert health["products"] > 0
-    # The five flows the page's agent can load.
+    assert health["store"] == "户外装备助手"
+    # The tests run the fixture backend; health reports configuration, not a catalog count.
+    assert health["catalog_backend"] == "json" and "products" not in health
+    # The six flows the page's agent can load.
     assert sorted(health["skills"]) == [
         "customer-care",
         "memory-personalization",
+        "outdoor-equipment",
         "planning-goals",
         "purchase-research",
         "search-discovery",

@@ -308,7 +308,7 @@ def build_storefront_host(
         return {
             "ok": True,
             "store": backend.store_name,
-            "products": len(getattr(backend, "products", ())),
+            "catalog_backend": backend.catalog_backend,
             "skills": agent.skills.names,
             "model": agent.config.model,
         }

@@ -12,10 +12,10 @@ from ..main import build_config
 @pytest.mark.parametrize(
     "query,expected",
     [
-        ("两个人露营的帐篷", {"AR-1201", "AR-1202"}),
-        ("滴滤咖啡机", {"AR-1001"}),
-        ("儿童木制积木", {"AR-1401"}),
-        ("特大号床垫", {"AR-1902"}),
+        ("两个人露营的帐篷", {"OD-1001", "OD-1002", "OD-1006", "OD-1007"}),
+        ("钛合金锅", {"OD-7002"}),
+        ("充电头灯", {"OD-6002"}),
+        ("中厚羊毛徒步袜", {"OD-5011"}),
     ],
 )
 async def test_chinese_queries_find_the_expected_products(backend, session, query, expected):
@@ -31,29 +31,31 @@ async def test_chinese_policy_queries_match(backend, session, query, expected):
     assert (await backend.search_policies(session, query))[0].policy_id == expected
 
 
+# 抓绒衣 finds the ¥229 fleece (OD-4004), whose XL is sold out; the other fleece costs ¥329.
 @pytest.mark.parametrize(
     "filters",
     [
         SearchFilters(category="does-not-exist"),
         SearchFilters(attributes={"材质": "不存在的材质"}),
-        SearchFilters(attributes={"尺寸": "特大号"}, max_price=30),
-        SearchFilters(attributes={"尺寸": "特大号", "颜色": "浅粉色"}, in_stock=True),
+        SearchFilters(attributes={"尺码": "XL"}, max_price=30),
+        SearchFilters(attributes={"尺码": "XL"}, max_price=250, in_stock=True),
     ],
 )
 async def test_impossible_conditions_are_not_dropped_to_fill_the_result(backend, session, filters):
-    assert await backend.search_products(session, "枕套", filters) == []
+    assert await backend.search_products(session, "抓绒衣") != []
+    assert await backend.search_products(session, "抓绒衣", filters) == []
 
 
 async def test_one_variant_must_satisfy_price_size_and_stock_together(backend, session):
     filters = SearchFilters(
-        category="furniture-bedroom", max_price=600, in_stock=True, attributes={"size": "queen"}
+        category="outdoor-apparel", max_price=250, in_stock=True, attributes={"size": "M"}
     )
-    result = await backend.search_products(session, "床垫", filters)
-    assert "AR-1902" in {p.product_id for p in result}
-    too_expensive = await backend.search_products(
-        session, "床垫", filters.model_copy(update={"attributes": {"size": "king"}})
+    result = await backend.search_products(session, "抓绒衣", filters)
+    assert "OD-4004" in {p.product_id for p in result}
+    sold_out = await backend.search_products(
+        session, "抓绒衣", filters.model_copy(update={"attributes": {"size": "XL"}})
     )
-    assert "AR-1902" not in {p.product_id for p in too_expensive}
+    assert "OD-4004" not in {p.product_id for p in sold_out}
 
 
 @pytest.mark.parametrize(

@@ -248,8 +248,8 @@ async def test_two_conversations_share_only_their_visitors_preferences(rig):
     )
     first = rig.store.rows[rig.id]
     first.working_context.summary = "给朋友买礼物，预算 800"
-    first.state.remember_products([rig.backend.product("AR-1001")])
-    await rig.backend.add_to_cart(rig.host.context(first), "AR-1001", 1)
+    first.state.remember_products([rig.backend.product("OD-1001")])
+    await rig.backend.add_to_cart(rig.host.context(first), "OD-1001", 1)
     other = (await rig.store.create(USER_A, str(uuid4())))["id"]
     third = (await rig.store.create(USER_B, str(uuid4())))["id"]
     second = await rig.store.load(USER_A, other)

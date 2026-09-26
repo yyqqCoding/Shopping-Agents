@@ -710,11 +710,13 @@ def build_experience_host(
 
     @app.get("/api/health")
     async def health() -> dict:
+        # Configuration only: the catalog service is not called here (deploy/check_database.py
+        # checks it before a deployment switches over).
         return {
             "ok": True,
             "storage_configured": database.settings.configured,
             "store": backend.store_name,
-            "products": len(getattr(backend, "products", ())),
+            "catalog_backend": backend.catalog_backend,
             "skills": agent.skills.names,
         }
 

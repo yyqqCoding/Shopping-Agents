@@ -3,44 +3,44 @@
 
 from datetime import datetime
 
+import pytest
+
 from commerce_common.types import MemoryCategory, MemoryFact
 from demo_common.storefront_fixtures import load_json
-from shopping_agent import SearchFilters
+from shopping_agent import SearchFilters, Unavailable
 
-from ..mock_retail import (
-    DATA_DIR,
-    FREE_SHIPPING_OVER,
-    FREIGHT_SHIPPING,
-    STANDARD_SHIPPING,
-    MockRetail,
-)
+from ..mock_retail import DATA_DIR, MockRetail
 
 
 def test_catalog_loads_and_validates(backend):
     assert len(backend.products) >= 50
-    assert backend.store_name == "ACME"
-    sample = backend.products["AR-1201"]
-    assert sample.brand == "ACME 营地"
+    assert backend.store_name == "户外装备助手"
+    sample = backend.products["OD-1001"]
+    assert sample.brand is None  # the outdoor equipment is unbranded
     assert sample.long_description  # hero products carry a long description
 
 
 async def test_search_relevance(backend, session):
-    tents = await backend.search_products(session, "tent for two people")
-    assert tents and tents[0].product_id in {"AR-1201", "AR-1202"}
+    tents = await backend.search_products(session, "双人帐篷")
+    assert tents and tents[0].product_id in {"OD-1001", "OD-1002", "OD-1006", "OD-1007"}
 
-    gift_toys = await backend.search_products(session, "wooden block set for a 9 year old")
-    assert gift_toys and gift_toys[0].product_id == "AR-1401"
+    lamps = await backend.search_products(session, "充电头灯")
+    assert lamps and lamps[0].product_id == "OD-6002"
 
-    luggage = await backend.search_products(session, "carry-on luggage")
-    assert any(p.product_id == "AR-1801" for p in luggage[:3])
+    poles = await backend.search_products(session, "登山杖")
+    assert {p.product_id for p in poles[:2]} == {"OD-8001", "OD-8002"}
+
+    # An English word reaches the Chinese titles through the search synonyms.
+    headlamps = await backend.search_products(session, "headlamp")
+    assert headlamps and all("头灯" in p.title for p in headlamps[:4])
 
     nothing = await backend.search_products(session, "zzzqqq")
     assert nothing == []
 
 
 async def test_out_of_stock_items_are_searchable(backend, session):
-    packs = await backend.search_products(session, "hiking backpack for overnight trips")
-    assert any(p.product_id == "AR-1207" and p.in_stock is False for p in packs)
+    packs = await backend.search_products(session, "大容量徒步背包")
+    assert any(p.product_id == "OD-3012" and p.in_stock is False for p in packs)
 
 
 async def test_delivery_promises_stamped(backend):
@@ -68,17 +68,17 @@ def test_memory_seed_is_schema_valid():
 
 
 async def test_search_filters_and_sort(backend, session):
-    cheap_coffee = await backend.search_products(session, "coffee", SearchFilters(max_price=100))
-    assert all(p.price <= 100 for p in cheap_coffee)
-    assert all(p.product_id != "AR-1002" for p in cheap_coffee)
+    cheap_lamps = await backend.search_products(session, "头灯", SearchFilters(max_price=100))
+    assert cheap_lamps and all(p.price <= 100 for p in cheap_lamps)
+    assert all(p.product_id != "OD-6002" for p in cheap_lamps)
 
-    outdoor_only = await backend.search_products(
-        session, "tent stove cooler", SearchFilters(category="outdoor-camping"), limit=20
+    shelter_only = await backend.search_products(
+        session, "帐篷 睡袋 头灯", SearchFilters(category="outdoor-shelter"), limit=20
     )
-    assert outdoor_only and all(p.category == "outdoor-camping" for p in outdoor_only)
+    assert shelter_only and all(p.category == "outdoor-shelter" for p in shelter_only)
 
     by_price = await backend.search_products(
-        session, "fitness", SearchFilters(sort="price_asc"), limit=20
+        session, "背包", SearchFilters(sort="price_asc"), limit=20
     )
     prices = [p.price for p in by_price]
     assert prices == sorted(prices)
@@ -88,30 +88,30 @@ async def test_policy_search(backend, session):
     returns = await backend.search_policies(session, "how do refunds and returns work")
     assert returns and returns[0].policy_id == "returns"
 
-    membership = await backend.search_policies(session, "how much does membership cost per year")
-    assert any(p.policy_id == "membership" for p in membership)
+    packs = await backend.search_policies(session, "背包选多大容量")
+    assert packs and packs[0].policy_id == "OUT-PACK"
 
 
 async def test_fulfillment_options_follow_the_shipping_policy(backend, session):
-    options = await backend.get_fulfillment_options(session, ["AR-1201"])
-    assert [o.method for o in options] == ["delivery", "delivery", "pickup"]
-    standard, express, _pickup = options
-    assert backend.products["AR-1201"].price > FREE_SHIPPING_OVER and standard.fee == 0.0
-    cheapest = min(backend.products.values(), key=lambda p: p.price)
-    (paid, *_rest) = await backend.get_fulfillment_options(session, [cheapest.product_id])
-    assert paid.fee == STANDARD_SHIPPING.fee
+    terms = backend._terms
+    standard, express = await backend.get_fulfillment_options(session, ["OD-1001"])
+    assert standard.method == express.method == "delivery"
+    assert backend.products["OD-1001"].price > terms["free_shipping_over"] and standard.fee == 0
+    assert express.fee == terms["express_fee"]
+    cheapest = min((p for p in backend.products.values() if p.in_stock), key=lambda p: p.price)
+    (paid, _express) = await backend.get_fulfillment_options(session, [cheapest.product_id])
+    assert paid.fee == terms["standard_fee"]
 
-    freight = await backend.get_fulfillment_options(session, ["AR-1307"])
-    assert freight[-1] == FREIGHT_SHIPPING
+    with pytest.raises(Unavailable):
+        await backend.get_fulfillment_options(session, ["OD-1012"])  # authored out of stock
 
     shipping = next(p for p in backend._policies if p.policy_id == "shipping").content
     for term in (
-        f"${STANDARD_SHIPPING.fee}",
-        f"严格高于 US${FREE_SHIPPING_OVER}",
-        standard.eta.split("（")[0],
-        express.eta.split("（")[0],
-        f"${express.fee}",
-        "货运",
+        f"高于 {terms['free_shipping_over']} 元",
+        f"运费 {terms['standard_fee']} 元",
+        f"加急配送 {terms['express_fee']} 元",
+        terms["standard_eta"],
+        terms["express_eta"],
     ):
         assert term in shipping, term
 
@@ -132,11 +132,12 @@ def test_pickup_eta_stays_inside_store_hours():
 async def test_a_family_is_found_by_its_option_values_and_its_variants_stay_out_of_listings(
     backend, session
 ):
-    assert "AR-1902" in backend.products and "AR-1902-KING" not in backend.products
-    assert backend.variants["AR-1902-KING"].variant_of == "AR-1902"
-    hits = await backend.search_products(session, "king mattress")
-    assert hits and hits[0].product_id == "AR-1902"
-    assert hits[0].options == {"size": ["twin", "full", "queen", "king"]}
+    assert "OD-4004" in backend.products and "OD-4004-XL" not in backend.products
+    assert backend.variants["OD-4004-XL"].variant_of == "OD-4004"
+    # "XL" appears in no title or description, only among the apparel sizes.
+    hits = await backend.search_products(session, "XL", limit=20)
+    assert hits and all(hit.category == "outdoor-apparel" for hit in hits)
+    assert all(hit.options == {"size": ["S", "M", "L", "XL"]} for hit in hits)
     assert all(hit.variant_of is None for hit in hits)
 
 

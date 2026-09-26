@@ -189,6 +189,8 @@ def with_evidence(
 
 
 class MockRetail(StorefrontBackend):
+    catalog_backend = "json"
+
     def __init__(self, data_dir: Path = DATA_DIR) -> None:
         catalog, self.products, self.variants = load_catalog(data_dir)
         self._search_terms = {

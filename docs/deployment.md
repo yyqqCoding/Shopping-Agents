@@ -100,6 +100,8 @@ docker compose --env-file .env -f deploy/compose.yaml logs --tail=80 api web pro
 
 现有 Supabase API 密钥不能执行任意迁移 SQL，因此脚本只检查迁移，不自动执行。订单服务不可达时脚本在切换前停止，旧服务继续运行。
 
+API 状态为 `Restarting` 时，`logs api` 末尾的回溯就是启动错误，常见原因是 `.env` 某个取值无效；各变量的允许值见 [.env.example](../.env.example) 的注释。改正后重新运行 `bash scripts/deploy.sh`。
+
 DNS 生效并开放端口后，Caddy 自动申请 HTTPS 证书。脚本的健康检查确认容器内 API 与页面可用；部署后访问 `https://jobb.lol/` 和 `https://jobb.lol/api/health`，再完成下文的聊天、记忆和恢复验收。
 
 ### 小内存服务器
@@ -156,7 +158,7 @@ docker compose --env-file deploy/commerce/.env -f deploy/commerce/compose.yaml l
 已运行的站点按以下顺序切换；订单服务就绪之前，Agent 继续使用原配置运行。
 
 1. 按上节部署订单服务并通过测试与内网检查。
-2. Agent 服务器拉取代码，在 `.env` 设置 `CATALOG_BACKEND=java`、`COMMERCE_SERVICE_URL` 与 `COMMERCE_SERVICE_TOKEN`，运行 `bash scripts/deploy.sh`。
+2. Agent 服务器拉取代码，在 `.env` 设置 `CATALOG_BACKEND=java`、`COMMERCE_SERVICE_URL` 与 `COMMERCE_SERVICE_TOKEN`，运行 `bash scripts/deploy.sh`。完成后 `https://jobb.lol/api/health` 返回 `"catalog_backend":"java"`，`https://jobb.lol/api/products?limit=1` 返回订单服务中的商品。
 3. 部署成功后，在 Supabase SQL Editor 完整执行一次 [005_drop_catalog_and_carts.sql](../supabase/migrations/005_drop_catalog_and_carts.sql)。它删除 `catalog_*` 表与函数和对话购物车表，旧购物车数据不迁移；对话、回合与记忆保留。
 
 切换后访问 `/equipment` 检查价格与库存，在对话中完成搜索、加购、结算，点击结算卡片的“提交订单”，再在订单服务器确认库存减少、订单写入。
@@ -183,7 +185,7 @@ docker compose --env-file deploy/commerce/.env -f deploy/commerce/compose.yaml l
 - 聊天与记忆模型均成功调用，SSE 持续输出；切断网络再恢复不重复写购物车。
 - 重启 API 后历史与购物车可恢复，进行中的回合明确显示中断；订单服务重启后购物车与订单不丢失。
 
-`/api/health` 只报告进程和配置状态，不能代替上述模型、数据库和域名验收。户外商品照片生成暂缓，当前使用原创分类插画；旧照片供历史查看。
+`/api/health` 只报告进程和配置状态（商店名、`catalog_backend`、技能），不调用 Supabase 或订单服务，不能代替上述模型、数据库和域名验收。
 
 ## Model platforms
 

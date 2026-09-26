@@ -59,6 +59,7 @@ def search_terms(query: str) -> list[str]:
 class JavaRetail(StorefrontBackend):
     store_name = "户外装备助手"
     currency = "CNY"
+    catalog_backend = "java"
 
     def __init__(
         self, base_url: str, token: str, *, client: httpx.AsyncClient | None = None

@@ -9,7 +9,7 @@ from ..mock_retail import LOW_STOCK_ATTRIBUTE, MockRetail
 
 
 def test_low_stock_stamped_from_the_inventory_overlay(backend):
-    assert backend.products["AR-2102"].attributes.get(LOW_STOCK_ATTRIBUTE) == "3"
+    assert backend.products["OD-1001"].attributes.get(LOW_STOCK_ATTRIBUTE) == "4"
 
 
 def test_low_stock_not_stamped_above_threshold_or_out_of_stock(backend):
@@ -22,7 +22,7 @@ def test_low_stock_not_stamped_above_threshold_or_out_of_stock(backend):
 
 
 def test_stamped_attributes_kept_out_of_search_scoring(backend):
-    text = backend._searchable_text(backend.products["AR-2102"])
+    text = backend._searchable_text(backend.products["OD-1001"])
     assert "low_stock" not in text["attributes"]
     assert "标准配送" not in text["attributes"]
 
@@ -31,18 +31,18 @@ def test_stamped_attributes_kept_out_of_search_scoring(backend):
 
 
 def test_price_intelligence_is_deterministic_and_in_range(backend):
-    first = backend.price_intelligence("AR-1401")
-    second = MockRetail().price_intelligence("AR-1401")
+    first = backend.price_intelligence("OD-1001")
+    second = MockRetail().price_intelligence("OD-1001")
     assert first == second
 
-    price = backend.products["AR-1401"].price
+    price = backend.products["OD-1001"].price
     assert first["series"][-1] == price  # the series ends at the current price
     assert first["low"] <= price <= first["high"]
     assert first["low"] == min(first["series"])
     assert first["high"] == max(first["series"])
     assert first["days"] == 90
     assert first["position"] in {"low", "typical", "high"}
-    assert f"${price:.2f}" in first["verdict"]
+    assert f"¥{price:.2f}" in first["verdict"]
 
 
 def test_price_intelligence_verdict_matches_position(backend):
@@ -65,11 +65,11 @@ def test_price_intelligence_unknown_product_is_none(backend):
 
 
 def test_review_aspects_are_deterministic_and_bounded(backend):
-    first = backend.review_aspects("AR-1401")
-    second = MockRetail().review_aspects("AR-1401")
+    first = backend.review_aspects("OD-1001")
+    second = MockRetail().review_aspects("OD-1001")
     assert first == second
 
-    product = backend.products["AR-1401"]
+    product = backend.products["OD-1001"]
     assert first["review_count"] == product.review_count
     assert 3 <= len(first["aspects"]) <= 4
     total_mentions = 0

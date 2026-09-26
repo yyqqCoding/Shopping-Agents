@@ -25,7 +25,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from commerce_common.streaming import AgentEvent, to_sse
 from commerce_common.turn import session_tag
-from shopping_agent import Cart, ProductDetails, ShoppingSessionContext
+from shopping_agent import Cart, ShoppingSessionContext
 
 from .sessions import SessionConflictError, SessionRecord, SessionStore
 
@@ -35,14 +35,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class DemoStorefront(Protocol):
-    """What the shared routes use from the demo's mock storefront on top of the
-    ``StorefrontBackend`` interface it implements: the listings (``products``), a lookup
-    by id that also resolves a variant, the store name, and per-session cleanup."""
+    """What the shared routes use on top of the ``StorefrontBackend`` interface: the store
+    name, the ``CATALOG_BACKEND`` value that selects the backend, per-session cleanup and
+    the cart. The fixture backend also holds its listings (``products``) with a lookup by
+    id that resolves a variant (``product``); a backend over a catalog service offers
+    ``list_products`` instead, and the catalog routes use whichever is present."""
 
     store_name: str
-    products: dict[str, ProductDetails]
-
-    def product(self, product_id: str) -> ProductDetails | None: ...
+    catalog_backend: str
 
     def reset_session(self, session_id: str) -> None: ...
 

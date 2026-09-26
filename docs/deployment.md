@@ -2,7 +2,7 @@
 
 ## 中文体验站
 
-户外体验站使用一个 HTTPS 域名承载页面和 `/api`。`/` 是山野动画首页，点击进入 `/chat`；聊天页使用左侧历史导航和右下角购物车抽屉。浏览器自动创建或恢复 Supabase 匿名身份；API 验证访问凭证后，按用户归属读写对话。没有登录页面，也不要求跨设备恢复。
+户外体验站使用一个 HTTPS 域名承载页面和 `/api`，部署在两台服务器上：Agent 服务器运行 Caddy、页面和 Python API；订单服务器运行 Java 订单服务和 MySQL，保存商品、库存、购物车和订单。`/` 是山野动画首页，点击进入 `/chat`；聊天页使用左侧历史导航和右下角购物车抽屉。浏览器自动创建或恢复 Supabase 匿名身份；API 验证访问凭证后，按用户归属读写对话。没有登录页面，也不要求跨设备恢复。
 
 侧栏底部的个人入口提供头像、昵称、使用说明和体验介绍。展示资料保存在当前浏览器，不需要新增 Supabase 表、迁移或环境变量；保存范围见 [侧栏个人入口](agent-experience-design.md#侧栏个人入口)。
 
@@ -13,7 +13,7 @@
 本地与服务器沿用同一个已验证的 Supabase 项目和模型配置。已有数据库迁移不重复执行；以下步骤用于首次接入项目。
 
 1. 建立 Supabase 项目，在 Authentication 的 Sign In / Providers 中启用 Anonymous Sign-ins。将 Site URL 设置为体验站的 HTTPS 域名；本地开发可使用 `http://localhost:3004`。
-2. 新项目依次执行 [001 存储迁移](../supabase/migrations/001_agent_experience.sql)、[002 购物车币种迁移](../supabase/migrations/002_outdoor_cart_currency.sql)、[003 商品目录迁移](../supabase/migrations/003_catalog.sql) 和 [004 证据变体迁移](../supabase/migrations/004_catalog_evidence_variants.sql)，各执行一次。已有 `001` 和 `002` 的项目执行 `003`、`004`；如果 `003` 已经执行，只补执行 `004`。迁移不清空对话或记忆，不导入 `demo-user` 偏好。
+2. 新项目依次执行 [001 存储迁移](../supabase/migrations/001_agent_experience.sql) 和 [005 移除目录与购物车表](../supabase/migrations/005_drop_catalog_and_carts.sql)，各执行一次。已有项目按 [切换到订单服务](#切换到订单服务) 在切换完成后执行 `005`。迁移不清空对话或记忆，不导入 `demo-user` 偏好。
 3. 在服务器仓库根目录 `.env` 填写 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（或旧版 `SUPABASE_ANON_KEY`）和同项目的旧版 `SUPABASE_SERVICE_ROLE_KEY` JWT。服务端密钥只给 API，不能放入 `NEXT_PUBLIC_*` 或 Web 镜像。
 4. 在 Authentication 的 Rate Limits 配置匿名注册频率。公开项目还应按容量设置网关流量限制。模型频率、并发与每日回合额度由 API 和数据库控制。
 
@@ -51,7 +51,9 @@ nano .env
 ```dotenv
 SHOPPING_DOMAIN=jobb.lol
 SHOPPING_MAX_CONCURRENT_TURNS=1
-CATALOG_BACKEND=sql
+CATALOG_BACKEND=java
+COMMERCE_SERVICE_URL=http://172.24.65.233:8080
+COMMERCE_SERVICE_TOKEN=与订单服务器相同的令牌
 SHOPPING_SEARCH_PAGE_SIZE=6
 ```
 
@@ -85,10 +87,9 @@ bash scripts/deploy.sh
 
 1. 检查 Docker、Compose 与配置；`config --quiet` 不输出环境中的密钥。同一工作副本不能同时运行两次部署脚本。
 2. 顺序构建 API、Web 镜像，Web 构建使用 768 MiB 的 Node.js 堆上限。
-3. 在临时容器中只读检查 Supabase 连接和购物车币种列，不返回用户行，不调用模型或启动第二个 API；本地没有 Caddy 镜像时先下载。
-4. 在临时 API 容器中执行 `scripts/import_catalog.py`，把 Git 中的商品 JSON 导入 `catalog_*` 表；不在宿主机安装 Python，也不启动第二个 API。
-5. 停止旧 API，重建 API、Web、Caddy 容器并保持一个 API 实例。重新创建代理会加载最新的 `Caddyfile`，保留已有证书卷。
-6. 等待 API 与 Web 健康检查通过，输出容器状态。切换期间聊天短暂不可用。
+3. 在临时容器中只读检查 Supabase 连接与 001 迁移；`CATALOG_BACKEND=java` 时再用令牌访问订单服务。不返回用户行，不调用模型或启动第二个 API；本地没有 Caddy 镜像时先下载。
+4. 停止旧 API，重建 API、Web、Caddy 容器并保持一个 API 实例。重新创建代理会加载最新的 `Caddyfile`，保留已有证书卷。
+5. 等待 API 与 Web 健康检查通过，输出容器状态。切换期间聊天短暂不可用。
 
 构建或部署前检查失败时，脚本不会停止旧服务。切换开始后失败会返回非零退出码并给出排查命令，不自动回滚。查看状态和日志：
 
@@ -97,7 +98,7 @@ docker compose --env-file .env -f deploy/compose.yaml ps -a
 docker compose --env-file .env -f deploy/compose.yaml logs --tail=80 api web proxy
 ```
 
-现有 Supabase API 密钥不能执行任意迁移 SQL，因此脚本只检查迁移，不自动执行。缺少 `002` 时按下文“户外版本升级”处理一次；以后普通代码更新直接运行脚本即可。
+现有 Supabase API 密钥不能执行任意迁移 SQL，因此脚本只检查迁移，不自动执行。订单服务不可达时脚本在切换前停止，旧服务继续运行。
 
 DNS 生效并开放端口后，Caddy 自动申请 HTTPS 证书。脚本的健康检查确认容器内 API 与页面可用；部署后访问 `https://jobb.lol/` 和 `https://jobb.lol/api/health`，再完成下文的聊天、记忆和恢复验收。
 
@@ -123,42 +124,48 @@ git pull --ff-only origin main && bash scripts/deploy.sh
 
 仅代码更新不会自动执行数据库迁移、删除对话或清空记忆。不重复执行已经完成的迁移。证书卷也保留，不使用 `down -v` 或数据库重置作为更新步骤。
 
-### 户外版本升级
+### 订单服务
 
-本版本自带 96 个户外主商品和 120 个尺码变体。首次升级需要在 Supabase 建立商品表并导入目录；之后商品查询由 PostgreSQL 固定 SQL 函数完成，API 运行时不从 JSON 搜索。沿用现有模型、Supabase、域名及匿名访问配置。
+订单服务器单独部署 [commerce-service](../commerce-service/) 与 MySQL，设计见 [Java 订单服务设计](commerce-service-design.md)。两台服务器位于同一地域的不同 VPC，通过 VPC 对等连接走内网：
 
-从旧商品版本升级，在服务器拉取代码后，先在同一个 Supabase 项目的 SQL Editor 中执行一次 [003_catalog.sql](../supabase/migrations/003_catalog.sql) 和 [004_catalog_evidence_variants.sql](../supabase/migrations/004_catalog_evidence_variants.sql)，再运行部署脚本：
+| | 内网 IP | VPC | 交换机网段 | 路由表新增条目 |
+|---|---|---|---|---|
+| Agent 服务器 | `172.30.61.56` | `vpc-6wetoh8qe5lyrfvtqzucc` | `172.30.48.0/20` | `172.24.64.0/20` → 对等连接 |
+| 订单服务器 | `172.24.65.233` | `vpc-6wefrcwv0jj3amvxac9g5` | `172.24.64.0/20` | `172.30.48.0/20` → 对等连接 |
 
-```bash
-cd /opt/shopping-agents
-bash scripts/deploy.sh
-```
-
-部署脚本会在临时 API 容器中运行 `import_catalog.py`。如果 `003_catalog.sql` 或 `004_catalog_evidence_variants.sql` 尚未执行，导入会失败，旧服务会在切换前保持运行。004 允许把 `evidence.json` 中的规格变体 ID 写入证据表；不执行它会在导入阶段收到 409 冲突。
-
-如果 `002` 已完成，脚本直接部署，无需额外操作。如果提示缺少购物车币种列，此时镜像已构建、旧服务仍在运行，先停止旧 API：
-
-```bash
-docker compose --env-file .env -f deploy/compose.yaml stop api
-```
-
-停止 API 后，在同一个 Supabase 项目的 SQL Editor 中打开并完整执行 [002_outdoor_cart_currency.sql](../supabase/migrations/002_outdoor_cart_currency.sql)，只执行一次。不要重新执行 `001`。SQL 成功后再回到服务器运行同一命令，构建可复用缓存：
+1. 在专有网络控制台创建两个 VPC 之间的对等连接，按上表给两侧路由表添加条目。
+2. 订单服务器安全组入方向只放行 `172.30.61.56/32` 的 TCP 8080。MySQL 不发布端口。
+3. 订单服务器安装 Docker Engine 与 Compose 插件，克隆仓库，复制 [deploy/commerce/.env.example](../deploy/commerce/.env.example) 为 `deploy/commerce/.env` 并填写密码与令牌（`openssl rand -hex 32`）。
+4. 在订单服务器仓库根目录运行：
 
 ```bash
-bash scripts/deploy.sh
+bash scripts/deploy_commerce.sh --test   # 临时 MySQL 上的并发、回滚、幂等与分页测试
+bash scripts/deploy_commerce.sh          # 构建、建表、导入商品并启动
 ```
 
-`002` 给已有购物车保留 USD 币种和原金额，新建购物车默认 CNY。非空购物车拒绝混合币种；移除全部旧商品后可添加人民币装备。旧商品不参与搜索，当前详情标记下架，购物车仍可查看与移除。完整历史、匿名用户、长期记忆和浏览器身份键保留；首次进入户外聊天会新建空对话，旧对话仍在左侧列表中。
+导入只更新商品内容，已有库存不覆盖。`bash scripts/deploy_commerce.sh --reset-inventory` 删除全部订单并恢复 `inventory.json` 的初始库存，用于库存售空后的演示恢复。服务的 Compose 网络固定为 `192.168.240.0/24`，不与 Agent 服务器的交换机网段重叠。
 
-没有执行 `002` 时，API 拒绝使用新版购物车，避免把人民币金额写进旧版美元结构。此时应检查迁移和 API 指向的 Supabase 项目，不通过清除浏览器数据或重建数据库处理。后续只更新代码时不再执行 `002`。
+在 Agent 服务器执行 `curl -s http://172.24.65.233:8080/health`，返回 `{"ok":true}` 即内网可达。订单服务的 DEBUG 日志按对话 ID 记录每条 SQL 及参数：
 
-更新后访问 `https://jobb.lol/` 检查首页，进入 `/chat` 检查新商品价格为人民币，确认左侧旧历史仍可打开。已有美元购物车应仍显示原美元金额和下架提示。
+```bash
+docker compose --env-file deploy/commerce/.env -f deploy/commerce/compose.yaml logs --tail=200 commerce
+```
+
+### 切换到订单服务
+
+已运行的站点按以下顺序切换；订单服务就绪之前，Agent 继续使用原配置运行。
+
+1. 按上节部署订单服务并通过测试与内网检查。
+2. Agent 服务器拉取代码，在 `.env` 设置 `CATALOG_BACKEND=java`、`COMMERCE_SERVICE_URL` 与 `COMMERCE_SERVICE_TOKEN`，运行 `bash scripts/deploy.sh`。
+3. 部署成功后，在 Supabase SQL Editor 完整执行一次 [005_drop_catalog_and_carts.sql](../supabase/migrations/005_drop_catalog_and_carts.sql)。它删除 `catalog_*` 表与函数和对话购物车表，旧购物车数据不迁移；对话、回合与记忆保留。
+
+切换后访问 `/equipment` 检查价格与库存，在对话中完成搜索、加购、结算，点击结算卡片的“提交订单”，再在订单服务器确认库存减少、订单写入。
 
 ### 保存与恢复
 
 用户消息提交成功后才调用模型。完成事件在完整回合、卡片与工作快照提交后发送；保存失败时保留进程中的快照并后台重试，不重新调用模型或购物车。浏览器断开不取消服务端回合。浏览器重试沿用请求编号，重复请求读取原结果。
 
-进程重启后，无法继续的回合标为中断，保留已提交的购物车动作，下一轮先读取当前购物车。重启前仍未提交的回复片段不能承诺恢复。数据库不可用时不切换成共享用户或虚构保存成功。
+进程重启后，无法继续的回合标为中断，保留订单服务已提交的购物车动作，下一轮先读取当前购物车。重启前仍未提交的回复片段不能承诺恢复。数据库不可用时不切换成共享用户或虚构保存成功。
 
 新对话不删除旧历史、购物车或记忆。旧的本地 `.memory-*.json` 保留但不导入匿名身份。不启用定时清理；数据删除与保留周期由项目明确配置，不使用数据库重置作为常规部署步骤。
 
@@ -169,11 +176,12 @@ bash scripts/deploy.sh
 - 普通窗口刷新后恢复身份、对话和最终卡片；多个标签页共享身份但可选择不同对话。
 - 首页点击进入聊天；桌面侧栏可折叠，手机历史与购物车弹窗可关闭，购物车按钮不遮住输入框。
 - 侧栏个人菜单可打开三个入口；昵称与头像保存后刷新可恢复，修改资料不切换对话或匿名身份。
-- 新商品与结算摘要使用 CNY；旧购物车金额及历史内容保持原样，下架商品可移除。
+- 商品、购物车与结算摘要使用 CNY；装备页显示订单服务的实时库存，下架商品只能查看和从购物车移除。
+- 结算卡片提交后订单写入 MySQL、库存按数量减少、购物车清空，下一轮助手知道订单号；库存不足或购物车已变化时整单不提交并显示原因。
 - 无痕窗口拥有独立数据，已知另一用户的对话 ID 也不能读取或修改。
 - 表达稳定偏好后，在开发侧确认记忆任务完成，再新建对话验证推荐；不把当前预算或收礼对象当作长期偏好。
 - 聊天与记忆模型均成功调用，SSE 持续输出；切断网络再恢复不重复写购物车。
-- 重启 API 后历史与购物车可恢复，进行中的回合明确显示中断。
+- 重启 API 后历史与购物车可恢复，进行中的回合明确显示中断；订单服务重启后购物车与订单不丢失。
 
 `/api/health` 只报告进程和配置状态，不能代替上述模型、数据库和域名验收。户外商品照片生成暂缓，当前使用原创分类插画；旧照片供历史查看。
 

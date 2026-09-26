@@ -1,6 +1,6 @@
 # 中文体验站部署
 
-这组文件启动一个 API worker、Next.js 页面和 Caddy HTTPS 代理。用户数据和运行时商品目录保存在外部 Supabase 项目；导入脚本与商品 JSON 随 API 镜像发布，用于部署前导入和更新。
+这组文件启动一个 API worker、Next.js 页面和 Caddy HTTPS 代理。身份、对话和记忆保存在外部 Supabase 项目；商品、库存、购物车和订单由另一台服务器上的订单服务提供，其容器定义在 [commerce/](commerce/)，由 `scripts/deploy_commerce.sh` 部署。
 
 首次部署从 GitHub 克隆 `main`，将已验证的 `.env` 单独复制到服务器并完成数据库迁移。之后在仓库根目录运行：
 
@@ -8,9 +8,11 @@
 git pull --ff-only origin main && bash scripts/deploy.sh
 ```
 
-`scripts/deploy.sh` 校验配置、顺序构建 API 和 Web、检查购物车币种列，再停止旧 API 并重建三个容器，等待 API 和 Web 健康检查通过。脚本使用原有 `.env`，不需要服务器安装 Python 或 Node.js。同一工作副本中的脚本运行由文件锁串行化；切换期间聊天短暂不可用。
+`scripts/deploy.sh` 校验配置、顺序构建 API 和 Web、检查 Supabase 与订单服务，再停止旧 API 并重建三个容器，等待 API 和 Web 健康检查通过。脚本使用原有 `.env`，不需要服务器安装 Python 或 Node.js。同一工作副本中的脚本运行由文件锁串行化；切换期间聊天短暂不可用。
 
-`check_database.py` 在临时 API 容器中使用现有 Supabase 服务端配置，只查询币种列是否可用，不返回用户行、不运行 API 启动恢复。缺少迁移会在停止旧服务前退出；Supabase API 密钥不能执行任意 SQL，迁移仍按 [户外版本升级](../docs/deployment.md#户外版本升级) 在 SQL Editor 中执行一次。
+`check_database.py` 在临时 API 容器中使用现有服务端配置，只确认 001 迁移已执行、`CATALOG_BACKEND=java` 时订单服务接受令牌，不返回用户行、不运行 API 启动恢复。检查失败会在停止旧服务前退出；Supabase API 密钥不能执行任意 SQL，迁移按 [切换到订单服务](../docs/deployment.md#切换到订单服务) 在 SQL Editor 中执行一次。
+
+`commerce/compose.yaml` 运行 MySQL 8.4 与订单服务：MySQL 不发布端口，订单服务只绑定内网地址；`test` profile 在内存中的临时 MySQL 上运行 Java 测试。`commerce.Dockerfile` 在镜像内用 Maven 构建，运行时使用 JRE 17 与较小的堆；`mysql.cnf` 按 2 GB 服务器设置缓冲池和锁等待时间。
 
 完整配置见 [GitHub 首次部署](../docs/deployment.md#github-首次部署)、[一条命令部署](../docs/deployment.md#一条命令部署) 和 [更新部署](../docs/deployment.md#更新部署)。
 

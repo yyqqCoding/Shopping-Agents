@@ -133,6 +133,16 @@ export interface CheckoutHandoff {
   seller?: string;
 }
 
+/** An order the commerce service placed from the checkout card. */
+export interface PlacedOrder {
+  order_id: string;
+  placed_at: string;
+  items: { product_id: string; title: string; quantity: number; price: number }[];
+  total: number;
+  currency: string;
+  estimated_delivery?: string;
+}
+
 export interface CheckoutPayload {
   /** Where payment happens when it is not a route in this app; filled by the backend. */
   handoffs?: CheckoutHandoff[];

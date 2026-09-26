@@ -43,6 +43,7 @@ export default function Chat({ chat, home, onCartUpdate }: { chat: AgentTurn; ho
             if (cart && api.session === conversationId) onCartUpdate(cart);
             return cart !== null;
           }}
+          onSubmitted={onCartUpdate}
         />
       )}
     />

@@ -714,7 +714,7 @@ def build_experience_host(
             "ok": True,
             "storage_configured": database.settings.configured,
             "store": backend.store_name,
-            "products": len(backend.products),
+            "products": len(getattr(backend, "products", ())),
             "skills": agent.skills.names,
         }
 

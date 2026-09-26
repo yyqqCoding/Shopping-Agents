@@ -56,6 +56,12 @@ The executor adds what `checkout_handoff` returns to the card's payload after th
 call, so the URL never passes through the model. The demo card links only `https` URLs.
 When payment completes, queue an app event so the next turn knows.
 
+The assistant example keeps checkout a route in its own app: the card's submit button
+posts the lines it shows to `POST /api/orders`, and the host has the commerce service
+place the order and take stock, then queues the app event.
+[commerce-service-design.md](commerce-service-design.md) describes that service, and
+`examples/assistant/api/java_retail.py` shows a whole `StorefrontBackend` over HTTP.
+
 ## Step 4: Map products with options
 
 A product record is one of three shapes:

@@ -26,9 +26,7 @@ declare
     visitor_a uuid := gen_random_uuid(); visitor_b uuid := gen_random_uuid();
     create_id uuid := gen_random_uuid(); request_id uuid := gen_random_uuid();
     conversation_a uuid; conversation_other uuid; conversation_b uuid; completed_turn uuid;
-    turn jsonb; replay jsonb; saved jsonb; card jsonb; raw jsonb; cart jsonb;
-    operation_one uuid := gen_random_uuid(); operation_two uuid := gen_random_uuid();
-    line jsonb := '{"product_id":"AR-1001","title":"ACME 咖啡机","price":79,"quantity":1,"currency":"USD"}';
+    turn jsonb; replay jsonb; saved jsonb; card jsonb; raw jsonb;
     old_order bigint; new_order bigint; generation bigint; claim jsonb; replacement jsonb;
     item record;
 begin
@@ -42,7 +40,6 @@ begin
     perform pg_temp.check_contract(experience_load_conversation(visitor_a, conversation_other)->'messages' = '[]'::jsonb, 'new conversation context');
     perform pg_temp.expect_error(format('select experience_load_conversation(%L,%L)', visitor_b, conversation_a), 'P0002');
     perform pg_temp.expect_error(format('select experience_history(%L,%L,null,30)', visitor_b, conversation_a), 'P0002');
-    perform pg_temp.expect_error(format('select experience_cart(%L,%L,%L,null,0,%L)', visitor_b, conversation_a, 'get', gen_random_uuid()), 'P0002');
 
     raw := jsonb_build_object('role', 'user', 'content', '预算 800 美元，给朋友选购');
     turn := experience_begin_turn(visitor_a, conversation_a, 1, request_id, '预算 800 美元，给朋友选购', '{}', raw, 100, 1000);
@@ -70,16 +67,6 @@ begin
     perform pg_temp.check_contract(saved->'display' = card and not (saved ? 'raw_messages'), 'history exposes only saved display');
     perform pg_temp.expect_error(format('select experience_get_turn(%L,%L,%L)', visitor_b, conversation_a, request_id), 'P0002');
     perform pg_temp.expect_error(format('select experience_begin_turn(%L,%L,3,%L,%L,%L,%L,1,1000)', visitor_a, conversation_a, gen_random_uuid(), 'quota check', '{}', '{}'), 'PT429');
-
-    cart := experience_cart(visitor_a, conversation_a, 'add', line, 1, operation_one);
-    perform pg_temp.check_contract(cart->'items'->0->>'quantity' = '1', 'cart add');
-    perform experience_cart(visitor_a, conversation_a, 'add', line, 1, operation_one);
-    perform experience_cart(visitor_a, conversation_a, 'add', line, 1, operation_two);
-    cart := experience_cart(visitor_a, conversation_a, 'add', line, 1, operation_one);
-    perform pg_temp.check_contract(cart->'items'->0->>'quantity' = '2', 'cart retry returns current state without adding again');
-    perform pg_temp.check_contract(experience_cart(visitor_a, conversation_other, 'get', null, 0, gen_random_uuid())->'items' = '[]'::jsonb, 'cart isolation');
-    perform pg_temp.expect_error(format('select experience_cart(%L,%L,%L,%L,2,%L)', visitor_a, conversation_a, 'add', line, operation_one), '40001');
-    perform pg_temp.expect_error(format('select experience_cart(%L,%L,%L,%L,25,%L)', visitor_a, conversation_a, 'set', line, gen_random_uuid()), '22023');
 
     generation := experience_memory_generation(visitor_a);
     old_order := nextval('experience_source_order');

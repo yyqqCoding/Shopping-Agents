@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { AgentApi } from "web-shared";
-import type { CartPayload, Product, ProductDetails } from "./types";
+import type { CartPayload, PlacedOrder, Product, ProductDetails } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -36,4 +36,31 @@ export async function addToCart(productId: string, quantity = 1): Promise<CartPa
     sessionStorage.removeItem(key);
     return data.cart;
   } catch { return null; }
+}
+
+/**
+ * Submits the order the checkout card shows. The request id is kept until the service
+ * answers, so a retry after a lost response returns the first order instead of a second.
+ * Throws with the sentence to show when the order is refused or the service is down.
+ */
+export async function submitOrder(
+  lines: { product_id: string; quantity: number }[],
+): Promise<{ order: PlacedOrder; cart: CartPayload }> {
+  if (!api.session) throw new Error("请先打开一段对话。");
+  const signature = lines.map((line) => `${line.product_id}x${line.quantity}`).sort().join(",");
+  const key = `outdoor.order-request:${api.session}:${signature}`;
+  const requestId = sessionStorage.getItem(key) || crypto.randomUUID();
+  sessionStorage.setItem(key, requestId);
+  try {
+    const result = await api.requestOrThrow<{ order: PlacedOrder; cart: CartPayload }>("/orders", {
+      method: "POST", body: JSON.stringify({ request_id: requestId, lines }),
+    });
+    sessionStorage.removeItem(key);
+    return result;
+  } catch (error) {
+    // A refusal is final for this card; only a lost connection keeps the id for a retry.
+    const status = (error as { status?: number }).status ?? 0;
+    if (status >= 400 && status < 500) sessionStorage.removeItem(key);
+    throw error instanceof Error ? error : new Error("提交失败，请稍后重试。");
+  }
 }

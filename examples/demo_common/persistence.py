@@ -1,4 +1,4 @@
-"""Conversation checkpoints, append-only turns, carts and ordered memory in PostgreSQL.
+"""Conversation checkpoints, append-only turns and ordered memory in PostgreSQL.
 
 Every operation names the verified owner. Multi-record writes and compare-and-set
 checks live in the migration's RPCs, not in separate HTTP requests.
@@ -6,19 +6,15 @@ checks live in the migration's RPCs, not in separate HTTP requests.
 
 from __future__ import annotations
 
-from contextvars import ContextVar
 from typing import Any
-from uuid import uuid4
 
 from commerce_common.context import WorkingContext
 from commerce_common.memory import match_facts
 from commerce_common.types import MemoryFact
-from shopping_agent import Cart, ShoppingSessionContext, ShoppingSessionState
+from shopping_agent import ShoppingSessionState
 
 from .sessions import SessionRecord
-from .supabase import StorageUnavailable, Supabase
-
-CART_OPERATION: ContextVar[str | None] = ContextVar("cart_operation", default=None)
+from .supabase import Supabase
 
 
 class ConversationStore:
@@ -197,51 +193,3 @@ class SupabaseMemoryStore:
 
     async def purge_generation(self, subject_id: str) -> int:
         return await self.database.rpc("experience_memory_generation", p_user_id=subject_id)
-
-
-class PersistentCarts:
-    """A cart read is fresh; each mutation is committed before a tool reports success."""
-
-    def __init__(self, database: Supabase, *, require_currency_schema: bool = False):
-        self.database = database
-        self.require_currency_schema = require_currency_schema
-        self._currency_ready = False
-
-    async def get(self, session: ShoppingSessionContext) -> Cart:
-        row = await self.database.rpc(
-            "experience_cart",
-            p_user_id=session.user_id,
-            p_id=session.session_id,
-            p_action="get",
-            p_product=None,
-            p_quantity=0,
-            p_operation=str(uuid4()),
-        )
-        if self.require_currency_schema:
-            if row.get("schema_version") != 2:
-                raise StorageUnavailable(
-                    "Apply 002_outdoor_cart_currency.sql before using CNY carts"
-                )
-            self._currency_ready = True
-        return Cart.model_validate(row)
-
-    async def change(
-        self,
-        session: ShoppingSessionContext,
-        action: str,
-        product: dict[str, Any],
-        quantity: int,
-    ) -> Cart:
-        if self.require_currency_schema and not self._currency_ready:
-            await self.get(session)
-        operation_id = CART_OPERATION.get() or str(uuid4())
-        row = await self.database.rpc_idempotent(
-            "experience_cart",
-            p_user_id=session.user_id,
-            p_id=session.session_id,
-            p_action=action,
-            p_product=product,
-            p_quantity=quantity,
-            p_operation=operation_id,
-        )
-        return Cart.model_validate(row)

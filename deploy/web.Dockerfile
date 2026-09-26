@@ -13,7 +13,7 @@ ARG BUILD_NODE_OPTIONS=""
 RUN NODE_OPTIONS="$BUILD_NODE_OPTIONS" npm run build --workspace=acme-assistant-web
 
 FROM node:22-bookworm-slim AS runtime
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3004 HOSTNAME=0.0.0.0
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3004 HOSTNAME=0.0.0.0 API_INTERNAL_URL=http://api:8004
 WORKDIR /app
 COPY --from=build --chown=node:node /app/examples/assistant/storefront-web/.next/standalone ./
 COPY --from=build --chown=node:node /app/examples/assistant/storefront-web/.next/static ./assistant/storefront-web/.next/static

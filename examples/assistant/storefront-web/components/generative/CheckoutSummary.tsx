@@ -1,20 +1,53 @@
 // Copyright 2026 Anthropic PBC
 // SPDX-License-Identifier: Apache-2.0
 
+"use client";
+
+import { useState } from "react";
 import { formatMoney, optionValuesLabel } from "web-shared";
-import type { CheckoutPayload } from "@/lib/types";
+import { submitOrder } from "@/lib/api";
+import type { CartPayload, CheckoutPayload, PlacedOrder } from "@/lib/types";
 import { STORE_POLICY } from "@/lib/storePolicy";
 import { ProductImage } from "../ProductTile";
 
 const METHODS = { delivery: "配送", pickup: "门店自提", shipping: "大件货运" };
 
+type Submission =
+  | { state: "idle" }
+  | { state: "submitting" }
+  | { state: "placed"; order: PlacedOrder }
+  | { state: "refused"; message: string };
+
 export default function CheckoutSummary({
   payload,
+  onSubmitted,
 }: {
   payload: CheckoutPayload;
+  /** The emptied cart, once the order is placed. */
+  onSubmitted?: (cart: CartPayload) => void;
 }) {
   const { cart } = payload;
+  const [submission, setSubmission] = useState<Submission>({ state: "idle" });
+  const current = cart.currency === STORE_POLICY.currency;
   const freeShipping = cart.subtotal > STORE_POLICY.freeShippingThreshold;
+  const blocked = cart.items.some((item) => item.unavailable_reason);
+
+  async function submit() {
+    setSubmission({ state: "submitting" });
+    try {
+      const result = await submitOrder(
+        cart.items.map((item) => ({ product_id: item.product_id, quantity: item.quantity })),
+      );
+      setSubmission({ state: "placed", order: result.order });
+      onSubmitted?.(result.cart);
+    } catch (error) {
+      setSubmission({
+        state: "refused",
+        message: error instanceof Error ? error.message : "提交失败，请稍后重试。",
+      });
+    }
+  }
+
   return (
     <section
       data-checkout-card
@@ -22,7 +55,7 @@ export default function CheckoutSummary({
     >
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-display text-[18px] font-medium text-(--ink)">
-          模拟结算摘要
+          结算摘要
         </h3>
         <span className="rounded-full bg-(--well) px-2.5 py-0.5 text-[14px] text-(--ink-soft)">
           不会扣款
@@ -63,7 +96,7 @@ export default function CheckoutSummary({
             <span>{METHODS[payload.fulfillment_method]}</span>
           </div>
         ) : null}
-        {cart.currency === STORE_POLICY.currency ? (
+        {current ? (
           <p className="text-[16px] leading-relaxed text-(--ink-soft)">
             标准配送参考：
             {freeShipping
@@ -78,14 +111,35 @@ export default function CheckoutSummary({
           </p>
         )}
       </div>
-      {cart.currency === STORE_POLICY.currency ? (
+      {current ? (
         <p className="mt-2 text-[16px] text-(--ink-soft)">
           {STORE_POLICY.returnsLine}
         </p>
       ) : null}
-      <p className="mt-3 rounded-lg bg-(--accent-soft) p-2.5 text-center text-[15px] text-(--ink)">
-        这是模拟结算，不会创建订单、扣款或发货。
-      </p>
+      {current && submission.state === "placed" ? (
+        <p role="status" className="mt-3 rounded-lg bg-(--accent-soft) p-2.5 text-center text-[15px] text-(--ink)">
+          已提交订单 {submission.order.order_id}，库存已扣减。
+        </p>
+      ) : current ? (
+        <>
+          <button
+            type="button"
+            className="btn-primary mt-3 w-full"
+            disabled={blocked || submission.state === "submitting"}
+            onClick={() => void submit()}
+          >
+            {submission.state === "submitting" ? "正在提交…" : "提交订单"}
+          </button>
+          {submission.state === "refused" ? (
+            <p role="alert" className="mt-2 text-center text-[15px] text-(--warn)">
+              {submission.message}
+            </p>
+          ) : null}
+          <p className="mt-2 text-center text-[14px] text-(--ink-soft)">
+            提交后创建订单并扣减库存；不会扣款或发货。
+          </p>
+        </>
+      ) : null}
     </section>
   );
 }

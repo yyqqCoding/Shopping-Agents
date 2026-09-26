@@ -1,11 +1,12 @@
 # Experience storage
 
 `migrations/001_agent_experience.sql` creates the experience's private tables and
-transactional RPCs. `migrations/002_outdoor_cart_currency.sql` adds explicit cart
-currency and rejects mixed-currency writes. New projects apply both in that order,
-once each, with Anonymous Sign-ins enabled. Existing projects apply only `002` with
-the API stopped. Connection and rollout steps are in
-[deployment.md](../docs/deployment.md#户外版本升级).
+transactional RPCs. Carts, the catalog and orders live in the commerce service's MySQL
+(`commerce-service/`); `migrations/005_drop_catalog_and_carts.sql` removes the cart
+tables of `001`/`002` and the catalog tables of `003`/`004`. New projects apply `001`
+then `005`, once each, with Anonymous Sign-ins enabled. Existing projects apply `005`
+after switching to the commerce service. Steps are in
+[deployment.md](../docs/deployment.md#切换到订单服务).
 
 | Table | Data |
 |---|---|
@@ -14,18 +15,12 @@ the API stopped. Connection and rollout steps are in
 | `experience_memory_versions` | Per-user clear generation |
 | `experience_memory_facts` | Facts keyed by user and topic, with source order |
 | `experience_memory_deletions` | Key and deletion order, without deleted values |
-| `experience_carts` / `experience_cart_operations` | Per-conversation items, currency and deduplicated operations |
 | `experience_daily_usage` | Per-user and global daily turn counts in UTC |
 
 `examples/demo_common/persistence.py` is the only database adapter. Every scoped RPC
 names the verified owner; browser roles cannot read the tables or execute the RPCs.
 `begin_turn` deduplicates before charging quota; `finish_turn` writes the archive and
 checkpoint together under the conversation version. Settled raw history is not rewritten.
-Migration `002` labels existing carts USD without changing their amounts; new carts
-default to CNY. An empty cart can adopt its first item's currency. Older clients that
-omit currency still write USD. RPC replies include `schema_version: 2`; the outdoor
-application refuses cart use before this migration, rather than storing CNY amounts
-under the old USD-only contract. No conversation or memory rows are changed.
 Memory writes, corrections, deletion and clearing serialize on the user's generation
 record. Claims carry an expiring id so a stale job cannot complete its replacement.
 
@@ -35,14 +30,14 @@ Existing local memory is neither imported nor deleted. No automatic data expiry 
 
 ## Transaction verification
 
-Apply both migrations to a disposable Supabase test project. With `psql` installed,
+Apply `001` and `005` to a disposable Supabase test project. With `psql` installed,
 set `SHOPPING_TEST_DATABASE_URL` to its PostgreSQL connection string and run:
 
 ```bash
 python -m pytest examples/demo_common/tests/test_database_integration.py -q
 ```
 
-`tests/contract.sql` exercises ownership, RLS and RPC grants, quotas, request and cart
+`tests/contract.sql` exercises ownership, RLS and RPC grants, quotas, request
 deduplication, archive immutability, state versions, memory corrections and deletion,
 claim expiry and startup recovery. Its fixtures roll back. Use an isolated project:
 startup recovery intentionally addresses every unfinished turn in that database.

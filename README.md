@@ -16,7 +16,7 @@ cp .env.example .env
 npm ci --prefix examples
 ```
 
-按 [.env.example](.env.example) 填写模型和 Supabase 参数。首次配置需启用 Supabase 匿名登录，并依次执行 [001](supabase/migrations/001_agent_experience.sql) 和 [002](supabase/migrations/002_outdoor_cart_currency.sql) 迁移；已执行的迁移无需重复。具体步骤见 [部署说明](docs/deployment.md#中文体验站)。
+按 [.env.example](.env.example) 填写模型和 Supabase 参数。首次配置需启用 Supabase 匿名登录，并依次执行 [001](supabase/migrations/001_agent_experience.sql) 和 [005](supabase/migrations/005_drop_catalog_and_carts.sql) 迁移；已执行的迁移无需重复。商品、库存、购物车和订单由 [Java 订单服务](commerce-service/) 提供；本地不启动它时，`CATALOG_BACKEND=json` 使用内置夹具。具体步骤见 [部署说明](docs/deployment.md#中文体验站)。
 
 ```bash
 python scripts/run_demo.py --no-install

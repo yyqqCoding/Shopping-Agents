@@ -12,6 +12,9 @@ venv/
 .coverage
 htmlcov/
 
+# Java
+commerce-service/target/
+
 # Environment / secrets
 .env
 .env.*

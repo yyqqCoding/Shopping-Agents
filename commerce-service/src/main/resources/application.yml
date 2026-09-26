@@ -1,0 +1,43 @@
+server:
+  port: 8080
+  tomcat:
+    threads:
+      max: 20
+
+spring:
+  application:
+    name: commerce-service
+  datasource:
+    url: ${COMMERCE_DB_URL:jdbc:mysql://localhost:3306/commerce?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true}
+    username: ${COMMERCE_DB_USER:commerce}
+    password: ${COMMERCE_DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 5
+  jackson:
+    # The agent's wire shapes are snake_case; ProblemDetail keeps its own field names.
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+  mvc:
+    problemdetails:
+      enabled: true
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+
+commerce:
+  service-token: ${COMMERCE_SERVICE_TOKEN:}
+  data-dir: ${COMMERCE_DATA_DIR:../examples/assistant/data}
+
+logging:
+  pattern:
+    level: "%5p [%X{conversation:-}]"
+  level:
+    # DEBUG prints each mapper statement with its parameters.
+    com.example.commerce: ${COMMERCE_LOG_LEVEL:DEBUG}

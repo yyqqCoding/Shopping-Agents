@@ -44,7 +44,6 @@ def client(main, conversation_store, monkeypatch):
     monkeypatch.setattr(main.host, "memory_store", memory)
     monkeypatch.setattr(main.host, "_rates", defaultdict(deque))
     monkeypatch.setattr(main.agent, "memory", replace(main.agent.memory, store=memory))
-    monkeypatch.setattr(main.backend, "_cart_store", None)
     monkeypatch.setattr(main.backend, "_carts", SessionCarts())
     return TestClient(main.app, base_url="http://localhost")
 

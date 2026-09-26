@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.commerce.catalog.ProductMapper">
+
+    <!--
+      One page of listed products for the agent's search_products tool.
+      * Every price, stock and attribute condition is evaluated on one SKU inside EXISTS,
+        so a family never matches on the cheap price of one variant and the stock of another.
+      * list_price is what the family shows: its lowest in-stock price, else its lowest price.
+      * relevance counts the keywords found in search_text.
+      * Paging is keyset: the cursor holds the last row's sort keys, and the id breaks ties.
+      ${f.column} and ${f.operator} come from SearchQuery.NUMERIC, never from the request.
+    -->
+    <select id="search" parameterType="com.example.commerce.catalog.SearchQuery"
+            resultType="com.example.commerce.catalog.SearchRow">
+        SELECT c.id, c.list_price, c.relevance, c.rating, c.display_order
+        FROM (
+            SELECT p.id, p.display_order, p.rating,
+                   (SELECT COALESCE(MIN(CASE WHEN i.stock &gt; 0 THEN s.price END), MIN(s.price))
+                      FROM sku s JOIN inventory i ON i.sku_id = s.id
+                     WHERE s.product_id = p.id AND s.retired = 0) AS list_price,
+                   <choose>
+                       <when test="terms.isEmpty()">0</when>
+                       <otherwise>
+                           <foreach collection="terms" item="term" separator=" + ">
+                               (p.search_text LIKE CONCAT('%', #{term}, '%'))
+                           </foreach>
+                       </otherwise>
+                   </choose> AS relevance
+            FROM product p
+            WHERE p.retired = 0
+            <if test="impossible">AND 1 = 0</if>
+            <if test="category != null">AND p.category = #{category}</if>
+            <if test="minRating != null">AND p.rating &gt;= #{minRating}</if>
+            <if test="!terms.isEmpty()">
+                AND (
+                <foreach collection="terms" item="term" separator=" OR ">
+                    p.search_text LIKE CONCAT('%', #{term}, '%')
+                </foreach>
+                )
+            </if>
+            AND EXISTS (
+                SELECT 1 FROM sku s JOIN inventory i ON i.sku_id = s.id
+                WHERE s.product_id = p.id AND s.retired = 0
+                <if test="minPrice != null">AND s.price &gt;= #{minPrice}</if>
+                <if test="maxPrice != null">AND s.price &lt;= #{maxPrice}</if>
+                <if test="inStock != null and inStock">AND i.stock &gt; 0</if>
+                <if test="inStock != null and !inStock">AND i.stock = 0</if>
+                <foreach collection="numericFilters" item="f">
+                    AND s.${f.column} ${f.operator} #{f.value}
+                </foreach>
+                <foreach collection="textFilters" item="f">
+                    AND (LOWER(JSON_UNQUOTE(JSON_EXTRACT(s.option_values, #{f.path}))) = #{f.value}
+                         OR LOWER(JSON_UNQUOTE(JSON_EXTRACT(s.attributes, #{f.path}))) LIKE CONCAT('%', #{f.value}, '%'))
+                </foreach>
+            )
+        ) c
+        <where>
+            <if test="cursor != null">
+                <choose>
+                    <when test="sort == 'price_asc'">
+                        c.list_price &gt; #{cursor.price}
+                        OR (c.list_price = #{cursor.price} AND c.id &gt; #{cursor.id})
+                    </when>
+                    <when test="sort == 'price_desc'">
+                        c.list_price &lt; #{cursor.price}
+                        OR (c.list_price = #{cursor.price} AND c.id &gt; #{cursor.id})
+                    </when>
+                    <when test="sort == 'rating'">
+                        COALESCE(c.rating, -1) &lt; #{cursor.rating}
+                        OR (COALESCE(c.rating, -1) = #{cursor.rating} AND c.id &gt; #{cursor.id})
+                    </when>
+                    <otherwise>
+                        c.relevance &lt; #{cursor.relevance}
+                        OR (c.relevance = #{cursor.relevance} AND c.display_order &gt; #{cursor.displayOrder})
+                        OR (c.relevance = #{cursor.relevance} AND c.display_order = #{cursor.displayOrder}
+                            AND c.id &gt; #{cursor.id})
+                    </otherwise>
+                </choose>
+            </if>
+        </where>
+        <choose>
+            <when test="sort == 'price_asc'">ORDER BY c.list_price ASC, c.id ASC</when>
+            <when test="sort == 'price_desc'">ORDER BY c.list_price DESC, c.id ASC</when>
+            <when test="sort == 'rating'">ORDER BY COALESCE(c.rating, -1) DESC, c.id ASC</when>
+            <otherwise>ORDER BY c.relevance DESC, c.display_order ASC, c.id ASC</otherwise>
+        </choose>
+        LIMIT #{fetch}
+    </select>
+</mapper>

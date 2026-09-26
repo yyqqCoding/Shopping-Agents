@@ -2,13 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { equipment, equipmentById } from "@/lib/catalog";
+import { liveEquipment, liveEquipmentById } from "@/lib/liveCatalog";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import EquipmentDetail from "@/components/EquipmentDetail";
 import EquipmentCard from "@/components/EquipmentCard";
 
-export function generateStaticParams() {
-  return equipment.map((product) => ({ id: product.product_id }));
-}
+// Price, stock and variants come from the commerce service on every request.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
@@ -25,9 +26,12 @@ export default async function EquipmentDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const product = equipmentById((await params).id);
+  const id = (await params).id;
+  const live = await liveEquipmentById(id);
+  // undefined: the API is unreachable, so the authored record is shown instead.
+  const product = live === undefined ? equipmentById(id) : live;
   if (!product) notFound();
-  const related = equipment
+  const related = ((await liveEquipment()) ?? equipment)
     .filter(
       (item) =>
         item.category === product.category &&

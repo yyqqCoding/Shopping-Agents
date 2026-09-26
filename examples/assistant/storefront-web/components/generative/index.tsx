@@ -5,6 +5,7 @@
 
 import { type GenerativeBlockProps, UnknownBlock } from "web-shared";
 import type {
+  CartPayload,
   CheckoutPayload,
   ComparisonPayload,
   GuidePayload,
@@ -24,8 +25,10 @@ export default function GenerativeBlock({
   block,
   status,
   onAdd,
+  onSubmitted,
 }: GenerativeBlockProps & {
   onAdd?: (product: Product) => boolean | void | Promise<boolean | void>;
+  onSubmitted?: (cart: CartPayload) => void;
 }) {
   const partial = status !== "final";
   switch (block.component) {
@@ -60,7 +63,12 @@ export default function GenerativeBlock({
       return <OrderStatusCard payload={block.payload as OrderStatusPayload} />;
     case "checkout":
       if (partial) return null;
-      return <CheckoutSummary payload={block.payload as CheckoutPayload} />;
+      return (
+        <CheckoutSummary
+          payload={block.payload as CheckoutPayload}
+          onSubmitted={onSubmitted}
+        />
+      );
     default:
       return partial ? null : <UnknownBlock component={block.component} />;
   }

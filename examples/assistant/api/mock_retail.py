@@ -16,10 +16,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from demo_common.persistence import PersistentCarts
 from demo_common.storefront_fixtures import (
     SessionCarts,
-    cart_line,
     example_data_dir,
     find_order,
     find_product,
@@ -169,24 +167,30 @@ FREIGHT_SHIPPING = FulfillmentOption(method="shipping", eta="5–7 个工作日�
 _STORE_OPENS, _STORE_CLOSES = 9, 21
 
 
+def with_evidence(
+    product: ProductDetails,
+    intel: dict[str, Any] | None,
+    reviews: dict[str, Any] | None,
+) -> ProductDetails:
+    """The detail record with its frozen price trend and review aspects added to ``specs``,
+    as the agent's detail tool reads them."""
+    specs = dict(product.specs)
+    if intel:
+        specs[f"模拟价格走势（{product.currency}）"] = ", ".join(
+            str(value) for value in intel["series"]
+        )
+        specs["模拟价格说明"] = intel["verdict"]
+    if reviews:
+        specs["模拟评价摘要"] = "；".join(
+            f"{a['name']}：{a['mentions']} 次提及，其中 {a['positive_pct']}% 为正面"
+            for a in reviews["aspects"]
+        )
+    return product.model_copy(update={"specs": specs})
+
+
 class MockRetail(StorefrontBackend):
-    def __init__(
-        self,
-        data_dir: Path = DATA_DIR,
-        *,
-        cart_store: PersistentCarts | None = None,
-        load_catalog_files: bool = True,
-    ) -> None:
-        # ``SqlRetail`` reuses the cart, policy and fulfillment behavior below while
-        # setting ``load_catalog_files=False``.  That mode is important: a database
-        # deployment must not silently load the catalog into memory and then search it
-        # locally.  The default remains the fixture-backed implementation used by tests
-        # and by developers who run the demo without a database.
-        catalog = {"store_name": "户外装备助手", "currency": "CNY", "products": []}
-        if load_catalog_files:
-            catalog, self.products, self.variants = load_catalog(data_dir)
-        else:
-            self.products, self.variants = {}, {}
+    def __init__(self, data_dir: Path = DATA_DIR) -> None:
+        catalog, self.products, self.variants = load_catalog(data_dir)
         self._search_terms = {
             p["product_id"]: " ".join(p.get("search_terms", [])) for p in catalog["products"]
         }
@@ -195,18 +199,12 @@ class MockRetail(StorefrontBackend):
         }
         evidence_path = data_dir / "evidence.json"
         self._evidence = (
-            (
-                json.loads(evidence_path.read_text(encoding="utf-8"))
-                if evidence_path.exists()
-                else {}
-            )
-            if load_catalog_files
-            else {}
+            json.loads(evidence_path.read_text(encoding="utf-8")) if evidence_path.exists() else {}
         )
         self._legacy_products: dict[str, ProductDetails] = {}
         self._legacy_variants: dict[str, ProductDetails] = {}
         legacy_dir = data_dir / "legacy"
-        if load_catalog_files and (legacy_dir / "catalog.json").exists():
+        if (legacy_dir / "catalog.json").exists():
             _, self._legacy_products, self._legacy_variants = load_catalog(legacy_dir)
             for product in [*self._legacy_products.values(), *self._legacy_variants.values()]:
                 product.in_stock = False
@@ -221,20 +219,14 @@ class MockRetail(StorefrontBackend):
                 )
         self.store_name: str = catalog.get("store_name", "户外装备助手")
         self.currency: str = catalog.get("currency", "USD")
-        policy_data = (
-            json.loads((data_dir / "policies.json").read_text(encoding="utf-8"))
-            if load_catalog_files
-            else {"terms": {}, "policies": []}
-        )
+        policy_data = json.loads((data_dir / "policies.json").read_text(encoding="utf-8"))
         self._terms = policy_data.get("terms", {})
-        self._users = load_users(data_dir) if load_catalog_files else {}
-        self._orders = load_orders(data_dir) if load_catalog_files else []
-        self._policies = load_policies(data_dir) if load_catalog_files else []
+        self._users = load_users(data_dir)
+        self._orders = load_orders(data_dir)
+        self._policies = load_policies(data_dir)
         self._carts = SessionCarts(currency=self.currency)
-        self._cart_store = cart_store
-        if load_catalog_files:
-            self._stamp_delivery_promises()
-            self._stamp_low_stock(data_dir)
+        self._stamp_delivery_promises()
+        self._stamp_low_stock(data_dir)
 
     def _stamp_delivery_promises(self) -> None:
         """A policy-aligned estimate that does not expire during a long-running demo."""
@@ -397,18 +389,9 @@ class MockRetail(StorefrontBackend):
         product = self.product(product_id)
         if product is None:
             return None
-        specs = dict(product.specs)
-        if intel := self.price_intelligence(product_id):
-            specs[f"模拟价格走势（{product.currency}）"] = ", ".join(
-                str(value) for value in intel["series"]
-            )
-            specs["模拟价格说明"] = intel["verdict"]
-        if reviews := self.review_aspects(product_id):
-            specs["模拟评价摘要"] = "；".join(
-                f"{a['name']}：{a['mentions']} 次提及，其中 {a['positive_pct']}% 为正面"
-                for a in reviews["aspects"]
-            )
-        return product.model_copy(update={"specs": specs})
+        return with_evidence(
+            product, self.price_intelligence(product_id), self.review_aspects(product_id)
+        )
 
     def price_intelligence(self, product_id: str) -> dict[str, Any] | None:
         """A 90-day price series derived from the product id, ending at today's price,
@@ -479,8 +462,6 @@ class MockRetail(StorefrontBackend):
     # ------------------------------------------------------------------
 
     async def get_cart(self, session: ShoppingSessionContext) -> Cart:
-        if self._cart_store is not None:
-            return self._annotate_cart(await self._cart_store.get(session))
         return self._annotate_cart(self._carts.cart(session.session_id))
 
     def _annotate_cart(self, cart: Cart) -> Cart:
@@ -518,15 +499,6 @@ class MockRetail(StorefrontBackend):
             raise NotOffered(
                 "这份购物车包含旧币种商品。请先移除旧商品，或新建对话后添加人民币装备。"
             )
-        if self._cart_store is not None:
-            result = await self._cart_store.change(
-                session,
-                "add",
-                cart_line(product, quantity).model_dump(mode="json")
-                | {"currency": product.currency},
-                quantity,
-            )
-            return self._annotate_cart(result)
         existing = self._carts.lines(session.session_id).get(product_id)
         quantity += existing.quantity if existing else 0
         return self._annotate_cart(self._carts.put(session.session_id, product, quantity))
@@ -534,20 +506,6 @@ class MockRetail(StorefrontBackend):
     async def update_cart_item(
         self, session: ShoppingSessionContext, product_id: str, quantity: int
     ) -> Cart:
-        if self._cart_store is not None:
-            product = self.product(product_id)
-            if product is None:
-                raise KeyError(product_id)
-            if not product.in_stock:
-                raise Unavailable(unavailable_detail(product, self.listing_of(product_id)))
-            result = await self._cart_store.change(
-                session,
-                "set",
-                cart_line(product, quantity).model_dump(mode="json")
-                | {"currency": product.currency},
-                quantity,
-            )
-            return self._annotate_cart(result)
         product = self.product(product_id)
         if product is None or not product.in_stock:
             raise Unavailable("商品已下架或缺货，只能移除。")
@@ -556,9 +514,6 @@ class MockRetail(StorefrontBackend):
         )
 
     async def remove_from_cart(self, session: ShoppingSessionContext, product_id: str) -> Cart:
-        if self._cart_store is not None:
-            result = await self._cart_store.change(session, "remove", {"product_id": product_id}, 0)
-            return self._annotate_cart(result)
         return self._annotate_cart(self._carts.remove(session.session_id, product_id))
 
     async def checkout_handoff(

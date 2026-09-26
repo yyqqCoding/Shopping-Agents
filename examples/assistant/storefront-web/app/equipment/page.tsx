@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { equipment, categories } from "@/lib/catalog";
+import { liveEquipment } from "@/lib/liveCatalog";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import EquipmentBrowser from "@/components/EquipmentBrowser";
 
@@ -7,7 +8,11 @@ export const metadata: Metadata = {
   title: "装备目录 · 户外装备助手",
   description: "浏览徒步、露营与轻量出行装备，从用途和参数找到适合你的选择。",
 };
-export default function EquipmentPage() {
+// Price and stock come from the commerce service on every request.
+export const dynamic = "force-dynamic";
+
+export default async function EquipmentPage() {
+  const products = (await liveEquipment()) ?? equipment;
   return (
     <>
       <SiteHeader active="equipment" />
@@ -25,7 +30,7 @@ export default function EquipmentPage() {
           </p>
         </div>
         <EquipmentBrowser
-          initialProducts={equipment.map(
+          initialProducts={products.map(
             ({
               product_id,
               title,

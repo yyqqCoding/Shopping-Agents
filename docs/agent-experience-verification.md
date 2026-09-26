@@ -42,6 +42,6 @@ Python 检查使用已有 Windows Python 3.11，Node 检查使用 Linux Node 22.
 
 ## 部署验收
 
-常规更新使用 `git pull --ff-only origin main && bash scripts/deploy.sh`，沿用现有 `.env`。侧栏个人资料更新无需新增迁移。首次从旧商品版本升级且未完成 `002` 时，按 [户外版本升级](deployment.md#户外版本升级) 操作；已有迁移不重复执行，商品 JSON 随源码更新。
+常规更新使用 `git pull --ff-only origin main && bash scripts/deploy.sh`，沿用现有 `.env`。侧栏个人资料更新无需新增迁移。切换到订单服务按 [切换到订单服务](deployment.md#切换到订单服务) 操作；已有迁移不重复执行，商品 JSON 随源码更新，由订单服务导入。
 
-真实环境专项验收范围见 [部署验收](deployment.md#部署验收)，包括购物车币种、历史、匿名隔离、长期偏好、长对话、断流和重启恢复。用户确认当前体验测试通过；真实数据库事务检查仍与页面体验验收分开记录。沿用线上 Supabase 项目时，不同时启动本地和线上 API。数据库事务检查只能使用 [独立测试项目](../supabase/README.md#transaction-verification)。
+真实环境专项验收范围见 [部署验收](deployment.md#部署验收)，包括订单提交与库存、历史、匿名隔离、长期偏好、长对话、断流和重启恢复。用户确认当前体验测试通过；真实数据库事务检查仍与页面体验验收分开记录。沿用线上 Supabase 项目时，不同时启动本地和线上 API。数据库事务检查只能使用 [独立测试项目](../supabase/README.md#transaction-verification)。

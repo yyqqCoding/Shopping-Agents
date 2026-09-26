@@ -11,14 +11,15 @@ Messages API runtime, the skills, and a runnable demo.
 - `shopping-agent/runtime-messages-api/`: `ShoppingAgent`, the turn loop on the Messages API.
 - `shopping-agent/skills/`: the flows, one `SKILL.md` each.
 - `examples/demo_common/` and `examples/web-shared/`: what the demo's API and web app share; `examples/` is the npm workspace.
-- `demo_common/experience.py`, `persistence.py`, `supabase.py`: anonymous identity, owned conversations, durable turns, carts and memory jobs. `web-shared/identity.ts` and `Conversations.tsx` handle browser identity and conversation history.
-- `examples/assistant/`: the outdoor equipment agent over a fictional CNY catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004. `/` is the scrolling welcome page; `/equipment` and `/equipment/[id]` provide public browsing; `/chat` hosts conversations. `data/legacy/` preserves retired catalog records for old conversations. `api/sql_retail.py` is the PostgreSQL catalog adapter; `scripts/import_catalog.py` imports authored JSON into `catalog_*` tables after `supabase/migrations/003_catalog.sql`.
+- `demo_common/experience.py`, `persistence.py`, `supabase.py`: anonymous identity, owned conversations, durable turns and memory jobs. `web-shared/identity.ts` and `Conversations.tsx` handle browser identity and conversation history.
+- `examples/assistant/`: the outdoor equipment agent over a fictional CNY catalog — `api/`, `data/`, `storefront-web/`; ports 8004 and 3004. `/` is the scrolling welcome page; `/equipment` and `/equipment/[id]` provide public browsing; `/chat` hosts conversations. `data/legacy/` preserves retired catalog records for old conversations. `api/java_retail.py` is the `StorefrontBackend` over the commerce service and `POST /api/orders` forwards the checkout card's submit button; `api/mock_retail.py` serves the fixtures.
 - `storefront-web/components/VisitorProfile.tsx` owns the sidebar profile menu and browser-local display preferences, scoped to the existing anonymous identity.
-- `storefront-web/components/landing/LandingPage.tsx`, `landing/motion/useUnpackMotion.ts` and `app/landing.css` own the desktop homepage: one pinned scroll sequence takes the visitor from the backpack hero through four category chapters with multiple transparent product variants and focused product information. Homepage navigation and footer are local to this component. `SiteChrome.tsx` and `app/redesign.css` remain shared by the catalog and conversation surfaces. `storefront-web/DESIGN.md` records the visual system. `lib/catalog.ts` reads the authored public catalog; `lib/navigation.ts` creates draft-only chat links. `EquipmentBrowser.tsx`, `EquipmentCard.tsx` and `EquipmentDetail.tsx` serve `/equipment` and `/equipment/[id]`.
+- `storefront-web/components/landing/LandingPage.tsx`, `landing/motion/useUnpackMotion.ts` and `app/landing.css` own the desktop homepage: one pinned scroll sequence takes the visitor from the backpack hero through four category chapters with multiple transparent product variants and focused product information. Homepage navigation and footer are local to this component. `SiteChrome.tsx` and `app/redesign.css` remain shared by the catalog and conversation surfaces. `storefront-web/DESIGN.md` records the visual system. `lib/liveCatalog.ts` reads live price and stock for the equipment pages, falling back to the authored catalog in `lib/catalog.ts`; `lib/navigation.ts` creates draft-only chat links. `EquipmentBrowser.tsx`, `EquipmentCard.tsx` and `EquipmentDetail.tsx` serve `/equipment` and `/equipment/[id]`.
 - `storefront-web/components/landing/BackpackReveal.tsx` renders the homepage backpack cutaway with paired packed textures, a bounded pointer trail and static fallback. Local ripple feedback and refraction live in `components/landing/motion/backpackWater.ts`; registered lid and flank cutaways preserve exterior attachments.
 - `storefront-web/public/images/` contains generated scene photography; `public/products/generated/` contains product photography. Image prompts and provenance live in `examples/assistant/data/*image*.json`. Self-hosted headline typography and its license live in `public/fonts/`.
-- `supabase/migrations/`: service-only tables and transactional RPCs. `deploy/`: single-worker containers and HTTPS/SSE proxy; `check_database.py` checks cart migration readiness without starting the API.
-- `docs/`: `safety.md`, `backends.md`, `deployment.md`, `agent-experience-design.md`. `scripts/`: install, demo, smoke, verify; `deploy.sh` builds and replaces the deployment from the current checkout; `outdoor_catalog.py` defines outdoor equipment and `prepare_catalog.py` freezes the catalog, evidence and image requests.
+- `commerce-service/`: the Java order system (Spring Boot, MyBatis-Plus, Flyway, MySQL) — catalog, live stock, per-conversation carts and orders; submitting takes stock in one transaction. Design and tables: `docs/commerce-service-design.md`.
+- `supabase/migrations/`: service-only tables and transactional RPCs. `deploy/`: single-worker containers and HTTPS/SSE proxy; `check_database.py` checks Supabase and the commerce service without starting the API. `deploy/commerce/`: the commerce server's MySQL and service containers.
+- `docs/`: `safety.md`, `backends.md`, `deployment.md`, `agent-experience-design.md`, `commerce-service-design.md`. `scripts/`: install, demo, smoke, verify; `deploy.sh` builds and replaces the deployment from the current checkout; `deploy_commerce.sh` builds, imports and starts the commerce service, or runs its MySQL tests; `outdoor_catalog.py` defines outdoor equipment and `prepare_catalog.py` freezes the catalog, evidence and image requests.
 - Tests live in each package's `tests/` plus `examples/demo_common/tests/` and `examples/assistant/api/tests/`.
 
 `requirements.txt` installs the three packages and their pinned dependencies
@@ -29,7 +30,7 @@ Messages API runtime, the skills, and a runnable demo.
 - One model owns the conversation; a rule goes in a tool description, the prompt, or a skill by how often it applies.
 - The static prompt and `tools[]` are the same bytes on every turn; per-request data goes in the fenced block after the breakpoint.
 - UI is presentation tool calls, validated and filled in on the server, streamed as `ui` events.
-- Third-party content is fenced data; writes are provenance-gated and capped in code; `checkout` charges nothing.
+- Third-party content is fenced data; writes are provenance-gated and capped in code; `checkout` charges nothing, and only the customer's button places an order.
 - Core is domain-neutral; a deployment adds UI through `PresentationExtension` and keeps the rest to itself.
 - Each mechanism is defined once, in `commerce_common` or the core, and shared by the runtime and the demo.
 
@@ -57,6 +58,7 @@ Frontend-only visual work does not run tests unless requested. The repository ha
 ```bash
 ruff check . && ruff format --check . && pytest
 python scripts/verify_all.py          # adds catalog validation, Node tests and the web build
+cd commerce-service && ./mvnw test   # Java unit tests; MySQL tests run via scripts/deploy_commerce.sh --test
 ```
 
 `components/landing/HeroWater.tsx` owns the first-screen pointer wave field, background trail and local headline/contour displacement. It stops on scroll, pause, blur and reduced motion.

@@ -1,0 +1,13 @@
+[mysqld]
+# Sized for a 2 GB server shared with the commerce service.
+innodb_buffer_pool_size = 128M
+innodb_log_buffer_size = 8M
+performance_schema = OFF
+max_connections = 30
+table_open_cache = 200
+skip-name-resolve
+# A submission waits at most this long for a stock row another order holds.
+innodb_lock_wait_timeout = 5
+default-time-zone = '+00:00'
+character-set-server = utf8mb4
+collation-server = utf8mb4_0900_ai_ci

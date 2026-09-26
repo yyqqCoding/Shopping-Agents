@@ -8,12 +8,7 @@ import httpx
 import pytest
 from fastapi import HTTPException
 
-from demo_common.persistence import (
-    CART_OPERATION,
-    ConversationStore,
-    PersistentCarts,
-    SupabaseMemoryStore,
-)
+from demo_common.persistence import ConversationStore, SupabaseMemoryStore
 from demo_common.supabase import (
     QuotaExceeded,
     RecordNotFound,
@@ -23,7 +18,6 @@ from demo_common.supabase import (
     SupabaseSettings,
 )
 from demo_common.tests.experience_fixtures import USER_A, USER_B
-from shopping_agent import ShoppingSessionContext
 
 SETTINGS = SupabaseSettings("https://identity.example.test", "public-test", "service-test")
 
@@ -88,7 +82,7 @@ async def test_rpc_maps_database_errors_without_exposing_rows_or_secrets(code, e
         )
 
 
-async def test_cart_retry_reuses_the_operation_and_returns_the_committed_cart(monkeypatch):
+async def test_idempotent_rpc_retries_the_same_request_after_a_lost_response(monkeypatch):
     requests = []
 
     def respond(request):
@@ -97,24 +91,15 @@ async def test_cart_retry_reuses_the_operation_and_returns_the_committed_cart(mo
         assert request.headers["apikey"] == SETTINGS.service_key
         if len(requests) == 1:
             raise httpx.ReadTimeout("Response lost after commit")
-        return httpx.Response(200, json={"items": [], "currency": "USD"})
+        return httpx.Response(200, json={"ok": True})
 
     monkeypatch.setattr("demo_common.supabase.asyncio.sleep", AsyncMock())
     async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
-        carts = PersistentCarts(Supabase(SETTINGS, client))
-        version = CART_OPERATION.set("00000000-0000-4000-8000-000000000009")
-        try:
-            await carts.change(
-                ShoppingSessionContext(session_id=USER_B, user_id=USER_A),
-                "add",
-                {"product_id": "AR-1001"},
-                1,
-            )
-        finally:
-            CART_OPERATION.reset(version)
+        result = await Supabase(SETTINGS, client).rpc_idempotent(
+            "experience_begin_turn", p_user_id=USER_A, p_id=USER_B
+        )
+    assert result == {"ok": True}
     assert len(requests) == 2 and requests[0] == requests[1]
-    assert requests[0]["p_operation"].endswith("0009")
-    assert requests[0]["p_user_id"] == USER_A and requests[0]["p_id"] == USER_B
 
 
 async def test_conditional_memory_write_sends_captured_version_and_reports_only_accepted_facts():

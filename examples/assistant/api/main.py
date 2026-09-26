@@ -1,13 +1,13 @@
 # Copyright 2026 Anthropic PBC
 # SPDX-License-Identifier: Apache-2.0
 
-"""The assistant API: the full shopping agent over the mock catalog in ``data/``,
-hosted for a chat-only page.
+"""The assistant API: the full shopping agent, hosted for the chat and equipment pages.
 
     uvicorn assistant.api.main:app --app-dir examples --port 8004
 
-Supabase verifies anonymous visitors and stores conversations, carts and memory.
-Product fixtures and existing photos remain in data/ and the web app's public/products.
+Supabase verifies anonymous visitors and stores conversations and memory. The catalog,
+stock, carts and orders come from the Java commerce service when ``CATALOG_BACKEND=java``
+(``java_retail.py``), or from the fixtures in data/ through ``mock_retail.py``.
 """
 
 from __future__ import annotations
@@ -16,7 +16,9 @@ import os
 from typing import cast
 from uuid import UUID
 
-from pydantic import ConfigDict
+import httpx
+from fastapi import HTTPException
+from pydantic import BaseModel, ConfigDict, Field
 
 from commerce_common.config import ThinkingEffort
 from demo_common import (
@@ -25,18 +27,14 @@ from demo_common import (
     load_demo_env,
 )
 from demo_common.experience import build_experience_host
-from demo_common.persistence import (
-    CART_OPERATION,
-    ConversationStore,
-    PersistentCarts,
-    SupabaseMemoryStore,
-)
+from demo_common.persistence import ConversationStore, SupabaseMemoryStore
 from demo_common.supabase import Supabase, SupabaseSettings
-from shopping_agent import ProductDetails, ShoppingAgentConfig
+from shopping_agent import Cart, ProductDetails, ShoppingAgentConfig
+from shopping_agent.serialization import cart_payload
 from shopping_agent_runtime import ShoppingAgent
 
+from .java_retail import CommerceError, JavaRetail
 from .mock_retail import MockRetail
-from .sql_retail import SqlRetail
 
 EXAMPLE_ROOT = REPO_ROOT / "examples" / "assistant"
 DATA_DIR = EXAMPLE_ROOT / "data"
@@ -82,7 +80,7 @@ def build_config() -> ShoppingAgentConfig:
             "AR 开头的旧商品已下架，仅可查看或移除。"
         ),
         product_id_patterns=(r"(?<![A-Z0-9_-])(?:OD|AR)-\d{4}(?:-[A-Z0-9]+)*(?![A-Z0-9_-])",),
-        enable_orders=False,
+        enable_orders=True,
         model=os.environ.get("SHOPPING_MODEL") or defaults.model,
         memory_model=os.environ.get("SHOPPING_MEMORY_MODEL") or defaults.memory_model,
         context_window_tokens=int(os.environ.get("SHOPPING_CONTEXT_WINDOW_TOKENS", "131072")),
@@ -109,16 +107,15 @@ def build_config() -> ShoppingAgentConfig:
 
 
 database = Supabase(SupabaseSettings.from_env())
-_catalog_backend = os.environ.get("CATALOG_BACKEND", "").strip().lower()
-if _catalog_backend not in {"json", "sql"}:
-    # A configured Supabase deployment uses SQL by default.  Local contributors can
-    # still run the fixture demo without setting database credentials explicitly.
-    _catalog_backend = "sql" if database.settings.configured else "json"
-_cart_store = PersistentCarts(database, require_currency_schema=True)
-backend = (
-    SqlRetail(database, cart_store=_cart_store)
-    if _catalog_backend == "sql"
-    else MockRetail(cart_store=_cart_store)
+# "java" uses the commerce service; "json" (the default without a service URL) runs the
+# fixtures in-process with carts in memory, for local work and the tests.
+_catalog_backend = os.environ.get("CATALOG_BACKEND", "").strip().lower() or (
+    "java" if os.environ.get("COMMERCE_SERVICE_URL") else "json"
+)
+if _catalog_backend not in {"json", "java"}:
+    raise ValueError("CATALOG_BACKEND must be json or java")
+backend: JavaRetail | MockRetail = (
+    JavaRetail.from_env() if _catalog_backend == "java" else MockRetail()
 )
 agent = ShoppingAgent(
     backend=backend,
@@ -148,17 +145,61 @@ app = host.app
 
 class DirectCartAdd(CartAddRequest):
     model_config = ConfigDict(extra="forbid")
-    request_id: UUID
+    request_id: UUID  # identifies the tap in the web app's retry logic
 
 
 @app.post("/api/cart/add")
 async def cart_add(request: DirectCartAdd, record: host.CurrentSession) -> dict:
-    token = CART_OPERATION.set(str(request.request_id))
+    return await host.direct_add(
+        record,
+        request,
+        note="Customer tapped the add-to-cart button on {title} ({product_id}), quantity {quantity}.",
+    )
+
+
+class OrderLine(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    product_id: str = Field(min_length=1, max_length=80)
+    quantity: int = Field(ge=1, le=24)
+
+
+class SubmitOrder(BaseModel):
+    """The checkout card's lines, and the id its button reuses when it retries."""
+
+    model_config = ConfigDict(extra="forbid")
+    request_id: UUID
+    lines: list[OrderLine] = Field(min_length=1, max_length=100)
+
+
+# Refusals the card shows as they are; anything else reads as the service being down.
+_ORDER_REFUSALS = {"OUT_OF_STOCK", "CART_CHANGED", "CART_EMPTY"}
+
+
+@app.post("/api/orders")
+async def submit_order(request: SubmitOrder, record: host.CurrentSession) -> dict:
+    """The checkout card's submit button. The customer places the order here; the model
+    has no tool that does. The next turn is told the order was placed."""
+    if not isinstance(backend, JavaRetail):
+        raise HTTPException(409, "当前为本地演示目录，未连接订单服务，无法提交订单。")
+    host.rate_limit(f"order:{record.user_id}", 12)
     try:
-        return await host.direct_add(
-            record,
-            request,
-            note="Customer tapped the add-to-cart button on {title} ({product_id}), quantity {quantity}.",
+        order = await backend.submit_order(
+            host.context(record),
+            [(line.product_id, line.quantity) for line in request.lines],
+            str(request.request_id),
         )
-    finally:
-        CART_OPERATION.reset(token)
+    except CommerceError as error:
+        if error.code in _ORDER_REFUSALS:
+            raise HTTPException(409, error.detail[:120]) from None
+        raise HTTPException(503, "订单服务暂时不可用，请稍后重试。") from None
+    except httpx.HTTPError:
+        raise HTTPException(503, "订单服务暂时不可用，请稍后重试。") from None
+    count = sum(item.quantity for item in order.items)
+    record.pending_app_events.append(
+        f"Customer submitted order {order.order_id} ({count} item(s)) from the checkout card; "
+        "the stock is taken and the cart is now empty."
+    )
+    return {
+        "order": order.model_dump(mode="json"),
+        "cart": cart_payload(Cart(currency=order.currency)),
+    }

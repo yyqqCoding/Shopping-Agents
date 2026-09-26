@@ -1,0 +1,100 @@
+# The order system on its own server: MySQL and the Java commerce service.
+# Run from the repository root:
+#   docker compose --env-file deploy/commerce/.env -f deploy/commerce/compose.yaml ...
+# scripts/deploy_commerce.sh wraps the usual sequence.
+name: commerce
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: commerce
+      MYSQL_USER: commerce
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql.cnf:/etc/mysql/conf.d/commerce.cnf:ro
+    # No ports: only the commerce service reaches MySQL.
+    mem_limit: 512m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  commerce:
+    build:
+      context: ../..
+      dockerfile: deploy/commerce/commerce.Dockerfile
+    environment:
+      COMMERCE_DB_URL: "jdbc:mysql://mysql:3306/commerce?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true&allowPublicKeyRetrieval=true"
+      COMMERCE_DB_USER: commerce
+      COMMERCE_DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD}
+      COMMERCE_SERVICE_TOKEN: ${COMMERCE_SERVICE_TOKEN:?Set COMMERCE_SERVICE_TOKEN}
+      COMMERCE_LOG_LEVEL: ${COMMERCE_LOG_LEVEL:-DEBUG}
+    # Published on the private address only; the security group admits the agent server.
+    ports:
+      - "${COMMERCE_BIND_IP:?Set COMMERCE_BIND_IP}:8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    mem_limit: 512m
+    restart: unless-stopped
+    stop_grace_period: 20s
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '\"ok\":true' <&3"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # -- docker compose ... --profile test run --rm commerce-test
+  # A throwaway MySQL in memory and the full Maven test run against it.
+  mysql-test:
+    image: mysql:8.4
+    profiles: [test]
+    environment:
+      MYSQL_DATABASE: commerce_test
+      MYSQL_ROOT_PASSWORD: test
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      - ./mysql.cnf:/etc/mysql/conf.d/commerce.cnf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -ptest --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+
+  commerce-test:
+    image: maven:3.9.9-eclipse-temurin-17
+    profiles: [test]
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    environment:
+      MAVEN_OPTS: -Xmx384m
+      COMMERCE_TEST_DB_URL: "jdbc:mysql://mysql-test:3306/commerce_test?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true&allowPublicKeyRetrieval=true"
+      COMMERCE_TEST_DB_USER: root
+      COMMERCE_TEST_DB_PASSWORD: test
+    volumes:
+      - ../../commerce-service:/src/commerce-service:ro
+      - ../../examples/assistant/data:/src/examples/assistant/data:ro
+      - maven_cache:/root/.m2
+    # Copy the sources so the build writes nothing into the checkout.
+    command: ["bash", "-c", "cp -r /src /work && cd /work/commerce-service && mvn -B test"]
+
+networks:
+  default:
+    ipam:
+      config:
+        # Fixed and outside 172.16.0.0/12, so it never covers the agent server's subnet.
+        - subnet: 192.168.240.0/24
+
+volumes:
+  mysql_data:
+  maven_cache:

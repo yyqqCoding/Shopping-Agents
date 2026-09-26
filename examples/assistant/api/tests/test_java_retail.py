@@ -5,7 +5,10 @@ from uuid import uuid4
 
 import httpx
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
+from demo_common.storefront import install_catalog_routes
 from shopping_agent import SearchFilters, ShoppingSessionContext, Unavailable
 from shopping_agent_runtime import ShoppingAgent
 
@@ -88,6 +91,25 @@ async def test_details_carry_the_evidence_into_specs_and_unknown_ids_are_none():
     assert details.specs["模拟价格说明"] == "处于常规区间"
     assert backend.price_intelligence("OD-1001") == evidence["price_intelligence"]
     assert await backend.get_product_details(SESSION, "OD-9999") is None
+
+
+def test_the_equipment_routes_list_and_read_through_the_service():
+    def handler(request):
+        if request.url.path == "/internal/v1/catalog/products":
+            return 200, {"products": [PRODUCT], "has_more": False, "total": 1}
+        if request.url.path.endswith("/OD-1001"):
+            return 200, PRODUCT | {"specs": {"重量": "1850 g"}}
+        return 404, problem("NOT_FOUND", "未找到这件商品")
+
+    backend, requests = service(handler)
+    app = FastAPI()
+    install_catalog_routes(app, backend)
+    client = TestClient(app)
+    listing = client.get("/api/products", params={"category": "outdoor-shelter"}).json()
+    assert [p["product_id"] for p in listing["products"]] == ["OD-1001"]
+    assert requests[0].url.params["category"] == "outdoor-shelter"
+    assert client.get("/api/products/OD-1001").json()["specs"] == {"重量": "1850 g"}
+    assert client.get("/api/products/OD-9999").status_code == 404
 
 
 @pytest.mark.anyio

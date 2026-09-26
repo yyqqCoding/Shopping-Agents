@@ -168,7 +168,10 @@ def install_catalog_routes(
     product_of: Callable[[str], ProductDetails | None] | None = None,
     product_detail: Callable[[ProductDetails], dict[str, Any]] | None = None,
 ) -> None:
-    read_product = product_of or backend.product
+    # A backend over a catalog service lists a page with live stock and reads details there;
+    # the fixture backend lists and reads from memory, and only it has ``product``.
+    list_from_service = getattr(backend, "list_products", None)
+    read_product = product_of or getattr(backend, "product", None)
     detail_of = product_detail or (lambda product: product.model_dump())
 
     @app.get("/api/products")
@@ -177,9 +180,6 @@ def install_catalog_routes(
         limit: int = Query(24, ge=1, le=100),
         offset: int = Query(0, ge=0),
     ) -> dict:
-        # A backend over a catalog service lists a page with live stock; the fixture
-        # backend lists from memory.
-        list_from_service = getattr(backend, "list_products", None)
         if list_from_service is not None:
             page = await list_from_service(category, limit, offset)
             return {
@@ -202,8 +202,7 @@ def install_catalog_routes(
 
     @app.get("/api/products/{product_id:path}")
     async def get_product(product_id: str) -> dict:
-        # A backend that lists through a service (``list_products``) reads details there too.
-        if getattr(backend, "list_products", None) is not None:
+        if list_from_service is not None:
             product = await backend.get_product_details(None, product_id)
             if product is None:
                 raise HTTPException(status_code=404, detail="未找到这件商品。")

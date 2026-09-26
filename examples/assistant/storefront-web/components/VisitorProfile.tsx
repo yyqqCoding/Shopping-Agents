@@ -161,7 +161,7 @@ export default function VisitorProfile({ profile, ready, save }: ReturnType<type
           {section === "about" ? <div className="visitor-copy">
             <div className="visitor-about-mark"><Avatar value="mountain" /><strong>户外装备助手</strong></div>
             <p>一个陪你挑选徒步、露营与轻量出行装备的购物 Agent。通过对话了解需求，检索商品、解释差异，并协助整理出行装备。</p>
-            <p>打开即可体验。商品、价格与评价均为虚构演示数据，结算不会创建真实订单或产生扣款。</p>
+            <p>打开即可体验。商品、价格与评价均为虚构演示数据；点击“提交订单”会创建订单并扣减库存，但不会扣款或发货。</p>
           </div> : null}
         </div>
       </dialog>

@@ -22,7 +22,7 @@ python scripts/run_demo.py --no-install     # API :8004，页面 :3004
 - `app/equipment/page.tsx` 与 `app/equipment/[id]/page.tsx` 提供装备目录和详情。两页在每次请求时通过 `lib/liveCatalog.ts` 读取 API 的实时价格与库存，API 不可达时显示 `lib/catalog.ts` 的公开固化数据；`EquipmentBrowser.tsx` 提供搜索、分类与排序，`EquipmentCard.tsx` 和 `EquipmentDetail.tsx` 展示商品。公开目录可在匿名会话建立前浏览。
 - `app/chat/page.tsx` 使用左侧对话导航、聊天区和购物车入口。`lib/navigation.ts` 将行程或商品问题作为草稿带入聊天，用户点击发送后才请求 Agent。`web-shared/storefront/Shell.tsx` 管理桌面折叠、移动端弹窗与输入框草稿。
 - `storefront-web/components/OutdoorMark.tsx` 与 `EquipmentIllustration.tsx` 提供原创 SVG 标识和八类装备插画。
-- `app/memory/page.tsx` 与 `memory.css` 提供主题文件编辑、模式设置、整理进度与取消、审阅提案和 Agent 快照；`components/MemoryStatus.tsx` 在聊天页显示记忆更新与整理状态。
+- `app/memory/page.tsx` 与 `memory.css` 提供独立的主题文件编辑、模式设置、整理进度与取消、审阅提案和 Agent 快照管理页面；购物聊天页不展示入口或记忆状态。
 - `storefront-web/components/VisitorProfile.tsx` 提供侧栏头像、昵称及个人资料、使用说明、关于体验三个菜单入口。展示资料按匿名身份保存在当前浏览器，桌面、移动端与同源标签页共享；不修改对话身份或长期偏好。
 - `storefront-web/public/products/` 保留旧商品照片供历史查看，来源见目录中的 `IMAGE-CREDITS.md`。`public/products/generated/` 保存户外商品摄影，尺码变体共享主商品图片。`data/generated-image-prompts.json` 保存逐款生成提示词；`data/image-prompts.json` 保存目录要求。
 - `public/images/` 保存历史场景素材与首页通用图片，`data/scene-image-prompts.json` 记录保留的场景来源。`public/fonts/` 保存自托管中文标题字体及开放字体许可证，服务器构建无需下载字体。

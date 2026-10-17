@@ -18,7 +18,6 @@ import CartPanel from "@/components/CartPanel";
 import Chat from "@/components/Chat";
 import HomeView from "@/components/HomeView";
 import OutdoorMark from "@/components/OutdoorMark";
-import MemoryStatus from "@/components/MemoryStatus";
 import VisitorProfile, { useVisitorProfile } from "@/components/VisitorProfile";
 import { api, UNREACHABLE } from "@/lib/api";
 import type { CartPayload, CheckoutPayload } from "@/lib/types";
@@ -139,12 +138,9 @@ export default function AssistantPage() {
       assistantName={ASSISTANT}
       composerPrefill={composerPrefill}
       headerActions={
-        <>
-        <MemoryStatus ready={Boolean(session.sessionId)} completed={chat.completed} />
         <Link href="/equipment" className="workspace-catalog-link">
           逛逛装备 <span aria-hidden="true">↗</span>
         </Link>
-        </>
       }
       sidebar={(onNavigate) => (
         <Conversations

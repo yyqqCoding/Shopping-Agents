@@ -4,6 +4,8 @@
 
 本次完整迁移仓库中 `claude code/Claude-Code` 的个人长期记忆机制。保留文件组织、记忆类型、读写规则、相关性选择、异步预取、后台增量提取、缓存复用、Dream 整理、历史回查、管理入口、日记模式、独立 Agent 记忆及快照。实现顺序不代表功能删减或延后交付。
 
+购物聊天页不展示记忆管理入口、整理状态或更新提示，也不轮询记忆任务状态。记忆读写和整理在后台运行；独立的 `/memory` 管理页面保留，不放入顾客导航。
+
 用户已明确不需要团队记忆。团队目录、共享索引、组织身份、团队云同步及其专用扫描与同步界面不在范围内，不保留待接入的团队服务任务。
 
 长期记忆继续使用本地文件，不引入 PostgreSQL、向量数据库、embedding、额外关键词排序或新的记忆算法。原始对话继续使用 JSONL，长期记忆使用 Markdown，任务游标、设置和删除版本使用 JSON。身份、持久卷和短期记忆沿用 [本地会话与记忆设计](local-memory-design.md)。
@@ -283,7 +285,7 @@ Dream 提供状态详情与取消操作；日记模式和 Agent 快照提供实�
 | 日记追加与日期检查 | `TopicMemorySession`、`LocalTopicMemoryStore.write`、`ExperienceHost._daily_memory_loop` |
 | Agent 作用域、已配置 Agent 点名路由与快照 | `MemorySettings.agents`、`TopicMemoryEngine.namespace_for_query`、`LocalTopicMemoryStore.snapshot` |
 | 文件管理、提案审批、设置和任务接口 | `demo_common/memory_routes.py`、`memory_jobs.py` |
-| 管理页面与更新状态 | `storefront-web/app/memory/`、`components/MemoryStatus.tsx` |
+| 独立管理页面 | `storefront-web/app/memory/`；顾客聊天页不展示入口或更新状态 |
 
 旧的全量事实注入、关键词召回及三类事实提取在体验站部署中已被主题文件链路替换；旧事实适配器仅服务其他既有集成。个人指导位于独立指令层，不混入主题索引。后台提取与自动整理默认开启，自动预取默认关闭并使用索引模式；它们均可在管理页面切换。
 

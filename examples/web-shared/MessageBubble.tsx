@@ -2,23 +2,24 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Markdown } from "./Markdown";
+import { memo } from "react";
 
-export function UserBubble({ text }: { text: string }) {
+export const UserBubble = memo(function UserBubble({ text }: { text: string }) {
   return (
     <div className="flex justify-end">
       <div className="user-bubble max-w-[88%] px-5 py-3 text-[17px] leading-relaxed sm:max-w-[78%] sm:text-[18px]">{text}</div>
     </div>
   );
-}
+});
 
-export function AssistantText({ text, streaming }: { text: string; streaming?: boolean }) {
+export const AssistantText = memo(function AssistantText({ text, streaming }: { text: string; streaming?: boolean }) {
   if (!text && !streaming) return null;
   return (
     <div className={`leading-relaxed text-(--ink) ${streaming ? "streaming-caret" : ""}`}>
       <Markdown text={text} />
     </div>
   );
-}
+});
 
 export function ErrorBubble({ text }: { text: string }) {
   return (

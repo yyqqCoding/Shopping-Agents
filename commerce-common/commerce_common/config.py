@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .fencing import MAX_FENCED_CHARS
 
@@ -68,6 +68,8 @@ class BaseAgentConfig(BaseModel):
     memory_tier_one_cap: int = Field(default=8, ge=0)
     memory_blocked_patterns: tuple[str, ...] = ()
     memory_retention_days: int | None = Field(default=None, ge=1)
+    memory_selector_model: str | None = None
+    memory_dream_max_turns: int = Field(default=30, ge=5, le=100)
 
     # -- Caps: the backend's per-request context payload (replaced by a note when over),
     # search results per call (the model's limit is clamped to it), characters per fenced
@@ -90,7 +92,41 @@ class BaseAgentConfig(BaseModel):
     context_window_tokens: int = Field(default=131072, ge=8192)
     context_reserve_tokens: int = Field(default=4096, ge=1024)
     context_recent_turns: int = Field(default=4, ge=1, le=20)
-    context_summary_timeout_s: float = Field(default=25.0, gt=0)
+    context_summary_timeout_s: float = Field(default=120.0, gt=0)
+    model_max_output_tokens: int = Field(default=20000, ge=1)
+    usage_input_includes_cache: bool = False
+    session_note_init_tokens: int = Field(default=10000, ge=1)
+    session_note_growth_tokens: int = Field(default=5000, ge=1)
+    session_note_tool_calls: int = Field(default=3, ge=1)
+    session_note_keep_min_tokens: int = Field(default=10000, ge=1)
+    session_note_keep_min_text_messages: int = Field(default=5, ge=1)
+    session_note_keep_max_tokens: int = Field(default=40000, ge=1)
+    time_based_microcompact: bool = False
+    microcompact_gap_minutes: float = Field(default=60, gt=0)
+    microcompact_keep_recent: int = Field(default=5, ge=1)
+
+    @model_validator(mode="after")
+    def validate_context_policy(self) -> BaseAgentConfig:
+        if self.session_note_keep_min_tokens > self.session_note_keep_max_tokens:
+            raise ValueError("Session-note retention minimum exceeds its maximum")
+        if self.max_tokens > self.context_window_tokens:
+            raise ValueError("Reply output exceeds the configured context window")
+        if self.max_tokens > self.model_max_output_tokens:
+            raise ValueError("Reply output exceeds the configured model output capacity")
+        self.context_input_budget()
+        return self
+
+    def context_input_budget(self) -> int:
+        """Reserve output plus a 13k safety margin, scaled for small windows."""
+        reserve = max(self.context_reserve_tokens, min(13_000, self.context_window_tokens // 4))
+        output_reserve = min(self.model_max_output_tokens, 20_000)
+        if self.context_window_tokens < 32768:
+            output_reserve = min(output_reserve, self.context_window_tokens // 4)
+        output_reserve = max(output_reserve, self.max_tokens)
+        budget = self.context_window_tokens - output_reserve - reserve
+        if budget <= 0:
+            raise ValueError("Context window is smaller than output and safety reserves")
+        return budget
 
     def absent_tools(self) -> frozenset[str]:
         """Names the role's `build_tools` leaves out for systems the deployment switches

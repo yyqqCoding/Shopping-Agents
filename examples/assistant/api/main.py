@@ -5,7 +5,7 @@
 
     uvicorn assistant.api.main:app --app-dir examples --port 8004
 
-Supabase verifies anonymous visitors and stores conversations and memory. The catalog,
+Local files verify anonymous visitors and store conversations and memory. The catalog,
 stock, carts and orders come from the Java commerce service when ``CATALOG_BACKEND=java``
 (``java_retail.py``), or from the fixtures in data/ through ``mock_retail.py``.
 """
@@ -27,8 +27,10 @@ from demo_common import (
     load_demo_env,
 )
 from demo_common.experience import build_experience_host
-from demo_common.persistence import ConversationStore, SupabaseMemoryStore
-from demo_common.supabase import Supabase, SupabaseSettings
+from demo_common.local_files import LocalFiles
+from demo_common.local_identity import LocalIdentity
+from demo_common.local_memory import LocalTopicMemoryStore
+from demo_common.local_persistence import LocalConversationStore
 from shopping_agent import Cart, ProductDetails, ShoppingAgentConfig
 from shopping_agent.serialization import cart_payload
 from shopping_agent_runtime import ShoppingAgent
@@ -84,10 +86,37 @@ def build_config() -> ShoppingAgentConfig:
         enable_orders=True,
         model=os.environ.get("SHOPPING_MODEL") or defaults.model,
         memory_model=os.environ.get("SHOPPING_MEMORY_MODEL") or defaults.memory_model,
+        memory_selector_model=os.environ.get("SHOPPING_MEMORY_SELECTOR_MODEL") or None,
+        memory_dream_max_turns=int(os.environ.get("SHOPPING_MEMORY_DREAM_MAX_TURNS", "30")),
         context_window_tokens=int(os.environ.get("SHOPPING_CONTEXT_WINDOW_TOKENS", "131072")),
         context_recent_turns=int(os.environ.get("SHOPPING_CONTEXT_RECENT_TURNS", "4")),
         context_reserve_tokens=int(os.environ.get("SHOPPING_CONTEXT_RESERVE_TOKENS", "4096")),
-        context_summary_timeout_s=float(os.environ.get("SHOPPING_CONTEXT_SUMMARY_TIMEOUT_S", "25")),
+        context_summary_timeout_s=float(
+            os.environ.get("SHOPPING_CONTEXT_SUMMARY_TIMEOUT_S", "120")
+        ),
+        model_max_output_tokens=int(os.environ.get("SHOPPING_MODEL_MAX_OUTPUT_TOKENS", "20000")),
+        usage_input_includes_cache=os.environ.get(
+            "SHOPPING_USAGE_INPUT_INCLUDES_CACHE", "false"
+        ).lower()
+        == "true",
+        session_note_init_tokens=int(os.environ.get("SHOPPING_SESSION_NOTE_INIT_TOKENS", "10000")),
+        session_note_growth_tokens=int(
+            os.environ.get("SHOPPING_SESSION_NOTE_GROWTH_TOKENS", "5000")
+        ),
+        session_note_tool_calls=int(os.environ.get("SHOPPING_SESSION_NOTE_TOOL_CALLS", "3")),
+        session_note_keep_min_tokens=int(
+            os.environ.get("SHOPPING_SESSION_NOTE_KEEP_MIN_TOKENS", "10000")
+        ),
+        session_note_keep_min_text_messages=int(
+            os.environ.get("SHOPPING_SESSION_NOTE_KEEP_MIN_TEXT_MESSAGES", "5")
+        ),
+        session_note_keep_max_tokens=int(
+            os.environ.get("SHOPPING_SESSION_NOTE_KEEP_MAX_TOKENS", "40000")
+        ),
+        time_based_microcompact=os.environ.get("SHOPPING_TIME_BASED_MICROCOMPACT", "false").lower()
+        == "true",
+        microcompact_gap_minutes=float(os.environ.get("SHOPPING_MICROCOMPACT_GAP_MINUTES", "60")),
+        microcompact_keep_recent=int(os.environ.get("SHOPPING_MICROCOMPACT_KEEP_RECENT", "5")),
         search_page_size=int(os.environ.get("SHOPPING_SEARCH_PAGE_SIZE", "6")),
         policy_intent_terms=defaults.policy_intent_terms
         + ("退货", "退款", "保修", "运费", "政策", "换货", "配送费用"),
@@ -107,7 +136,9 @@ def build_config() -> ShoppingAgentConfig:
     )
 
 
-database = Supabase(SupabaseSettings.from_env())
+files = LocalFiles(REPO_ROOT / LocalIdentity.data_dir())
+identity = LocalIdentity(files)
+conversation_store = LocalConversationStore(files)
 # "java" uses the commerce service; "json" (the default without a service URL) runs the
 # fixtures in-process with carts in memory, for local work and the tests.
 _catalog_backend = os.environ.get("CATALOG_BACKEND", "").strip().lower() or (
@@ -122,7 +153,8 @@ agent = ShoppingAgent(
     backend=backend,
     skills_dir=REPO_ROOT / "shopping-agent" / "skills",
     config=build_config(),
-    memory_store=SupabaseMemoryStore(database),
+    memory_store=LocalTopicMemoryStore(files),
+    archive_reader=conversation_store.read_archive,
 )
 
 
@@ -137,8 +169,8 @@ def product_detail(product: ProductDetails) -> dict:
 host = build_experience_host(
     backend=backend,
     agent=agent,
-    database=database,
-    store=ConversationStore(database),
+    identity=identity,
+    store=conversation_store,
     product_detail=product_detail,
 )
 app = host.app

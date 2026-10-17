@@ -5,10 +5,13 @@
 
 ``config``            ``BaseAgentConfig`` and the model defaults
 ``context``           bounded working context and conversation summaries
+``session_memory``    reference session-note policy, template and isolated note edits
 ``search``            Chinese and Latin keyword tokenization
 ``types``             ``MemoryFact``, ``MemoryCategory``, ``ClockContext``
 ``fencing``           ``Fence``, chip and display-text hygiene
 ``memory``            ``MemoryStore``, the write filter, extraction, ``MemoryRuntime``
+``topic_memory``      typed Markdown memory, semantic recall, prefetch and memory forks
+``topic_policy``      the reference snapshot's typed memory policy
 ``skills``            ``SkillRegistry``
 ``prompt_assembly``   cache breakpoints: system block, tool array, rolling conversation
 ``grounding``         ``GroundingRule`` and the lexicon matchers

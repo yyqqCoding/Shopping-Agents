@@ -74,6 +74,9 @@ def build_tools(
     config: ShoppingAgentConfig,
     skill_names: list[str],
     extra_presentation_tools: Sequence[PresentationExtension] = (),
+    *,
+    archive_reader: bool = False,
+    topic_memory: bool = False,
 ) -> list[dict[str, Any]]:
     """The tool list for one deployment: built-ins in a fixed order, less the systems the
     config switches off, then the deployment's presentation extensions in the order
@@ -636,6 +639,44 @@ def build_tools(
             },
         },
     ]
+
+    if archive_reader:
+        tools.append(
+            {
+                "name": "read_session_archive",
+                "description": "Read a saved large tool result by result_id, read the complete session note with result_id=session-note, or search up to five original transcript excerpts by query. Use only when the current context lacks needed details; requests are bounded.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "result_id": {
+                            "type": "string",
+                            "description": "Opaque id shown in an externalized tool result.",
+                        },
+                        "query": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "description": "Search text for original conversation messages.",
+                        },
+                        "offset": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Character offset for the next bounded chunk of a saved result.",
+                        },
+                    },
+                    "additionalProperties": False,
+                },
+            }
+        )
+
+    if topic_memory:
+        from commerce_common.topic_memory import memory_tools
+
+        tools = [
+            tool
+            for tool in tools
+            if tool["name"] not in {"save_memory", "recall_memories", "forget_memory"}
+        ]
+        tools.extend(memory_tools())
 
     absent = config.absent_tools()
     tools = [with_status(tool, _STATUS_READER) for tool in tools if tool["name"] not in absent]

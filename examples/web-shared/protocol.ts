@@ -57,6 +57,7 @@ export interface TraceEntry {
   kind: "tool_call" | "tool_result" | "turn_complete" | "error";
   turn: number;
   label: string;
+  toolUseId?: string;
   detail?: string;
   isError?: boolean;
   /** "blocked" when a gate held the call; `reason` names the gate. */
@@ -68,6 +69,8 @@ export interface TraceEntry {
   at: number;
   /** turn_complete only. */
   elapsedMs?: number;
+  /** Browser arrival times relative to send, separate from the server's model timings. */
+  timings?: { connectedMs?: number; firstTextMs?: number; firstCardMs?: number };
 }
 
 /** `retrying`: the attempt failed validation; its last frame stays until a retry adopts it. */

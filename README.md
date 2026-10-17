@@ -6,7 +6,7 @@
 
 ## 本地运行
 
-需要 Python 3.11+、Node.js 22.15+，以及模型服务与 Supabase 配置。在仓库根目录执行（Linux / macOS）：
+需要 Python 3.11+、Node.js 22.15+ 和 Messages API 模型服务。在仓库根目录执行（Linux / macOS）：
 
 ```bash
 python3 -m venv .venv
@@ -16,7 +16,9 @@ cp .env.example .env
 npm ci --prefix examples
 ```
 
-按 [.env.example](.env.example) 填写模型和 Supabase 参数。首次配置需启用 Supabase 匿名登录，并依次执行 [001](supabase/migrations/001_agent_experience.sql) 和 [005](supabase/migrations/005_drop_catalog_and_carts.sql) 迁移；已执行的迁移无需重复。商品、库存、购物车和订单由 [Java 订单服务](commerce-service/) 提供；本地不启动它时，`CATALOG_BACKEND=json` 使用内置夹具。具体步骤见 [部署说明](docs/deployment.md#中文体验站)。
+按 [.env.example](.env.example) 填写模型参数。匿名身份、对话 JSONL 和 Markdown 记忆保存在 `SHOPPING_DATA_DIR`（本地默认 `.shopping-data`）。商品、库存、购物车和订单由 [Java 订单服务](commerce-service/) 提供；本地不启动它时，`CATALOG_BACKEND=json` 使用内置夹具。具体步骤见 [部署说明](docs/deployment.md#中文体验站) 和 [本地记忆设计](docs/local-memory-design.md)。
+
+聊天页的“记忆”入口打开 `/memory`，提供主题文件与索引编辑、后台提取与相关记忆预取设置、Dream 整理及取消、审阅提案和独立 Agent 快照。个人长期记忆机制与源码对照见 [长期记忆设计](docs/long-term-memory-design.md)；不提供团队记忆。
 
 ```bash
 python scripts/run_demo.py --no-install
@@ -51,7 +53,7 @@ bash scripts/deploy.sh
 | [shopping-agent/skills/](shopping-agent/skills/) | 选品、比较、搭配等流程技能 |
 | [examples/assistant/](examples/assistant/) | 户外体验站 API、商品数据与 Next.js 前端 |
 | [examples/demo_common/](examples/demo_common/) · [examples/web-shared/](examples/web-shared/) | 共享身份、持久化与前端组件 |
-| [deploy/](deploy/) · [supabase/](supabase/) | 容器、HTTPS 代理与数据库迁移 |
+| [deploy/](deploy/) · [supabase/](supabase/) | 容器、HTTPS 代理；旧数据库迁移保留作参考 |
 
 接入自己的商品与业务系统时，实现 [StorefrontBackend](shopping-agent/core/shopping_agent/backend.py)，通过 `ShoppingAgent` 运行会话；流程扩展使用 `SKILL.md`，领域界面使用 `PresentationExtension`。
 

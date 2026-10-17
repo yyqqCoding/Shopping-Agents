@@ -8,7 +8,7 @@ class, so a tool result is the same bytes on every path.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
 from commerce_common.execution import BaseToolExecutor, Handler, clamp_limit, parse_argument
@@ -92,8 +92,12 @@ class ShoppingToolExecutor(BaseToolExecutor):
         memory: MemoryRuntime | None = None,
         extensions: Sequence[PresentationExtension] = (),
         inline_context: bool = False,
+        archive_reader: Callable[[str, str, str, str, int], Awaitable[str]] | None = None,
+        memory_session: Any = None,
     ) -> None:
         self._inline_context = inline_context
+        self._archive_reader = archive_reader
+        self._memory_session = memory_session
         self._search_calls = 0
         self._search_results = 0
         super().__init__(
@@ -120,7 +124,7 @@ class ShoppingToolExecutor(BaseToolExecutor):
         return None
 
     def handlers(self) -> dict[str, Handler]:
-        return {
+        handlers = {
             "search_products": self._search_products,
             "get_product_details": self._get_product_details,
             "get_cart": self._get_cart,
@@ -133,6 +137,32 @@ class ShoppingToolExecutor(BaseToolExecutor):
             "search_policies": self._search_policies,
             "get_fulfillment_options": self._get_fulfillment_options,
         }
+        if self._archive_reader is not None:
+            handlers["read_session_archive"] = self._read_session_archive
+        if self._memory_session is not None:
+            from commerce_common.topic_memory import memory_tools
+
+            for tool in memory_tools():
+                name = tool["name"]
+
+                async def memory_handler(
+                    data: dict[str, Any], tool_name: str = name
+                ) -> ToolOutcome:
+                    return await self._memory_session.execute(tool_name, data)
+
+                handlers[name] = memory_handler
+        return handlers
+
+    async def _read_session_archive(self, tool_input: dict[str, Any]) -> ToolOutcome:
+        if self._archive_reader is None:
+            return ToolOutcome.error("Archive unavailable.")
+        result_id = str(tool_input.get("result_id", ""))
+        query = str(tool_input.get("query", ""))
+        offset = max(0, int(tool_input.get("offset", 0)))
+        result = await self._archive_reader(
+            self._session.user_id, self._session.session_id, result_id, query, offset
+        )
+        return ToolOutcome(self.fence.fence_payload(result, 8500))
 
     # -- catalog ---------------------------------------------------------------------
 

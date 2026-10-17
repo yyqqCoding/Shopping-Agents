@@ -25,37 +25,8 @@ import type {
 } from "./protocol";
 import { describeToolCall } from "./tool-copy";
 
-/** Pace between structural items when a burst arrives at once. */
-const DRIP_MS = 180;
-/** Pace once the final payload is waiting behind the queue. */
-const FAST_DRIP_MS = 80;
-/** Queue depth above which every second frame is dropped. */
-const MAX_QUEUE = 8;
-/** The arrays the server's partial signature counts, in its order. */
-const STRUCTURAL_KEYS = ["items", "entries", "steps", "days", "sections", "metrics"] as const;
 /** Consumed here; never reaches an app's component registry. */
 const CHIPS_COMPONENT = "suggestions";
-
-
-function structuralCount(block: UIBlock): number {
-  const payload = block.payload as Record<string, unknown>;
-  for (const key of STRUCTURAL_KEYS) {
-    const value = payload[key];
-    if (Array.isArray(value)) return value.length;
-  }
-  return 0;
-}
-
-function structuralPrefix(block: UIBlock, count: number): UIBlock {
-  const payload = block.payload as Record<string, unknown>;
-  for (const key of STRUCTURAL_KEYS) {
-    const value = payload[key];
-    if (Array.isArray(value)) {
-      return { ...block, payload: { ...payload, [key]: value.slice(0, count) } };
-    }
-  }
-  return block;
-}
 
 function eventBlock(event: AgentEvent): UIBlock {
   return { component: String(event.data.component ?? ""), payload: event.data.payload ?? {} };
@@ -67,10 +38,20 @@ interface Slot {
   component: string;
   streamId?: string;
   status: UISlotStatus;
-  rendered: number;
-  queue: UIBlock[];
-  timer: number | null;
-  final: UIBlock | null;
+}
+
+interface TurnTiming {
+  startedAt: number;
+  connectedMs?: number;
+  firstTextMs?: number;
+  firstCardMs?: number;
+}
+
+const TIMING_NAMES = ["connected", "first-text", "first-card", "complete"] as const;
+function recordTiming(name: typeof TIMING_NAMES[number], timing: TurnTiming): number {
+  const end = performance.now();
+  performance.measure(`shopping:chat:${name}`, { start: timing.startedAt, end });
+  return end - timing.startedAt;
 }
 
 export interface AgentTurnOptions {
@@ -152,24 +133,41 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
   const progressToolRef = useRef<string | null>(null);
   const callbacks = useRef({ onEvent, onTurnEnd, pendingComponent });
   callbacks.current = { onEvent, onTurnEnd, pendingComponent };
+  const updates = useRef<{ turn: number; update: (item: AssistantChatItem) => AssistantChatItem }[]>([]);
+  const frame = useRef<number | null>(null);
+  const fallback = useRef<number | null>(null);
 
-  const clearTimers = useCallback(() => {
-    for (const slot of slotsRef.current.values()) {
-      if (slot.timer != null) window.clearTimeout(slot.timer);
-      slot.timer = null;
-    }
+  const cancelFrame = useCallback(() => {
+    if (frame.current != null) window.cancelAnimationFrame(frame.current);
+    if (fallback.current != null) window.clearTimeout(fallback.current);
+    frame.current = null;
+    fallback.current = null;
   }, []);
+  const flushUpdates = useCallback(() => {
+    cancelFrame();
+    const pending = updates.current;
+    updates.current = [];
+    if (!pending.length) return;
+    setItems((previous) => previous.map((item) => {
+      if (item.kind !== "assistant") return item;
+      return pending.reduce((next, change) => change.turn === next.turn ? change.update(next) : next, item);
+    }));
+  }, [cancelFrame]);
+  const clearTimers = useCallback(() => {
+    cancelFrame();
+    updates.current = [];
+  }, [cancelFrame]);
   useEffect(() => clearTimers, [clearTimers]);
 
   const updateTurn = useCallback(
     (turn: number, update: (item: AssistantChatItem) => AssistantChatItem) => {
-      setItems((previous) =>
-        previous.map((item) =>
-          item.kind === "assistant" && item.turn === turn ? update(item) : item,
-        ),
-      );
+      updates.current.push({ turn, update });
+      if (frame.current != null) return;
+      frame.current = window.requestAnimationFrame(flushUpdates);
+      // Animation frames pause in hidden tabs. Completion and recovery must still advance.
+      fallback.current = window.setTimeout(flushUpdates, 50);
     },
-    [],
+    [flushUpdates],
   );
 
   const appendTrace = useCallback((entry: Omit<TraceEntry, "at">) => {
@@ -263,7 +261,6 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
   const commit = useCallback(
     (turn: number, slot: Slot, block: UIBlock, status: UISlotStatus) => {
       slot.status = status;
-      slot.rendered = structuralCount(block);
       updateTurn(turn, (item) => {
         const segments = [...item.segments];
         const index = segments.findIndex((s) => s.type === "ui" && s.slotKey === slot.key);
@@ -276,69 +273,6 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
     [updateTurn],
   );
 
-  const drain = useCallback(
-    (turn: number, slot: Slot) => {
-      slot.timer = null;
-      const next = slot.queue.shift();
-      if (next) {
-        commit(turn, slot, next, "partial");
-        if (slot.queue.length || slot.final) {
-          const interval = slot.final ? FAST_DRIP_MS : DRIP_MS;
-          slot.timer = window.setTimeout(() => drain(turn, slot), interval);
-        }
-      } else if (slot.final) {
-        const block = slot.final;
-        slot.final = null;
-        commit(turn, slot, block, "final");
-      }
-    },
-    [commit],
-  );
-
-  /** Cuts a partial into one-item steps so a burst lands item by item. */
-  const schedule = useCallback(
-    (turn: number, slot: Slot, block: UIBlock) => {
-      const incoming = structuralCount(block);
-      const queued = slot.queue[slot.queue.length - 1];
-      const tail = queued ? structuralCount(queued) : slot.rendered;
-      if (!slot.queue.length && slot.timer == null && incoming <= tail + 1) {
-        commit(turn, slot, block, "partial");
-        return;
-      }
-      if (slot.queue.length && incoming <= tail) {
-        slot.queue[slot.queue.length - 1] = block;
-        return;
-      }
-      for (let count = tail + 1; count < incoming; count++) {
-        slot.queue.push(structuralPrefix(block, count));
-      }
-      slot.queue.push(block);
-      if (slot.queue.length > MAX_QUEUE) {
-        slot.queue = slot.queue.filter((_, i, all) => i % 2 === 1 || i === all.length - 1);
-      }
-      if (slot.timer != null) return;
-      // The first frame shows at once; only growth is paced.
-      if (slot.status === "pending") drain(turn, slot);
-      else slot.timer = window.setTimeout(() => drain(turn, slot), DRIP_MS);
-    },
-    [commit, drain],
-  );
-
-  const flush = useCallback(
-    (turn: number) => {
-      for (const slot of slotsRef.current.values()) {
-        if (slot.timer != null) window.clearTimeout(slot.timer);
-        slot.timer = null;
-        const last = slot.final ?? slot.queue[slot.queue.length - 1];
-        const status: UISlotStatus = slot.final ? "final" : slot.status;
-        slot.queue = [];
-        slot.final = null;
-        if (last) commit(turn, slot, last, status);
-      }
-    },
-    [commit],
-  );
-
   const openSlot = useCallback((turn: number, component: string, status: UISlotStatus, streamId?: string) => {
     const ordinal = ordinals.current.get(component) ?? 0;
     ordinals.current.set(component, ordinal + 1);
@@ -347,10 +281,6 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
       component,
       streamId,
       status,
-      rendered: 0,
-      queue: [],
-      timer: null,
-      final: null,
     };
     slotsRef.current.set(slot.key, slot);
     if (streamId) slotByStream.current.set(streamId, slot.key);
@@ -399,11 +329,6 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
             // A new attempt adopts the component's skeleton or failed slot, else opens a new card.
             slot = findSlot(block.component, ["pending", "retrying"]);
             if (slot) {
-              if (slot.timer != null) window.clearTimeout(slot.timer);
-              slot.timer = null;
-              slot.queue = [];
-              slot.final = null;
-              slot.rendered = 0;
               slot.status = "pending";
               slot.streamId = streamId;
             } else {
@@ -411,7 +336,7 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
             }
             slotByStream.current.set(streamId, slot.key);
           }
-          schedule(turn, slot, block);
+          commit(turn, slot, block, "partial");
           return;
         }
         case "ui": {
@@ -433,15 +358,7 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
             slot.streamId = streamId;
             slotByStream.current.set(streamId, slot.key);
           }
-          if (slot.queue.length && slot.timer != null) {
-            slot.final = block;
-          } else {
-            if (slot.timer != null) window.clearTimeout(slot.timer);
-            slot.timer = null;
-            slot.queue = [];
-            slot.final = null;
-            commit(turn, slot, block, "final");
-          }
+          commit(turn, slot, block, "final");
           return;
         }
         case "tool_call": {
@@ -463,7 +380,7 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
             commit(turn, slot, { component, payload: {} }, "pending");
           }
           const detail = JSON.stringify(input, null, 1);
-          appendTrace({ kind: "tool_call", turn, label: tool, detail });
+          appendTrace({ kind: "tool_call", turn, label: tool, detail, toolUseId: data.id });
           return;
         }
         case "tool_result": {
@@ -477,17 +394,12 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
             const key = slotByStream.current.get(String(event.data.id ?? ""));
             const slot = key ? slotsRef.current.get(key) : undefined;
             if (slot?.status === "partial") {
-              if (slot.timer != null) window.clearTimeout(slot.timer);
-              slot.timer = null;
-              const last = slot.queue[slot.queue.length - 1];
-              slot.queue = [];
-              slot.final = null;
               slot.status = "retrying";
               updateTurn(turn, (item) => ({
                 ...item,
                 segments: item.segments.map((s) =>
                   s.type === "ui" && s.slotKey === slot.key
-                    ? { ...s, block: last ?? s.block, status: "retrying" }
+                    ? { ...s, status: "retrying" }
                     : s,
                 ),
               }));
@@ -497,6 +409,7 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
             kind: "tool_result",
             turn,
             label: resultTool,
+            toolUseId: String(event.data.id ?? ""),
             detail: String(event.data.summary ?? ""),
             isError: Boolean(event.data.is_error),
             status: event.data.status ? String(event.data.status) : undefined,
@@ -525,14 +438,13 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
           return;
       }
     },
-    [appendTrace, commit, findSlot, openSlot, schedule, updateTurn],
+    [appendTrace, commit, findSlot, openSlot, updateTurn],
   );
 
   const runTurn = useCallback(
-    async (userText: string, events: AsyncIterable<AgentEvent>, current: number): Promise<boolean> => {
+    async (userText: string, events: AsyncIterable<AgentEvent>, current: number, timing: TurnTiming): Promise<boolean> => {
       let completed = false;
       const turn = ++turnRef.current;
-      const startedAt = performance.now();
       clearTimers();
       slotsRef.current = new Map();
       slotByStream.current = new Map();
@@ -548,6 +460,8 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
       try {
         for await (const event of events) {
           if (current !== generation.current) return false;
+          if (event.type === "text_delta" && event.data.text && timing.firstTextMs == null) timing.firstTextMs = recordTiming("first-text", timing);
+          if ((event.type === "ui" || event.type === "ui_partial") && event.data.component !== CHIPS_COMPONENT && timing.firstCardMs == null) timing.firstCardMs = recordTiming("first-card", timing);
           if (event.type === "turn_complete") {
             completed = true;
             const usage = (event.data.usage ?? {}) as Record<string, number>;
@@ -559,7 +473,8 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
               detail:
                 `in ${n(usage.input_tokens)} · out ${n(usage.output_tokens)}` +
                 ` · cache read ${n(usage.cache_read_input_tokens)}`,
-              elapsedMs: performance.now() - startedAt,
+              elapsedMs: recordTiming("complete", timing),
+              timings: { connectedMs: timing.connectedMs, firstTextMs: timing.firstTextMs, firstCardMs: timing.firstCardMs },
             });
             callbacks.current.onEvent?.(event, turn);
           } else {
@@ -575,19 +490,19 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
       } finally {
         if (current !== generation.current) return false;
         // Only server-validated final cards survive a settled or interrupted stream.
-        flush(turn);
         updateTurn(turn, (item) => ({
           ...item,
           pending: false,
           activity: undefined,
           segments: item.segments.filter((s) => s.type !== "ui" || s.status === "final"),
         }));
+        flushUpdates();
         setTurnState((state) => ({ turnCount: turn, completed: state.completed + (completed ? 1 : 0), streaming: false }));
         callbacks.current.onTurnEnd?.(turn);
       }
       return completed;
     },
-    [api, sessionId, appendTrace, clearTimers, flush, handleEvent, unreachable, updateTurn],
+    [api, sessionId, appendTrace, clearTimers, flushUpdates, handleEvent, unreachable, updateTurn],
   );
 
   const transmit = useCallback(
@@ -599,7 +514,12 @@ export function useAgentTurn(api: AgentApi, options: AgentTurnOptions): AgentTur
       sending.current = true;
       setBusy(true);
       try {
-        const complete = await runTurn(request.message, api.chatStream(request.message, request.requestId, sessionId, abort.signal), current);
+        const timing: TurnTiming = { startedAt: performance.now() };
+        for (const name of TIMING_NAMES) performance.clearMeasures(`shopping:chat:${name}`);
+        const events = api.chatStream(request.message, request.requestId, sessionId, abort.signal, () => {
+          timing.connectedMs = recordTiming("connected", timing);
+        });
+        const complete = await runTurn(request.message, events, current, timing);
         if (complete) {
           api.clearPendingChat(sessionId, request.requestId);
           if (current === generation.current) {

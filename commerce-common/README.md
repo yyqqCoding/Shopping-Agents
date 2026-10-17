@@ -6,10 +6,12 @@ tool contracts, and gates on top; the runtime imports both. One module per mecha
 | Module | Holds |
 |---|---|
 | `config.py` | `BaseAgentConfig`: identity, models, budgets, capabilities, memory, caps |
-| `context.py` | `WorkingContext`, whole-exchange budgeting, fenced summaries and a request-only fallback; raw archives are never rewritten |
+| `context.py` | `WorkingContext`, valid usage baselines, exact note coverage, protocol-safe message retention, inherited summary forks and streaming fallback; raw archives are never rewritten |
+| `session_memory.py` | Reference 10k/5k/3-call policy, 10k-token/5-text-message/40k retention estimates, structured notes and isolated exact-string editing of the session note |
 | `search.py` | Chinese character pairs and normalized Latin keywords shared by catalog, policy and memory lookup |
 | `fencing.py` | `Fence`: sanitizing and fencing text the model reads as data; chip hygiene |
 | `memory.py` | `MemoryStore` contract, write filter, `validate_fact`, extraction, `MemoryRuntime` |
+| `topic_memory.py`, `topic_policy.py` | Typed topic Markdown policy, bounded index and manifest, semantic selector, asynchronous prefetch, scoped tools and inherited-context extraction/consolidation loops |
 | `skills.py` | `SkillRegistry`: loads `SKILL.md` directories and renders the prompt index |
 | `prompt_assembly.py` | Where the cache breakpoints go (static system block, tool array, the newest persisted message) and where the per-request context block and its clock go |
 | `grounding.py` | `GroundingRule` and the matchers; `first_forced_tool` |
@@ -17,7 +19,7 @@ tool contracts, and gates on top; the runtime imports both. One module per mecha
 | `delegation.py` | `DelegateExtension`: an isolated model task behind a tool |
 | `execution.py` | `BaseToolExecutor`: dispatch, failure ladder, skills, presentation, delegates, memory; `split_status` (a call's `status` line, handed to the host) |
 | `streaming.py` | `AgentEvent` (the event list is in the module docstring), `ToolOutcome`, `to_sse` |
-| `turn.py` | Messages API turn helpers: user text, history compaction, eager tool dispatch, `StreamedRound` (a round's `ui_partial` frames as it streams; an error result for unparsed input), `round_closes_turn` (a round of rendered presentation calls, chips among them, ends the turn), tool-result blocks, usage, the model-call log record, transcript slice |
+| `turn.py` | Messages API turn helpers: user text, old read-result cleanup, single-result and aggregate result externalization, eager tool dispatch and immediate completion events, `StreamedRound` (multiplexed model deltas and finished tool displays; an error result for unparsed input), `round_closes_turn` (a round of rendered presentation calls, chips among them, ends the turn), tool-result blocks, usage, the model-call log record, transcript slice |
 | `testing.py` | Scripted stand-ins for the streaming and `create` client calls, plus a spy memory store, for credential-free tests |
 | `types.py` | `MemoryFact`, `MemoryCategory`, `ClockContext` |
 

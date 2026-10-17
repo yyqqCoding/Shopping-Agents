@@ -4,6 +4,7 @@
 /** One entry per shopping presentation tool. */
 
 import { type GenerativeBlockProps, UnknownBlock } from "web-shared";
+import { memo } from "react";
 import type {
   CartPayload,
   CheckoutPayload,
@@ -21,7 +22,7 @@ import OrderStatusCard from "./OrderStatusCard";
 import PlanChecklist from "./PlanChecklist";
 import ProductCarousel from "./ProductCarousel";
 
-export default function GenerativeBlock({
+export default memo(function GenerativeBlock({
   block,
   status,
   onAdd,
@@ -72,4 +73,4 @@ export default function GenerativeBlock({
     default:
       return partial ? null : <UnknownBlock component={block.component} />;
   }
-}
+});

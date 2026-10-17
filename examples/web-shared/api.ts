@@ -24,8 +24,7 @@ export class AgentApi {
   async initialize(): Promise<string> {
     if (!this.bootstrap) {
       this.bootstrap = (async () => {
-        const config = await this.requestOrThrow<{ supabase_url: string; supabase_key: string }>("/config");
-        this.identity = new AnonymousIdentity(config.supabase_url, config.supabase_key);
+        this.identity = new AnonymousIdentity(this.base);
         const credential = await this.identity.credential();
         this.userId = credential.user.id;
         return this.userId;
@@ -42,14 +41,14 @@ export class AgentApi {
     return headers;
   }
 
-  async requestOrThrow<T>(path: string, init: RequestInit = {}): Promise<T> {
+  async requestOrThrow<T>(path: string, init: RequestInit = {}, timeoutMs = 20000): Promise<T> {
     const publicPath = /^\/(?:config|health|products)(?:[/?]|$)/.test(path);
     const headers = { ...await this.headers(Boolean(init.body), this.session, !publicPath), ...init.headers };
     let response: Response;
     try {
       response = await fetch(`${this.base}${path}`, {
         ...init,
-        signal: init.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(20000),
+        signal: init.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(timeoutMs)]) : AbortSignal.timeout(timeoutMs),
         headers,
       });
     } catch (error) {
@@ -176,7 +175,7 @@ export class AgentApi {
   fetchCart<T>(): Promise<T | null> { return this.get<T>("/cart"); }
   async fetchOrders(): Promise<Order[] | null> { return (await this.get<{ orders: Order[] }>("/orders"))?.orders ?? null; }
 
-  async *chatStream(message: string, requestId: string, sessionId: string, signal: AbortSignal): AsyncGenerator<AgentEvent> {
+  async *chatStream(message: string, requestId: string, sessionId: string, signal: AbortSignal, onConnected?: () => void): AsyncGenerator<AgentEvent> {
     const headers = await this.headers(true, sessionId);
     let response: Response;
     try {
@@ -192,6 +191,7 @@ export class AgentApi {
       const data = await response.json().catch(() => ({}));
       throw new ApiError(response.status, typeof data.detail === "string" ? data.detail : "回复暂时不可用，请稍后重试。");
     }
+    onConnected?.();
     let settled = false;
     for await (const event of readEventStream(response.body)) {
       if (event.type === "turn_complete" || event.type === "error") settled = true;

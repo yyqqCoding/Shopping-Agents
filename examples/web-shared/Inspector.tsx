@@ -19,7 +19,7 @@ interface ToolRow {
   durationMs?: number;
 }
 
-/** Pairs a tool's k-th call with its k-th result. */
+/** Tool ids keep concurrent calls of the same tool paired in completion order. */
 function buildToolRows(entries: TraceEntry[]): ToolRow[] {
   const rows: ToolRow[] = [];
   const open = new Map<string, ToolRow[]>();
@@ -27,9 +27,10 @@ function buildToolRows(entries: TraceEntry[]): ToolRow[] {
     if (entry.kind === "tool_call") {
       const row: ToolRow = { tool: entry.label, input: entry.detail, startedAt: entry.at };
       rows.push(row);
-      open.set(entry.label, [...(open.get(entry.label) ?? []), row]);
+      const key = entry.toolUseId || entry.label;
+      open.set(key, [...(open.get(key) ?? []), row]);
     } else if (entry.kind === "tool_result") {
-      const row = open.get(entry.label)?.shift();
+      const row = open.get(entry.toolUseId || entry.label)?.shift();
       if (!row) continue;
       row.result = entry.detail;
       row.excerpt = entry.excerpt;
@@ -220,6 +221,15 @@ export function Inspector({
               </h2>
               {done?.detail ? (
                 <p className="mt-0.5 font-mono text-[11px] text-(--ink-soft)">tokens {done.detail}</p>
+              ) : null}
+              {done?.timings ? (
+                <p className="mt-0.5 text-[11px] text-(--ink-soft)">
+                  {([
+                    ["连接", done.timings.connectedMs],
+                    ["首字", done.timings.firstTextMs],
+                    ["首卡", done.timings.firstCardMs],
+                  ] as const).filter(([, ms]) => ms != null).map(([label, ms]) => `${label} ${(ms! / 1000).toFixed(2)}s`).join(" · ")}
+                </p>
               ) : null}
             </div>
           </div>

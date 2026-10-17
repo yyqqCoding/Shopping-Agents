@@ -3,7 +3,7 @@
 
 "use client";
 
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { AssistantText, ErrorBubble, UserBubble } from "./MessageBubble";
 import type { AssistantChatItem, ChatItem, UISegment } from "./protocol";
 import { Suggestions } from "./Suggestions";
@@ -40,50 +40,57 @@ export function ActivityLine({ item }: { item: AssistantChatItem }) {
   );
 }
 
-export function Transcript({
-  items,
+const defaultPending = (item: AssistantChatItem) => <ActivityLine item={item} />;
+
+const AssistantReply = memo(function AssistantReply({
+  item,
+  last,
   busy,
   send,
   renderBlock,
-  renderPending = (item) => <ActivityLine item={item} />,
+  renderPending = defaultPending,
   suggestionFilter,
   wide,
   gap = "gap-3",
-}: TranscriptProps) {
-  return items.map((item, index) =>
-    item.kind === "user" ? (
-      <UserBubble key={index} text={item.text} />
-    ) : (
-      <div key={index} data-turn={item.turn} className={`flex flex-col ${gap}`}>
-        {item.segments.map((segment, i) => {
-          if (segment.type === "text") {
-            const last = item.pending && i === item.segments.length - 1;
-            return <AssistantText key={i} text={segment.text} streaming={last} />;
-          }
-          if (segment.type === "error") return <ErrorBubble key={i} text={segment.text} />;
-          return (
-            <div
-              key={segment.slotKey}
-              data-component={segment.block.component}
-              className={`transition-opacity duration-300 ${segment.status === "retrying" ? "opacity-60" : ""} ${
-                wide?.has(segment.block.component) ? "min-[1500px]:-mx-14" : ""
-              }`}
-            >
-              {renderBlock(segment, item)}
-            </div>
-          );
-        })}
-        {item.pending ? renderPending(item) : null}
-        {!item.pending && index === items.length - 1 ? (
-          <Suggestions
-            suggestions={suggestionFilter ? item.suggestions.filter(suggestionFilter) : item.suggestions}
-            onPick={send}
-            disabled={busy || item.suggestionsStale}
-          />
-        ) : null}
-      </div>
-    ),
+}: Omit<TranscriptProps, "items"> & { item: AssistantChatItem; last: boolean }) {
+  return (
+    <div data-turn={item.turn} className={`flex flex-col ${gap}`}>
+      {item.segments.map((segment, i) => {
+        if (segment.type === "text") {
+          const last = item.pending && i === item.segments.length - 1;
+          return <AssistantText key={i} text={segment.text} streaming={last} />;
+        }
+        if (segment.type === "error") return <ErrorBubble key={i} text={segment.text} />;
+        return (
+          <div
+            key={segment.slotKey}
+            data-component={segment.block.component}
+            className={`transition-opacity duration-300 ${segment.status === "retrying" ? "opacity-60" : ""} ${
+              wide?.has(segment.block.component) ? "min-[1500px]:-mx-14" : ""
+            }`}
+          >
+            {renderBlock(segment, item)}
+          </div>
+        );
+      })}
+      {item.pending ? renderPending(item) : null}
+      {!item.pending && last ? (
+        <Suggestions
+          suggestions={suggestionFilter ? item.suggestions.filter(suggestionFilter) : item.suggestions}
+          onPick={send}
+          disabled={busy || item.suggestionsStale}
+        />
+      ) : null}
+    </div>
   );
+});
+
+export function Transcript({ items, busy, ...props }: TranscriptProps) {
+  return items.map((item, index) => item.kind === "user" ? (
+    <UserBubble key={`user-${index}`} text={item.text} />
+  ) : (
+    <AssistantReply key={`assistant-${item.turn}`} item={item} last={index === items.length - 1} busy={index === items.length - 1 && busy} {...props} />
+  ));
 }
 
 export function LatestPill({ onClick }: { onClick: () => void }) {

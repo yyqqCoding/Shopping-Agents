@@ -9,7 +9,7 @@ import os
 import time
 from collections import defaultdict, deque
 from collections.abc import AsyncIterator, Callable
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Annotated, Any
 from uuid import UUID
 from weakref import WeakValueDictionary
@@ -25,19 +25,37 @@ from commerce_common.memory import (
     MemoryWriteVersion,
     extract_and_store,
 )
+from commerce_common.session_memory import NoteSnapshot, should_extract, tool_count, update_note
 from commerce_common.streaming import AgentEvent, to_sse
 from commerce_common.turn import session_tag, transcript_text
 from shopping_agent import PageContext, ProductDetails, ShoppingSessionContext
 from shopping_agent_runtime import ShoppingAgent
 
 from .host import DemoStorefront, append_user_turn
+from .local_identity import LocalIdentity
+from .local_persistence import LocalConversationStore
 from .memory import MemoryFactEdit, MemoryFactRef
-from .persistence import ConversationStore
+from .memory_jobs import MemoryJobs
+from .memory_routes import install_memory_routes
+from .storage_errors import QuotaExceeded, RecordNotFound, StorageConflict, StorageUnavailable
 from .storefront import ChatRequest, StorefrontHost, StorefrontRecord, install_catalog_routes
-from .supabase import QuotaExceeded, RecordNotFound, StorageConflict, StorageUnavailable, Supabase
 
 logger = logging.getLogger(__name__)
-_SILENT_TOOLS = frozenset({"save_memory", "recall_memories", "forget_memory", "get_preferences"})
+_SILENT_TOOLS = frozenset(
+    {
+        "save_memory",
+        "recall_memories",
+        "forget_memory",
+        "get_preferences",
+        "memory_list",
+        "memory_read",
+        "memory_search",
+        "memory_write",
+        "memory_edit",
+        "memory_delete",
+        "search_past_conversations",
+    }
+)
 
 
 class ConversationRequest(BaseModel):
@@ -48,6 +66,7 @@ class ConversationRequest(BaseModel):
 class ExperienceChatRequest(ChatRequest):
     model_config = ConfigDict(extra="forbid")
     request_id: UUID
+    ignore_memory: bool = False
 
 
 class DisplayArchive:
@@ -157,17 +176,21 @@ class ExperienceHost(StorefrontHost):
         *,
         backend: DemoStorefront,
         agent: ShoppingAgent,
-        database: Supabase,
-        store: ConversationStore | None = None,
+        identity: LocalIdentity,
+        store: LocalConversationStore,
     ) -> None:
         super().__init__(
             title="ACME 中文购物助手", backend=backend, agent=agent, env_hint="", cart_extras=None
         )
-        self.database = database
-        self.store = store or ConversationStore(database)
+        self.identity = identity
+        self.store = store
+        self.memory_jobs = MemoryJobs(self) if agent.topic_memory else None
         self._locks: WeakValueDictionary[str, asyncio.Lock] = WeakValueDictionary()
         self._tasks: set[asyncio.Task[Any]] = set()
         self._memory_tasks: dict[str, asyncio.Task[Any]] = {}
+        self._note_tasks: dict[str, asyncio.Task[Any]] = {}
+        self._note_pending: dict[str, NoteSnapshot] = {}
+        self._note_started: dict[str, float] = {}
         self._claim_lock = asyncio.Lock()
         self._active_turns = 0
         self._stopping = False
@@ -178,6 +201,7 @@ class ExperienceHost(StorefrontHost):
         self.global_daily_limit = int(os.environ.get("SHOPPING_GLOBAL_DAILY_TURNS", "1000"))
         self.memory_wait_s = float(os.environ.get("SHOPPING_MEMORY_WAIT_S", "1.5"))
         self.memory_timeout_s = float(os.environ.get("SHOPPING_MEMORY_TIMEOUT_S", "25"))
+        self.note_timeout_s = float(os.environ.get("SHOPPING_SESSION_NOTE_TIMEOUT_S", "120"))
         self.memory_retries = int(os.environ.get("SHOPPING_MEMORY_RETRIES", "4"))
         if (
             min(
@@ -195,9 +219,11 @@ class ExperienceHost(StorefrontHost):
             and self.memory_wait_s >= 0
             and math.isfinite(self.memory_timeout_s)
             and self.memory_timeout_s > 0
+            and math.isfinite(self.note_timeout_s)
+            and self.note_timeout_s > 0
         ):
             raise ValueError("Memory wait must be nonnegative and timeout positive")
-        self.CurrentUser = Annotated[str, Depends(database.current_user)]
+        self.CurrentUser = Annotated[str, Depends(identity.current_user)]
         CurrentUser = self.CurrentUser
 
         async def current_session(
@@ -238,12 +264,16 @@ class ExperienceHost(StorefrontHost):
     @asynccontextmanager
     async def lifespan(self, _: Any) -> AsyncIterator[None]:
         self._stopping = False
-        if self.database.settings.configured:
-            await self.store.recover()
-            poller = self._task(self._memory_loop())
-        else:
-            poller = None
+        self.identity.files.acquire()
+        poller = None
         try:
+            await self.store.recover()
+            if self.memory_jobs:
+                await self.memory_jobs.store.recover_memory()
+                await self.memory_jobs.recover()
+            poller = self._task(self._memory_loop())
+            if self.memory_jobs:
+                self._task(self._daily_memory_loop())
             yield
         finally:
             self._stopping = True
@@ -258,7 +288,7 @@ class ExperienceHost(StorefrontHost):
                     task.cancel()
                 if pending:
                     await asyncio.gather(*pending, return_exceptions=True)
-            await self.database.client.aclose()
+            self.identity.files.release()
 
     def _install_errors(self) -> None:
         async def unavailable(_: Request, __: Exception) -> JSONResponse:
@@ -315,6 +345,10 @@ class ExperienceHost(StorefrontHost):
     async def _process_memory(self, job: dict[str, Any]) -> None:
         success = False
         try:
+            if self.memory_jobs:
+                await self.memory_jobs.extract(job)
+                success = True
+                return
             memory = self.agent.memory
             if memory.enabled and memory.store is not None:
                 async with asyncio.timeout(self.memory_timeout_s):
@@ -365,11 +399,46 @@ class ExperienceHost(StorefrontHost):
     async def _memory_loop(self) -> None:
         while True:
             try:
+                if self.memory_jobs:
+                    if len(self._memory_tasks) < self.max_concurrent:
+                        async with self._claim_lock:
+                            job = await self.store.claim_memory(
+                                None,
+                                self.memory_retries,
+                                self.agent.config.request_timeout_s * 5 + 60,
+                                coalesce=True,
+                            )
+                            if job:
+                                self._memory_tasks[job["user_id"]] = self._task(
+                                    self._process_memory(job)
+                                )
+                                continue
+                    await asyncio.sleep(2)
+                    continue
                 if await self._drain_memory(None):
                     continue
             except Exception:
                 logger.warning("memory job store unavailable")
             await asyncio.sleep(2)
+
+    async def _daily_memory_loop(self) -> None:
+        # The reference daily-log prompt has no scheduler implementation. The host
+        # supplies a day-boundary check using the same consolidation flow.
+        while not self._stopping:
+            try:
+                for root in self.identity.files.path("users").glob("*/memory/settings.json"):
+                    user = root.parent.parent.name
+                    settings = await self.memory_jobs.store.settings(user)
+                    if not settings.enabled or not settings.daily_mode:
+                        continue
+                    conversations = await self.store.list(user, 0, 1)
+                    if conversations:
+                        await self.memory_jobs.start_dream(user, conversations[0]["id"], daily=True)
+            except asyncio.CancelledError:
+                raise
+            except Exception as error:
+                logger.warning("daily memory check failed (%s)", type(error).__name__)
+            await asyncio.sleep(30)
 
     async def _wait_memory(self, user_id: str) -> None:
         try:
@@ -378,6 +447,80 @@ class ExperienceHost(StorefrontHost):
                     pass
         except (TimeoutError, StorageUnavailable):
             pass
+
+    def _note_eligible(self, snapshot: NoteSnapshot, note: dict[str, Any] | None) -> bool:
+        config = self.agent.config
+        return should_extract(
+            snapshot.tokens,
+            initialized=bool(note) or snapshot.initialized,
+            last_tokens=note.get("context_tokens", 0) if note else 0,
+            tools_since=snapshot.tool_cursor - (note.get("tool_cursor", 0) if note else 0),
+            has_tools=snapshot.has_tools,
+            init_tokens=config.session_note_init_tokens,
+            growth_tokens=config.session_note_growth_tokens,
+            tool_threshold=config.session_note_tool_calls,
+        )
+
+    def _queue_session_note(self, user_id: str, session_id: str, snapshot: NoteSnapshot) -> None:
+        if self._stopping:
+            return
+        if session_id in self._note_tasks:
+            self._note_pending[session_id] = snapshot
+        else:
+            self._note_started[session_id] = time.monotonic()
+            self._note_tasks[session_id] = self._task(
+                self._update_session_note(user_id, session_id, snapshot)
+            )
+
+    async def _update_session_note(
+        self, user_id: str, session_id: str, snapshot: NoteSnapshot
+    ) -> None:
+        try:
+            source = await self.store.session_note_source_async(
+                user_id, session_id, snapshot.boundary_id
+            )
+            note = source["note"]
+            if not source["messages"] or not self._note_eligible(snapshot, note):
+                return
+            content = await update_note(
+                self.agent.client,
+                snapshot,
+                note["content"] if note else "",
+                timeout=self.note_timeout_s,
+                input_budget=self.agent.config.context_window_tokens - self.agent.config.max_tokens,
+                session_id=session_id,
+            )
+            committed = await self.store.commit_session_note(
+                user_id,
+                session_id,
+                source_revision=note["revision"] if note else 0,
+                covered_through_message_id=snapshot.boundary_id,
+                covered_turns=source["covered_turns"],
+                content=content,
+                context_tokens=snapshot.tokens,
+                tool_cursor=snapshot.tool_cursor,
+            )
+            logger.info(
+                "session note commit session=%s committed=%s context_tokens=%d tool_cursor=%d",
+                session_tag(session_id),
+                committed,
+                snapshot.tokens,
+                snapshot.tool_cursor,
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            logger.warning(
+                "session note update failed session=%s error=%s",
+                session_tag(session_id),
+                type(error).__name__,
+            )
+        finally:
+            self._note_tasks.pop(session_id, None)
+            self._note_started.pop(session_id, None)
+            pending = self._note_pending.pop(session_id, None)
+            if pending:
+                self._queue_session_note(user_id, session_id, pending)
 
     async def _begin(
         self,
@@ -389,7 +532,8 @@ class ExperienceHost(StorefrontHost):
             record,
             str(request.request_id),
             request.message,
-            request.page.model_dump(mode="json") if request.page else {},
+            (request.page.model_dump(mode="json") if request.page else {})
+            | {"ignore_memory": request.ignore_memory},
             raw_user,
             user_daily_limit=self.user_daily_limit,
             global_daily_limit=self.global_daily_limit,
@@ -486,6 +630,9 @@ class ExperienceHost(StorefrontHost):
         async def stream() -> AsyncIterator[str]:
             nonlocal connected
             try:
+                # Flush response headers through fetch/proxies before the first model
+                # event or the 15s heartbeat. Comments never enter the transcript.
+                yield ": connected\n\n"
                 while True:
                     try:
                         event = await asyncio.wait_for(queue.get(), timeout=15)
@@ -508,7 +655,7 @@ class ExperienceHost(StorefrontHost):
         return StreamingResponse(
             events,
             media_type="text/event-stream",
-            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+            headers={"Cache-Control": "no-store, no-transform", "X-Accel-Buffering": "no"},
         )
 
     async def _run_turn(
@@ -527,14 +674,79 @@ class ExperienceHost(StorefrontHost):
             MemoryWriteVersion(record.user_id, turn["generation"], turn["source_order"])
         )
         silent_calls: set[str] = set()
+        saved_raw = 1
+
+        async def persist_raw() -> None:
+            nonlocal saved_raw
+            while saved_raw < len(raw):
+                await self.store.append_turn_raw(
+                    record.user_id,
+                    record.session_id,
+                    record.version + 1,
+                    saved_raw - 1,
+                    raw[saved_raw],
+                )
+                saved_raw += 1
+
         try:
-            await self._wait_memory(record.user_id)
+            if not self.memory_jobs:
+                await self._wait_memory(record.user_id)
+            context = record.working_context
+            while len(context.message_ids) < len(record.messages) - 1:
+                context.message_ids.append(None)
+            context.message_ids = context.message_ids[: len(record.messages) - 1]
+            context.message_ids.append(f"{record.version}:0")
+            context.tool_cursor = max(context.tool_cursor, tool_count(record.messages))
+
+            async def sampled(prefix: dict[str, Any], tokens: int, has_tools: bool) -> None:
+                await persist_raw()
+                boundary = context.message_ids[-1] if context.message_ids else None
+                if not boundary:
+                    return
+                if tokens >= self.agent.config.session_note_init_tokens:
+                    context.note_initialized = True
+                note = await asyncio.to_thread(
+                    self.store.read_session_note, record.user_id, record.session_id
+                )
+                context.load_note(note)
+                snapshot = NoteSnapshot(
+                    boundary,
+                    copy.deepcopy(prefix),
+                    tokens,
+                    context.tool_cursor,
+                    has_tools,
+                    context.note_initialized,
+                )
+                if self._note_eligible(snapshot, note):
+                    self._queue_session_note(record.user_id, record.session_id, snapshot)
+
+            async def refresh_note(wait: bool) -> None:
+                task = self._note_tasks.get(record.session_id)
+                if (
+                    wait
+                    and task
+                    and time.monotonic() - self._note_started.get(record.session_id, 0) < 60
+                ):
+                    with suppress(TimeoutError):
+                        await asyncio.wait_for(asyncio.shield(task), timeout=15)
+                note = await asyncio.to_thread(
+                    self.store.read_session_note, record.user_id, record.session_id
+                )
+                context.load_note(note)
+
             async for event in self.agent.stream_turn(
                 record.messages,
                 self.context(record, request.page),
                 record.state,
                 archive=raw,
                 working_context=record.working_context,
+                save_large_result=lambda tool_id, content: self.store.save_tool_result(
+                    record.user_id, record.session_id, tool_id, content
+                ),
+                memory_ignored=request.ignore_memory,
+                allocate_message_id=lambda: f"{record.version + 1}:{len(raw) - 1}",
+                on_round_complete=sampled,
+                refresh_session_note=refresh_note,
             ):
                 if event.type == "turn_complete":
                     completion = event.data | {
@@ -547,6 +759,7 @@ class ExperienceHost(StorefrontHost):
                     emit(event)
                 elif event.type == "tool_call" and event.data.get("id"):
                     silent_calls.add(str(event.data["id"]))
+                await persist_raw()
             if status != "complete":
                 raise RuntimeError("Agent stream ended without completion")
         except asyncio.CancelledError:
@@ -566,14 +779,30 @@ class ExperienceHost(StorefrontHost):
             display.accept(event)
             emit(event)
         finally:
+            with suppress(Exception):
+                await persist_raw()
             try:
                 attempt = 0
                 while True:
                     try:
                         await self.store.finish(
-                            record, turn["id"], raw, display.fragments, completion, status
+                            record,
+                            turn["id"],
+                            raw,
+                            display.fragments,
+                            completion,
+                            status,
+                            memory_prefix=self.agent.topic_memory.prefixes.get(record.session_id)
+                            if self.memory_jobs
+                            else None,
                         )
                         if status == "complete":
+                            if self.memory_jobs:
+                                changes = self.agent.topic_memory.direct_writes.pop(
+                                    record.session_id, []
+                                )
+                                if changes:
+                                    await self.memory_jobs.notify(record.user_id, "saved", changes)
                             emit(AgentEvent(type="turn_complete", data=completion))
                         break
                     except StorageUnavailable:
@@ -607,20 +836,26 @@ def build_experience_host(
     *,
     backend: DemoStorefront,
     agent: ShoppingAgent,
-    database: Supabase,
+    identity: LocalIdentity,
     product_detail: Callable[[ProductDetails], dict[str, Any]] | None = None,
-    store: ConversationStore | None = None,
+    store: LocalConversationStore,
 ) -> ExperienceHost:
-    host = ExperienceHost(backend=backend, agent=agent, database=database, store=store)
+    host = ExperienceHost(backend=backend, agent=agent, identity=identity, store=store)
     app = host.app
     CurrentUser = host.CurrentUser
     CurrentSession = host.CurrentSession
     install_catalog_routes(app, backend, product_detail=product_detail)
+    if host.memory_jobs:
+        install_memory_routes(host)
 
     @app.get("/api/config")
     async def configuration() -> dict:
-        database.require_configuration()
-        return {"supabase_url": database.settings.url, "supabase_key": database.settings.public_key}
+        return {"storage_configured": True}
+
+    @app.post("/api/identity")
+    async def create_identity(request: Request) -> dict:
+        host.rate_limit(f"identity:{request.client.host if request.client else 'unknown'}", 120)
+        return await asyncio.to_thread(identity.create)
 
     @app.post("/api/conversations")
     @app.post("/api/session", include_in_schema=False)
@@ -714,7 +949,7 @@ def build_experience_host(
         # checks it before a deployment switches over).
         return {
             "ok": True,
-            "storage_configured": database.settings.configured,
+            "storage_configured": True,
             "store": backend.store_name,
             "catalog_backend": backend.catalog_backend,
             "skills": agent.skills.names,

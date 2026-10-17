@@ -7,6 +7,9 @@ services:
     environment:
       DEMO_ALLOWED_HOSTS: "${SHOPPING_DOMAIN:?Set SHOPPING_DOMAIN},api"
       DEMO_LOG_LEVEL: INFO
+      SHOPPING_DATA_DIR: /var/lib/shopping-agent
+    volumes:
+      - shopping_data:/var/lib/shopping-agent
     expose: ["8004"]
     restart: unless-stopped
     stop_grace_period: 40s
@@ -42,5 +45,6 @@ services:
         condition: service_healthy
     restart: unless-stopped
 volumes:
+  shopping_data:
   caddy_data:
   caddy_config:

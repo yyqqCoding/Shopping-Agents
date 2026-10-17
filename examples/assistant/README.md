@@ -1,27 +1,28 @@
 # 户外装备助手
 
-一个打开即可体验的户外购物 Agent：中文对话、装备检索与比较、出行清单、模拟购物车和结算。浏览器自动建立 Supabase 匿名身份，不提供账号登录页面。每位访问者有自己的历史和长期偏好，同一访问者的新对话使用独立购物车和短期上下文。
+一个打开即可体验的户外购物 Agent：中文对话、装备检索与比较、出行清单、模拟购物车和结算。浏览器自动建立本地匿名身份，不提供账号登录页面。每位访问者有自己的历史和长期偏好，同一访问者的新对话使用独立购物车和短期上下文。
 
 ## 运行
 
-先安装仓库依赖，按 [部署说明](../../docs/deployment.md#中文体验站) 启用 Supabase 匿名访问、执行迁移并填写根目录 `.env`。然后运行：
+先安装仓库依赖，按 [部署说明](../../docs/deployment.md#中文体验站) 填写根目录 `.env`。然后运行：
 
 ```bash
 python scripts/run_demo.py --no-install     # API :8004，页面 :3004
 ```
 
-页面通过同源 `/api` 访问后端，开发代理由 `API_INTERNAL_URL` 指定。公网使用 [deploy](../../deploy/) 的 HTTPS 代理和一个 API worker。无需 Supabase 时只能浏览公开商品，不能创建共享演示身份来代替真实隔离。
+页面通过同源 `/api` 访问后端，开发代理由 `API_INTERNAL_URL` 指定。公网使用 [deploy](../../deploy/) 的 HTTPS 代理和一个 API worker。API 在本地数据目录中保存独立匿名凭证和各访问者的记录。
 
 ## 文件与接口
 
-- `api/main.py` 组合 `ShoppingAgent`、目录后端和 `demo_common.experience`，读取模型与 Supabase 配置。`CATALOG_BACKEND=java`（设置了 `COMMERCE_SERVICE_URL` 时默认启用）使用 Java 订单服务；`json` 使用本地夹具，购物车保存在进程内存。`POST /api/orders` 是结算卡片的“提交订单”按钮，校验对话归属后转发订单服务，并告知下一轮对话；模型没有下单工具。
+- `api/main.py` 组合 `ShoppingAgent`、目录后端和 `demo_common.experience`，读取模型与本地数据目录配置。`CATALOG_BACKEND=java`（设置了 `COMMERCE_SERVICE_URL` 时默认启用）使用 Java 订单服务；`json` 使用本地夹具，购物车保存在进程内存。`POST /api/orders` 是结算卡片的“提交订单”按钮，校验对话归属后转发订单服务，并告知下一轮对话；模型没有下单工具。
 - `api/java_retail.py` 按 `StorefrontBackend` 调用 [commerce-service](../../commerce-service/) 的内部接口：商品查询、详情、购物车、订单、政策与配送报价。`api/mock_retail.py` 提供本地夹具行为。
 - `scripts/outdoor_catalog.py` 定义 8 类、96 个无品牌中文主商品及 120 个尺码变体，使用人民币独立定价；`data/catalog.json` 为固化输出。`evidence.json` 保存模拟价格和评价，`policies.json` 为前后端共享的配送、退货与选购依据。
 - `shopping-agent/skills/outdoor-equipment/SKILL.md` 指导人数、气温、背负、睡眠系统、分层穿衣、照明与装备搭配；不声称提供实时天气或路线服务。
 - `storefront-web/app/page.tsx` 从目录读取首页章节商品。`components/landing/LandingPage.tsx` 提供桌面首页及本地导航和页尾；`app/landing.css` 限定首页样式，`components/landing/motion/useUnpackMotion.ts` 用一条固定画面的滚动时间线从背包首屏进入饮水、睡眠、照明和炊具四章。闭合背包缩小退场，山野背景从其背后显现，后续转场保留背景并覆盖交接。饮水与炊具使用原创场景背景和左侧商品选择栏，睡眠与照明保留夜色中的装备展台；水流涟漪、睡袋与星光、锅口蒸汽仅在当前章节播放，并可手动暂停。每章包含五件透明商品、用途标注和常驻参数价格，支持悬停选择、章节跳转和详情浏览。`public/images/landing/` 保存主视觉、章节透明素材和场景 PNG 原图及 WebP 副本，来源与提示词见 `data/landing-image-prompts.json` 与 `data/unpack-image-prompts.json`。
 - `app/equipment/page.tsx` 与 `app/equipment/[id]/page.tsx` 提供装备目录和详情。两页在每次请求时通过 `lib/liveCatalog.ts` 读取 API 的实时价格与库存，API 不可达时显示 `lib/catalog.ts` 的公开固化数据；`EquipmentBrowser.tsx` 提供搜索、分类与排序，`EquipmentCard.tsx` 和 `EquipmentDetail.tsx` 展示商品。公开目录可在匿名会话建立前浏览。
 - `app/chat/page.tsx` 使用左侧对话导航、聊天区和购物车入口。`lib/navigation.ts` 将行程或商品问题作为草稿带入聊天，用户点击发送后才请求 Agent。`web-shared/storefront/Shell.tsx` 管理桌面折叠、移动端弹窗与输入框草稿。
-- `storefront-web/components/OutdoorMark.tsx` 与 `EquipmentIllustration.tsx` 提供原创 SVG 标识和八类装备插画；不展示记忆面板或读写进度。
+- `storefront-web/components/OutdoorMark.tsx` 与 `EquipmentIllustration.tsx` 提供原创 SVG 标识和八类装备插画。
+- `app/memory/page.tsx` 与 `memory.css` 提供主题文件编辑、模式设置、整理进度与取消、审阅提案和 Agent 快照；`components/MemoryStatus.tsx` 在聊天页显示记忆更新与整理状态。
 - `storefront-web/components/VisitorProfile.tsx` 提供侧栏头像、昵称及个人资料、使用说明、关于体验三个菜单入口。展示资料按匿名身份保存在当前浏览器，桌面、移动端与同源标签页共享；不修改对话身份或长期偏好。
 - `storefront-web/public/products/` 保留旧商品照片供历史查看，来源见目录中的 `IMAGE-CREDITS.md`。`public/products/generated/` 保存户外商品摄影，尺码变体共享主商品图片。`data/generated-image-prompts.json` 保存逐款生成提示词；`data/image-prompts.json` 保存目录要求。
 - `public/images/` 保存历史场景素材与首页通用图片，`data/scene-image-prompts.json` 记录保留的场景来源。`public/fonts/` 保存自托管中文标题字体及开放字体许可证，服务器构建无需下载字体。
@@ -35,9 +36,9 @@ python scripts/prepare_catalog.py
 python scripts/prepare_catalog.py --check
 ```
 
-JSON 是订单服务导入的主数据；`java` 模式运行时不从 JSON 读取目录。订单服务的 MySQL 保存商品、库存、购物车和订单，Supabase 保存身份、对话、长期记忆和处理进度。旧的本地记忆文件保留，不导入匿名用户。
+JSON 是订单服务导入的主数据；`java` 模式运行时不从 JSON 读取目录。订单服务的 MySQL 保存商品、库存、购物车和订单；本地数据目录保存身份、JSONL 对话、Markdown 记忆和处理进度。旧的远端数据不导入新匿名用户。
 
-新安装在 Supabase 执行 `001_agent_experience.sql` 和 `005_drop_catalog_and_carts.sql`，并按 [订单服务](../../docs/deployment.md#订单服务) 部署订单服务。
+新安装无需数据库迁移。部署订单服务见 [部署说明](../../docs/deployment.md#订单服务)。
 
 首次进入户外聊天创建空对话；原身份、长期偏好与左侧全部历史保留。之后恢复当前选中的对话。订单工具读取当前用户在订单服务中提交的订单；`data/users.json`、`orders.json` 仅保留本地夹具用途。
 
@@ -45,7 +46,7 @@ JSON 是订单服务导入的主数据；`java` 模式运行时不从 JSON 读�
 
 点击侧栏底部的头像或昵称，打开个人菜单。“个人资料”支持修改昵称和选择内置户外头像；“使用说明”介绍装备挑选、比较与清单整理；“关于体验”介绍 Agent 及演示数据范围。
 
-资料在当前浏览器中保存和恢复，不上传到 Supabase，也不作为模型偏好。该功能无需新增配置或数据库迁移。默认值、保存范围和交互约定见 [侧栏个人入口](../../docs/agent-experience-design.md#侧栏个人入口)。
+资料在当前浏览器中保存和恢复，不上传到 API，也不作为模型偏好。该功能无需新增配置。默认值、保存范围和交互约定见 [侧栏个人入口](../../docs/agent-experience-design.md#侧栏个人入口)。
 
 ## 体验场景
 
@@ -55,7 +56,7 @@ JSON 是订单服务导入的主数据；`java` 模式运行时不从 JSON 读�
 - 表达稳定的背负、材质或颜色偏好，再新建对话体验推荐；后台提取完成前，新偏好可能尚未生效。
 - 查看购物车和结算摘要，点击“提交订单”由订单服务创建订单并扣减库存；不收款、不发货。
 
-模型、记忆提取与长对话摘要都使用 Anthropic Messages API。网关必须支持 `/v1/messages` 和 SSE；`SHOPPING_MODEL` 与 `SHOPPING_MEMORY_MODEL` 都须在该网关可用。协议和部署参数见 [部署说明](../../docs/deployment.md)。
+模型、记忆提取与长对话摘要都使用 Anthropic Messages API。网关必须支持 `/v1/messages` 和 SSE；长期记忆提取与 Dream 继承主模型、提示词和工具前缀，相关记忆选择使用 `SHOPPING_MEMORY_SELECTOR_MODEL`（未指定时使用主模型），短期笔记及摘要使用 `SHOPPING_MEMORY_MODEL`。协议和参数见 [部署说明](../../docs/deployment.md)。
 
 `storefront-web/components/landing/BackpackReveal.tsx` 将背包外观与内部装载纹理在 Canvas 中局部混合，鼠标轨迹只作用于主包腔。水壶、绑带和泡沫垫保持外观图。图片失败回退原背包，滚动与暂停时清除揭露；键盘可切换内部示意。素材与提示词记录在 `data/backpack-reveal-images.json`。 Local ripple feedback and refraction live in `components/landing/motion/backpackWater.ts`; registered lid and flank cutaways preserve exterior attachments.
 

@@ -66,8 +66,8 @@ stage="构建 Web 镜像"
 echo "[3/5] 构建 Web 镜像，Node.js 构建堆上限为 768 MiB"
 "${compose[@]}" build --build-arg BUILD_NODE_OPTIONS=--max-old-space-size=768 web
 
-stage="检查 Supabase 与订单服务"
-echo "[4/5] 只读检查 Supabase 与订单服务，不启动第二个 API 进程"
+stage="检查本地数据卷与订单服务"
+echo "[4/5] 只读检查本地数据卷与订单服务，不启动第二个 API 进程"
 # Run only the checker, without API lifespan/recovery or dependent services.
 "${compose[@]}" run --rm --no-deps -T --entrypoint python --workdir /app/examples api -   < deploy/check_database.py
 # Fetch Caddy before stopping the API, only if its image is missing locally.

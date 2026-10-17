@@ -8,9 +8,9 @@ events.
     python scripts/smoke_chat.py                          # in-process
     python scripts/smoke_chat.py --url http://localhost:8004
 
-Needs Supabase and model configuration. Each run creates an anonymous visitor and
-conversation in the configured project and makes billable model calls. In-process
-mode must not run alongside another API instance using that project.
+Needs model configuration. Each run creates a local anonymous visitor and conversation
+and makes billable model calls. In-process mode must not share a data directory with
+another API instance.
 """
 
 from __future__ import annotations
@@ -53,16 +53,8 @@ TURNS: list[dict[str, Any]] = [
 
 async def start_session(client: httpx.AsyncClient) -> dict[str, str]:
     """Use the browser's public anonymous flow; never impersonate a user id."""
-    response = await client.get("/api/config")
-    response.raise_for_status()
-    config = response.json()
-    async with httpx.AsyncClient(timeout=15) as auth_client:
-        credential = await auth_client.post(
-            f"{config['supabase_url']}/auth/v1/signup",
-            headers={"apikey": config["supabase_key"]},
-            json={"data": {}},
-        )
-        credential.raise_for_status()
+    credential = await client.post("/api/identity")
+    credential.raise_for_status()
     headers = {"Authorization": f"Bearer {credential.json()['access_token']}"}
     response = await client.post(
         "/api/conversations", json={"request_id": str(uuid4())}, headers=headers

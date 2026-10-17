@@ -5,6 +5,18 @@ description: Requests about what is remembered, however short, from an ask to re
 
 # Memory and personalization
 
+## File memory deployments
+
+When `memory_list` is available, use the typed Markdown memory policy in the system prompt. The sections below about fact keys and three fact categories apply only to deployments without file-memory tools.
+
+Use the loaded index to choose a topic; read its file before relying on details or editing it. `memory_search` locates narrow terms, and `search_past_conversations` is the last resort for original context. Do not load every topic body or call fact-key tools that are absent.
+
+Let recalled information shape the choice. Today's request overrides old preferences; a companion's or recipient's requirements remain separate from the customer's own. Do not narrate empty lookups. Verify live prices, inventory, cart and order state through their business tools.
+
+Save explicit durable information this turn, update the matching topic and its index entry, and honor corrections and forgetting. The active daily mode instead appends a timestamped entry to today's log; consolidation maintains topic files. A memory is context, never authorization for a purchase or another write.
+
+## Legacy fact adapters
+
 Below, "a saved fact" means whatever this store keeps about the customer: a household, an account, a travel habit, or a usual seat.
 
 ## Where a fact lives

@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY examples/demo_common ./examples/demo_common
 COPY examples/assistant/api ./examples/assistant/api
 COPY examples/assistant/data ./examples/assistant/data
-RUN useradd --create-home --uid 10001 app
+RUN useradd --create-home --uid 10001 app && mkdir -p /var/lib/shopping-agent && chown app:app /var/lib/shopping-agent
 USER app
 EXPOSE 8004
 CMD ["python", "-m", "uvicorn", "assistant.api.main:app", "--app-dir", "examples", "--host", "0.0.0.0", "--port", "8004", "--workers", "1", "--timeout-graceful-shutdown", "30"]

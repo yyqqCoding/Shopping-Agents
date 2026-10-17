@@ -1,290 +1,37 @@
-# Deployment
+# 中文体验站部署
 
-## 中文体验站
+体验站在一个 HTTPS 域名下提供页面和 `/api`。Agent 服务器运行一个 Python API worker、Next.js 页面和 Caddy；订单服务器运行 Java 服务和 MySQL，保存商品、库存、购物车和订单。API 将匿名身份、对话与记忆保存在本地持久卷。浏览器失去本地访问凭证后无法恢复原匿名身份。
 
-户外体验站使用一个 HTTPS 域名承载页面和 `/api`，部署在两台服务器上：Agent 服务器运行 Caddy、页面和 Python API；订单服务器运行 Java 订单服务和 MySQL，保存商品、库存、购物车和订单。`/` 是山野动画首页，点击进入 `/chat`；聊天页使用左侧历史导航和右下角购物车抽屉。浏览器自动创建或恢复 Supabase 匿名身份；API 验证访问凭证后，按用户归属读写对话。没有登录页面，也不要求跨设备恢复。
+本次本地存储切换从空目录开始，不导入旧 Supabase 身份、对话或记忆，也不自动删除旧数据库。原始对话为 JSONL，会话笔记和长期记忆为 Markdown，机器状态为 JSON。布局、压缩和恢复规则见 [本地记忆设计](local-memory-design.md)。
 
-侧栏底部的个人入口提供头像、昵称、使用说明和体验介绍。展示资料保存在当前浏览器，不需要新增 Supabase 表、迁移或环境变量；保存范围见 [侧栏个人入口](agent-experience-design.md#侧栏个人入口)。
+## 本地运行
 
-本次部署从公开仓库 `https://github.com/yyqqCoding/Shopping-Agents.git` 的 `main` 分支获取代码，入口为 `https://jobb.lol`。服务器为 Ubuntu 22.04 x86_64，已有 Docker Compose；现有的 8090 服务使用独立端口，继续运行。
+安装 Python 3.11+ 与 Node.js 22.15+。在仓库根目录运行 `bash scripts/install.sh`，复制 [.env.example](../.env.example) 为 `.env`，填写模型端点和凭证。设置 `CATALOG_BACKEND=json` 可使用内置商品夹具；此模式的购物车在进程内存中，重启后不保留。运行 `bash scripts/demo.sh` 后打开 `http://localhost:3004`。
 
-### Supabase
+`SHOPPING_DATA_DIR` 默认是仓库根目录下的 `.shopping-data`。同一目录只允许一个 API 进程写入；启动时获取独占锁。备份和恢复应覆盖整个目录。不要将目录放到网页静态资源路径，也不要提交到 Git。
 
-本地与服务器沿用同一个已验证的 Supabase 项目和模型配置。已有数据库迁移不重复执行；以下步骤用于首次接入项目。
+## 模型与窗口
 
-1. 建立 Supabase 项目，在 Authentication 的 Sign In / Providers 中启用 Anonymous Sign-ins。将 Site URL 设置为体验站的 HTTPS 域名；本地开发可使用 `http://localhost:3004`。
-2. 新项目依次执行 [001 存储迁移](../supabase/migrations/001_agent_experience.sql) 和 [005 移除目录与购物车表](../supabase/migrations/005_drop_catalog_and_carts.sql)，各执行一次。已有项目按 [切换到订单服务](#切换到订单服务) 在切换完成后执行 `005`。迁移不清空对话或记忆，不导入 `demo-user` 偏好。
-3. 在服务器仓库根目录 `.env` 填写 `SUPABASE_URL`、`SUPABASE_PUBLISHABLE_KEY`（或旧版 `SUPABASE_ANON_KEY`）和同项目的旧版 `SUPABASE_SERVICE_ROLE_KEY` JWT。服务端密钥只给 API，不能放入 `NEXT_PUBLIC_*` 或 Web 镜像。
-4. 在 Authentication 的 Rate Limits 配置匿名注册频率。公开项目还应按容量设置网关流量限制。模型频率、并发与每日回合额度由 API 和数据库控制。
+API 使用 Anthropic Messages API 协议。`ANTHROPIC_BASE_URL` 如需设置，应填写不带 `/v1` 的网关前缀；使用 `ANTHROPIC_API_KEY` 或 `ANTHROPIC_AUTH_TOKEN`。`SHOPPING_MODEL` 用于聊天、会话笔记、普通压缩及长期记忆分支。笔记与压缩优先继承主请求的模型、system、tools、thinking 和消息前缀，压缩失败时使用同一主模型的独立流式摘要。`SHOPPING_MEMORY_MODEL` 服务旧事实提取适配器。`SHOPPING_MEMORY_SELECTOR_MODEL` 指定独立的相关记忆选择模型，空值使用主模型。网关必须支持 `/v1/messages`、SSE 和选择器使用的 JSON-schema 输出；笔记与长期记忆分支使用普通响应。
 
-相关产品边界见 [匿名身份](https://supabase.com/docs/guides/auth/auth-anonymous) 和 [API keys](https://supabase.com/docs/guides/api/api-keys)。匿名身份凭证存于浏览器；清除本站数据后不承诺找回旧身份，服务端旧记录也不会被自动删除。
+`/memory` 提供主题 Markdown 与索引编辑、记忆模式、整理与审阅、任务取消和 Agent 快照。`SHOPPING_MEMORY_EXTRACT`、`SHOPPING_MEMORY_PREFETCH`、`SHOPPING_MEMORY_DREAM` 是新用户初始设置；用户修改后以本地 `settings.json` 为准。后台提取默认开启，自动预取默认关闭而使用索引模式，自动 Dream 默认开启并保留 24 小时及 5 个其他会话的门槛。日记模式按用户时区检查跨日整理，默认 `Asia/Shanghai`；这是对参考源码缺失调度的宿主接线。团队记忆不启用。具体流程见 [长期记忆设计](long-term-memory-design.md)。
 
-内部业务表启用 RLS，但没有浏览器读写策略。数据库函数只授予服务角色，且所有用户范围操作都检查 API 传入的已验证归属。迁移和接口说明见 [supabase](../supabase/)。
+`SHOPPING_CONTEXT_WINDOW_TOKENS` 必须对应实际服务模型的窗口。`SHOPPING_MODEL_MAX_OUTPUT_TOKENS` 是模型的输出能力，普通窗口的自动压缩阈值为窗口减 `min(输出能力, 20000)`，再减至少 13000 安全缓冲，与普通回复的 `max_tokens` 分离；小窗口使用受限预留以保持预算有效。默认 131072 窗口、20000 输出预留对应 98072 输入阈值。使用有效 usage 加新增消息估算，模型、系统、工具或前缀变化时失效；缺失 usage 使用保守估算。`SHOPPING_USAGE_INPUT_INCLUDES_CACHE=false` 遵循输入与缓存计数互斥的 API 语义，网关明确把缓存包含在 input 时才设为 true。
 
-### 模型与进程
+会话笔记默认首次 10000 tokens、增长 5000 tokens，并满足 3 次工具调用或无工具的自然停顿时触发；逐轮检查，后台每会话串行。`SHOPPING_SESSION_NOTE_*` 控制阈值和 10000-token／5 条文本消息／40000-token 的原文保留范围。未覆盖的新消息不会因 40000 上限被删除。普通摘要不再按固定最近四轮裁剪，`SHOPPING_CONTEXT_RECENT_TURNS` 仅保留兼容读取。笔记与摘要超时建议分别设置 `SHOPPING_SESSION_NOTE_TIMEOUT_S=120`、`SHOPPING_CONTEXT_SUMMARY_TIMEOUT_S=120`，已有 `.env` 的值不会自动更新。
 
-填写 [.env.example](../.env.example) 中的模型端点与凭证；`SHOPPING_MODEL` 和 `SHOPPING_MEMORY_MODEL` 都必须在该端点可调用。记忆模型同时处理长期偏好提取和长对话摘要，不能只检查聊天模型。
+时间触发的旧工具结果清理默认关闭；`SHOPPING_TIME_BASED_MICROCOMPACT=true` 开启后，默认间隔至少 60 分钟并保留最近 5 个结果。未验证的服务端缓存编辑请求不发送。原始 JSONL 不因压缩而删除；完整笔记可通过受控归档工具读取。配置与行为见 [本地记忆设计](local-memory-design.md)。
 
-`SHOPPING_CONTEXT_WINDOW_TOKENS` 取聊天与摘要模型均支持的窗口。运行时按 UTF-8 字节保守估算文本输入，扣除输出和保留空间，在每次调用前检查预算。整理只改变工作上下文，已完成回合的原始消息和最终卡片保留。摘要失败时尝试仅缩小旧工具结果的请求副本；仍超限时返回中文错误。
+## 订单服务
 
-默认每用户每分钟 12 轮、每天 100 轮，全站每天 1000 轮，同时运行 4 轮。每日额度按 UTC 记录于数据库，只计算新受理回合；重启不会重置额度。`SHOPPING_*` 参数可按展示容量调整。
+生产部署使用 `CATALOG_BACKEND=java`、`COMMERCE_SERVICE_URL` 和 `COMMERCE_SERVICE_TOKEN`。在订单服务器复制 `deploy/commerce/.env.example` 为 `deploy/commerce/.env`，填写 MySQL 与服务令牌，然后运行 `bash scripts/deploy_commerce.sh`。脚本构建 Java 镜像、启动 MySQL、建表导入目录并等待服务健康；重复运行不会覆盖现有库存。`--reset-inventory` 会删除订单并恢复初始库存，只在明确需要重置时使用。Agent 服务器通过内网地址访问订单服务的 8080 端口，令牌需与订单服务器相同。数据设计见 [commerce-service-design.md](commerce-service-design.md)。`POST /api/orders` 由顾客点击结算卡片触发，模型本身不提交订单。
 
-后台记忆最多尝试 4 次，退避从 5 秒开始，上限 300 秒；下一轮最多等待 1.5 秒。任务领取有过期时间，未能保存处理结果的任务可重新领取。清空版本、事实来源顺序和删除标记在数据库事务中检查；旧提取和旧回合工具不能恢复被清空或覆盖的偏好。界面不显示这些状态。
+## 容器部署
 
-### GitHub 首次部署
+将域名解析到 Agent 服务器并开放 TCP 80、443。在 Agent 服务器准备根目录 `.env`，填写 `SHOPPING_DOMAIN`、模型配置及订单服务内网地址和令牌，然后执行 `bash scripts/deploy.sh`。脚本先构建 API 和 Web 镜像，在临时容器里只读检查本地卷权限及订单服务，再停止旧 API 并切换容器，等待健康检查；Caddy 自动获取 HTTPS 证书。API 数据卷在 `deploy/compose.yaml` 中挂载为 `shopping_data:/var/lib/shopping-agent`。容器镜像只运行一个 API worker；不要扩容或滚动重叠启动同一卷上的 worker。
 
-服务器从 GitHub 拉取已提交的源码。先确认本地新功能、迁移和 `deploy/` 配置已经推送到 `main`；本地未提交的文件不会出现在服务器上。在服务器运行：
+更新代码后重新运行脚本。不要使用 `docker compose down -v`，否则会删除持久卷。按卷整体备份，恢复时在 API 停止后还原目录和文件权限。`/api/health` 只报告进程配置，不能代替聊天、模型或订单服务验证。
 
-```bash
-git clone --branch main --single-branch https://github.com/yyqqCoding/Shopping-Agents.git /opt/shopping-agents
-cd /opt/shopping-agents
-```
+## 上线验收
 
-服务器不需要本地 Python、Node.js、虚拟环境或本地导入。登录服务器后直接创建并编辑配置文件：
-
-```bash
-cd /opt/shopping-agents
-chmod 600 .env
-nano .env
-```
-
-```dotenv
-SHOPPING_DOMAIN=jobb.lol
-SHOPPING_MAX_CONCURRENT_TURNS=1
-CATALOG_BACKEND=java
-COMMERCE_SERVICE_URL=http://172.24.65.233:8080
-COMMERCE_SERVICE_TOKEN=与订单服务器相同的令牌
-SHOPPING_SEARCH_PAGE_SIZE=6
-```
-
-把模型和 Supabase 的值填入服务器 `.env`；`.env` 不进入 GitHub。Linux 容器根据仓库文件安装本平台依赖，`node_modules`、`.next` 和虚拟环境均不上传。
-
-沿用同一个 Supabase 项目时，先停止连接该项目的本地 API，再启动服务器 API。本地后端测试也要先停止线上 API；当前回合恢复机制要求每个项目同时只有一个本应用 API 实例。切换域名会改变浏览器存储来源，域名首次访问创建新的匿名身份，旧身份的记录仍留在数据库。
-
-### HTTPS 与代理
-
-[deploy](../deploy/) 提供 API、Web 和 Caddy 配置。域名在 Spaceship 注册，当前权威 DNS 由 Cloudflare 管理；在 Cloudflare 的该域名 DNS 页面配置：
-
-| 类型 | 名称 | 内容 | 代理状态 |
-|---|---|---|---|
-| A | `@` | `8.211.184.175` | DNS only（灰色云朵） |
-
-删除根域名指向旧网站的冲突 A、AAAA 或 CNAME 记录。当前只部署 `jobb.lol`，不用配置 `www`。云安全组允许入站 TCP 80、443；若 UFW 已启用，也允许这两个端口。Supabase Site URL 设置为 `https://jobb.lol`，匿名访问保持开启。
-
-Caddy 管理 HTTPS，将 `/api/*` 直接转发给 API 并立即刷新 SSE 输出。API 和 Web 的内部端口不发布到公网。浏览器请求同源 `/api`，不能将生产的 `NEXT_PUBLIC_API_URL` 配为 localhost。
-
-手动部署也必须运行一个 API worker，使用 Web 生产构建；代理关闭 SSE 缓冲和缓存，保留 Authorization、X-Session-Id 与 Host，流式读取超时需覆盖完整回合。`DEMO_ALLOWED_HOSTS` 设置域名。不要同时启动连接同一数据库的第二个 API 实例；工具锁与启动恢复依赖单实例边界。
-
-### 一条命令部署
-
-完成服务器 `.env`、DNS 和首次数据库迁移后，在服务器仓库根目录运行：
-
-```bash
-bash scripts/deploy.sh
-```
-
-脚本沿用根目录 `.env`，不要求服务器另装 Python、Node.js 或数据库工具。它依次完成：
-
-1. 检查 Docker、Compose 与配置；`config --quiet` 不输出环境中的密钥。同一工作副本不能同时运行两次部署脚本。
-2. 顺序构建 API、Web 镜像，Web 构建使用 768 MiB 的 Node.js 堆上限。
-3. 在临时容器中只读检查 Supabase 连接与 001 迁移；`CATALOG_BACKEND=java` 时再用令牌访问订单服务。不返回用户行，不调用模型或启动第二个 API；本地没有 Caddy 镜像时先下载。
-4. 停止旧 API，重建 API、Web、Caddy 容器并保持一个 API 实例。重新创建代理会加载最新的 `Caddyfile`，保留已有证书卷。
-5. 等待 API 与 Web 健康检查通过，输出容器状态。切换期间聊天短暂不可用。
-
-构建或部署前检查失败时，脚本不会停止旧服务。切换开始后失败会返回非零退出码并给出排查命令，不自动回滚。查看状态和日志：
-
-```bash
-docker compose --env-file .env -f deploy/compose.yaml ps -a
-docker compose --env-file .env -f deploy/compose.yaml logs --tail=80 api web proxy
-```
-
-现有 Supabase API 密钥不能执行任意迁移 SQL，因此脚本只检查迁移，不自动执行。订单服务不可达时脚本在切换前停止，旧服务继续运行。
-
-API 状态为 `Restarting` 时，`logs api` 末尾的回溯就是启动错误，常见原因是 `.env` 某个取值无效；各变量的允许值见 [.env.example](../.env.example) 的注释。改正后重新运行 `bash scripts/deploy.sh`。
-
-DNS 生效并开放端口后，Caddy 自动申请 HTTPS 证书。脚本的健康检查确认容器内 API 与页面可用；部署后访问 `https://jobb.lol/` 和 `https://jobb.lol/api/health`，再完成下文的聊天、记忆和恢复验收。
-
-### 小内存服务器
-
-Ubuntu x86_64 可使用现有 Docker Compose 配置。首次部署先用 `ss -lntp` 确认 80/443 可用，并用 `free -h`、`df -h /` 检查可用内存、交换空间和磁盘。构建阶段比日常运行更占内存；磁盘需能容纳镜像、依赖和构建缓存，首次部署建议至少预留 5 GiB 空间。
-
-部署脚本已经采用顺序构建和 Web 构建堆限制。`BUILD_NODE_OPTIONS` 只限制构建时每个 Node.js 进程的 V8 老生代堆，不是整个构建的内存上限，也不改变运行容器的参数。已有交换空间可以缓冲峰值，构建可能较慢；若出现内存不足、进程被杀或严重交换，应转到内存更充足的 Linux 构建环境生成镜像，再通过 `docker save`、SSH 和 `docker load` 导入服务器，不重复挤占现有服务的内存。
-
-`docker stats --no-stream` 可以查看运行时的容器占用。
-
-### 更新部署
-
-在本地完成代码修改和验证，提交并推送到 `main`。然后在服务器执行：
-
-```bash
-cd /opt/shopping-agents
-git status --short
-git pull --ff-only origin main && bash scripts/deploy.sh
-```
-
-服务器的代码改动应先处理清楚，再拉取更新；环境值保存在被 Git 忽略的 `.env` 中。`&&` 保证拉取失败时不会部署。脚本部署当前工作副本，不自行拉取或切换分支；已完成拉取时直接运行 `bash scripts/deploy.sh`。有新增数据库迁移时按对应版本步骤执行。
-
-仅代码更新不会自动执行数据库迁移、删除对话或清空记忆。不重复执行已经完成的迁移。证书卷也保留，不使用 `down -v` 或数据库重置作为更新步骤。
-
-### 订单服务
-
-订单服务器单独部署 [commerce-service](../commerce-service/) 与 MySQL，设计见 [Java 订单服务设计](commerce-service-design.md)。两台服务器位于同一地域的不同 VPC，通过 VPC 对等连接走内网：
-
-| | 内网 IP | VPC | 交换机网段 | 路由表新增条目 |
-|---|---|---|---|---|
-| Agent 服务器 | `172.30.61.56` | `vpc-6wetoh8qe5lyrfvtqzucc` | `172.30.48.0/20` | `172.24.64.0/20` → 对等连接 |
-| 订单服务器 | `172.24.65.233` | `vpc-6wefrcwv0jj3amvxac9g5` | `172.24.64.0/20` | `172.30.48.0/20` → 对等连接 |
-
-1. 在专有网络控制台创建两个 VPC 之间的对等连接，按上表给两侧路由表添加条目。
-2. 订单服务器安全组入方向只放行 `172.30.61.56/32` 的 TCP 8080。MySQL 不发布端口。
-3. 订单服务器安装 Docker Engine 与 Compose 插件，克隆仓库，复制 [deploy/commerce/.env.example](../deploy/commerce/.env.example) 为 `deploy/commerce/.env` 并填写密码与令牌（`openssl rand -hex 32`）。
-4. 在订单服务器仓库根目录运行：
-
-```bash
-bash scripts/deploy_commerce.sh --test   # 临时 MySQL 上的并发、回滚、幂等与分页测试
-bash scripts/deploy_commerce.sh          # 构建、建表、导入商品并启动
-```
-
-导入只更新商品内容，已有库存不覆盖。`bash scripts/deploy_commerce.sh --reset-inventory` 删除全部订单并恢复 `inventory.json` 的初始库存，用于库存售空后的演示恢复。服务的 Compose 网络固定为 `192.168.240.0/24`，不与 Agent 服务器的交换机网段重叠。
-
-在 Agent 服务器执行 `curl -s http://172.24.65.233:8080/health`，返回 `{"ok":true}` 即内网可达。订单服务的 DEBUG 日志按对话 ID 记录每条 SQL 及参数：
-
-```bash
-docker compose --env-file deploy/commerce/.env -f deploy/commerce/compose.yaml logs --tail=200 commerce
-```
-
-### 切换到订单服务
-
-已运行的站点按以下顺序切换；订单服务就绪之前，Agent 继续使用原配置运行。
-
-1. 按上节部署订单服务并通过测试与内网检查。
-2. Agent 服务器拉取代码，在 `.env` 设置 `CATALOG_BACKEND=java`、`COMMERCE_SERVICE_URL` 与 `COMMERCE_SERVICE_TOKEN`，运行 `bash scripts/deploy.sh`。完成后 `https://jobb.lol/api/health` 返回 `"catalog_backend":"java"`，`https://jobb.lol/api/products?limit=1` 返回订单服务中的商品。
-3. 部署成功后，在 Supabase SQL Editor 完整执行一次 [005_drop_catalog_and_carts.sql](../supabase/migrations/005_drop_catalog_and_carts.sql)。它删除 `catalog_*` 表与函数和对话购物车表，旧购物车数据不迁移；对话、回合与记忆保留。
-
-切换后访问 `/equipment` 检查价格与库存，在对话中完成搜索、加购、结算，点击结算卡片的“提交订单”，再在订单服务器确认库存减少、订单写入。
-
-### 保存与恢复
-
-用户消息提交成功后才调用模型。完成事件在完整回合、卡片与工作快照提交后发送；保存失败时保留进程中的快照并后台重试，不重新调用模型或购物车。浏览器断开不取消服务端回合。浏览器重试沿用请求编号，重复请求读取原结果。
-
-进程重启后，无法继续的回合标为中断，保留订单服务已提交的购物车动作，下一轮先读取当前购物车。重启前仍未提交的回复片段不能承诺恢复。数据库不可用时不切换成共享用户或虚构保存成功。
-
-新对话不删除旧历史、购物车或记忆。旧的本地 `.memory-*.json` 保留但不导入匿名身份。不启用定时清理；数据删除与保留周期由项目明确配置，不使用数据库重置作为常规部署步骤。
-
-### 部署验收
-
-仓库离线验证范围见 [设计测试契约](agent-experience-design.md#测试契约)，当前结果和用户验收反馈见 [实现与验证](agent-experience-verification.md)。真实环境验收范围如下：
-
-- 普通窗口刷新后恢复身份、对话和最终卡片；多个标签页共享身份但可选择不同对话。
-- 首页点击进入聊天；桌面侧栏可折叠，手机历史与购物车弹窗可关闭，购物车按钮不遮住输入框。
-- 侧栏个人菜单可打开三个入口；昵称与头像保存后刷新可恢复，修改资料不切换对话或匿名身份。
-- 商品、购物车与结算摘要使用 CNY；装备页显示订单服务的实时库存，下架商品只能查看和从购物车移除。
-- 结算卡片提交后订单写入 MySQL、库存按数量减少、购物车清空，下一轮助手知道订单号；库存不足或购物车已变化时整单不提交并显示原因。
-- 无痕窗口拥有独立数据，已知另一用户的对话 ID 也不能读取或修改。
-- 表达稳定偏好后，在开发侧确认记忆任务完成，再新建对话验证推荐；不把当前预算或收礼对象当作长期偏好。
-- 聊天与记忆模型均成功调用，SSE 持续输出；切断网络再恢复不重复写购物车。
-- 重启 API 后历史与购物车可恢复，进行中的回合明确显示中断；订单服务重启后购物车与订单不丢失。
-
-`/api/health` 只报告进程和配置状态（商店名、`catalog_backend`、技能），不调用 Supabase 或订单服务，不能代替上述模型、数据库和域名验收。
-
-## Model platforms
-
-The code calls the Anthropic API by default. A deployment points the runtime at GCP
-Vertex AI, AWS Bedrock, Microsoft Foundry, or an in-house gateway instead by changing
-one place: the client the agent is constructed with.
-
-## Support matrix
-
-| Path | Anthropic API | GCP Vertex AI | AWS Bedrock | Microsoft Foundry | In-house gateway |
-|---|---|---|---|---|---|
-| Messages API runtime (`ShoppingAgent`) | Yes | Yes | Yes | Yes | Yes |
-
-## Model ids
-
-The model is a string in the config: `model` and `memory_model`. Nothing else reads the
-string, so a platform move is a config change. Id grammar differs by platform; confirm
-against your platform's catalog.
-
-| Field | Repo default | Anthropic API, gateways | GCP Vertex AI | AWS Bedrock (Mantle) | AWS Bedrock (Invoke API) | Microsoft Foundry |
-|---|---|---|---|---|---|---|
-| `model` | `claude-sonnet-5` | `claude-sonnet-5` | `claude-sonnet-5` | `anthropic.<SERVED_MODEL>` | `<INFERENCE_PROFILE_ID>` | `claude-sonnet-5` |
-| `memory_model` | `claude-haiku-4-5-20251001` | `claude-haiku-4-5-20251001` | `claude-haiku-4-5@20251001` | `anthropic.<SERVED_MODEL>` | `<INFERENCE_PROFILE_ID>` | `claude-haiku-4-5` |
-
-- Vertex writes dated snapshots with `@`.
-- Bedrock has two endpoints. Mantle speaks the Messages API and takes dateless
-  `anthropic.` ids from its own lineup; the Invoke API takes inference-profile ids from your account's catalog
-  (region-prefixed, dated, `-v1:0` suffixed).
-- Foundry takes the name of a deployment in your resource; the values above are the
-  defaults, which match the dateless first-party ids.
-- Both model fields go through the same client, so both must exist on the platform it
-  targets. The demo reads `SHOPPING_MODEL` and `SHOPPING_MEMORY_MODEL` from its `.env`
-  for exactly this move.
-
-## The `client` argument
-
-`ShoppingAgent` takes an optional `client`. Without one it constructs `AsyncAnthropic`,
-which reads `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, and `ANTHROPIC_BASE_URL` from
-the environment; exporting them points the demo API at a gateway. With one, every call
-uses it: the turn loop (`messages.stream`) and memory extraction (`messages.create`).
-Any async client in the `anthropic` package fits. The parameter is annotated
-`AsyncAnthropic`, so a type checker needs a `cast` for the platform classes.
-
-```python
-from pathlib import Path
-
-from anthropic import (
-    AsyncAnthropic,
-    AsyncAnthropicBedrockMantle,
-    AsyncAnthropicFoundry,
-    AsyncAnthropicVertex,
-)
-from shopping_agent import ShoppingAgentConfig
-from shopping_agent_runtime import ShoppingAgent
-
-common = dict(backend=your_backend, skills_dir=Path("shopping-agent/skills"))
-
-# GCP Vertex AI: pip install "anthropic[vertex]"; Application Default Credentials.
-agent = ShoppingAgent(
-    **common,
-    config=ShoppingAgentConfig(memory_model="claude-haiku-4-5@20251001"),
-    client=AsyncAnthropicVertex(project_id="your-project", region="global"),
-)
-
-# AWS Bedrock, Mantle endpoint: the standard AWS credential chain.
-agent = ShoppingAgent(
-    **common,
-    config=ShoppingAgentConfig(
-        model="anthropic.your-served-model", memory_model="anthropic.claude-haiku-4-5"
-    ),
-    client=AsyncAnthropicBedrockMantle(aws_region="us-east-1"),
-)
-
-# Microsoft Foundry: an Azure API key, or azure_ad_token_provider= for Entra ID.
-agent = ShoppingAgent(
-    **common,
-    config=ShoppingAgentConfig(memory_model="claude-haiku-4-5"),
-    client=AsyncAnthropicFoundry(resource="your-resource", api_key="your-azure-key"),
-)
-
-# In-house gateway: it must serve /v1/messages with SSE streaming.
-agent = ShoppingAgent(
-    **common,
-    client=AsyncAnthropic(base_url="https://llm-gateway.internal.example", auth_token="your-token"),
-)
-```
-
-The packages declare `anthropic>=0.91`, the release that adds `AsyncAnthropicBedrockMantle`,
-the newest of the client classes above.
-
-A gateway must speak the Anthropic Messages API: the SDK posts to
-`{ANTHROPIC_BASE_URL}/v1/messages` with SSE streaming, so write the base URL without
-`/v1`. An OpenAI-format endpoint (`/v1/chat/completions`) does not work; a multi-format
-gateway must expose its Anthropic-compatible endpoint. `ANTHROPIC_AUTH_TOKEN` sends a
-`Bearer` header and `ANTHROPIC_API_KEY` sends `x-api-key`; use whichever the gateway
-expects, and leave the other blank.
-
-## What the tests cover
-
-No test holds cloud credentials, so no live platform conversation runs here; run one on
-your platform before relying on it. To drive the agent with no credentials at all,
-script the model with `commerce_common.testing.FakeClient`.
+从新浏览器创建匿名身份和对话，发送一条消息确认 SSE 文本与 UI 事件持续到达。刷新页面后确认历史仍可读；重启 API 后确认同一身份能继续对话。验证不同浏览器的记录互不可读、相同请求 ID 可重放而不重复写入、记忆编辑和删除有效、订单服务的库存和购物车状态准确。长对话还应核对压缩后用户最新条件、会话笔记覆盖边界和回查工具结果。

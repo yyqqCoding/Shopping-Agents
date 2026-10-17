@@ -6,6 +6,14 @@ facts, streams the model, executes tool calls concurrently through
 `shopping_agent.executor`, and yields events for the host to render. The demo API is a
 host application around it (`examples/demo_common/experience.py`).
 
+A topic-memory adapter enables `TopicMemoryEngine`: the runtime uses a bounded index
+or starts a semantic-recall prefetch, consumes ready files after tool execution and
+keeps the inherited main request prefix for post-turn extraction. It registers scoped
+file tools instead of fact-key tools. The local host persists the exact prefix until
+its extraction job completes, runs consolidation and exposes file/task management.
+`update_memory` remains the convenience path for legacy fact adapters; topic extraction
+is owned by the durable host. See `docs/long-term-memory-design.md`.
+
 | Module | Holds |
 |---|---|
 | `orchestrator.py` | `ShoppingAgent`: constructor, `stream_turn`, `update_memory` |
@@ -47,11 +55,17 @@ stream error propagates out of `stream_turn`; the host catches it and emits an `
 - When a rule in `shopping_agent.grounding` fires, the first round is pinned to that read
   tool with `tool_choice`; after `max_tool_iterations` rounds the last round runs without tools.
 - Tool calls dispatch eagerly: a call executes the moment its content block closes, while
-  the model writes the rest of the round (`eager_tool_dispatch`). Each model call carries a
+  the model writes the rest of the round (`eager_tool_dispatch`). Its validated display
+  events publish as soon as it finishes, even while the model or other tools are still
+  running. The model's result blocks retain the original call order. Each model call carries a
   cache breakpoint on the newest persisted message (`rolling_conversation_cache`), placed on
   the outgoing request only, and sends thinking at `thinking_effort`. `eager_partial_frames`
   switches `ui_partial` frames from structural changes to every visible change; a call's
   `status` line goes out as the `tool_call` event's `label`.
+- Model-call logs include first-text and first-card arrival times relative to the model
+  request, and first-round preparation time. The browser trace records connection,
+  first-text and first-card arrival times relative to send. See
+  [`frontend-performance-design.md`](../../docs/frontend-performance-design.md).
 - With `close_on_presentation` on, a round that `round_closes_turn`
   (`commerce_common/turn.py`) accepts ends the turn there, so `messages` can end on tool
   results.
@@ -74,11 +88,31 @@ Pass `archive=[]` containing the new user message and a persisted
 compaction. Persist it as one turn, plus the final display fragments and the latest
 working messages/context. Send completion to the browser only after that transaction.
 
-Before every model request, `fit_context` checks the input budget and summarizes older
-whole exchanges while retaining recent tool-use/result pairs. A failed summary may use
-a smaller request-only copy without changing the checkpoint. If no safe input fits, it
-raises `ContextBudgetExceeded`. A caller that omits `working_context` keeps its original
+Before every model request, old read-tool results may be cleared from the working copy
+when explicitly enabled and the configured idle gap is exceeded. `fit_context` uses an
+API usage baseline plus new messages, prefers a committed session note with its exact
+message boundary, and expands its retained tail to the configured token/text-message
+minimums while preserving API pairs. Ordinary full compaction inherits the main request
+prefix and denies tools; failure falls back to an independent stream on the main model.
+Only a valid, fitting summary changes the checkpoint. A caller that omits `working_context` keeps its original
 messages; its temporary summary cannot silently discard history between turns.
+
+Durable hosts can provide `allocate_message_id`, `on_round_complete` and
+`refresh_session_note`. The runtime records ids alongside working messages and calls
+the hook after a complete model round with paired tool results. The host persists the
+raw boundary before queuing a serial note edit, and can wait up to 15 seconds before
+compaction. `WorkingContext` persists tool cursors, note coverage, usage fingerprints,
+loaded skill names and the last assistant timestamp. Full compaction restores skill
+instructions and bounded file/archive references; business write authority remains in
+the server's session state.
+
+A durable host can pass `save_large_result` to externalize a tool result above 12,000
+characters before it enters the working context. Each new round also has a 200,000-character
+eligible-result budget; the largest results are replaced first, counting previews and
+references toward the remaining total. File/archive reads, skill loads, writes, errors
+and refusals remain intact. Failed saves retain the original result. The original remains
+in `archive`, and historical replacements stay stable. The local experience host
+adds `read_session_archive` for bounded retrieval of saved results or old transcript excerpts.
 
 The durable demo captures `MemoryWriteVersion` at turn start and queues memory extraction
 by turn and source order. It does not also call `update_memory`; that convenience method

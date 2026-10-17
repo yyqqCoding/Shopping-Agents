@@ -38,6 +38,18 @@ logger = logging.getLogger(__name__)
 _SUMMARY_MAX_CHARS = 200
 _EXCERPT_MAX_CHARS = 1200
 CLEARED_RESULT = "[result cleared from an earlier turn; call the tool again if it is needed]"
+_WRITE_TOOLS = frozenset(
+    {
+        "add_to_cart",
+        "update_cart_item",
+        "remove_from_cart",
+        "save_memory",
+        "forget_memory",
+        "memory_write",
+        "memory_edit",
+        "memory_delete",
+    }
+)
 # The result of a call whose streamed input never became JSON; the input is not echoed.
 UNREADABLE_INPUT_TEXT = (
     "The arguments for this call did not arrive as valid JSON, so it was not run. "
@@ -61,6 +73,12 @@ def _is_user_text(message: dict[str, Any], host_texts: Collection[str]) -> bool:
     if message.get("role") != "user":
         return False
     texts = _text_blocks(message.get("content"))
+    if (
+        isinstance(message.get("content"), list)
+        and texts
+        and texts[0].startswith("[relevant_memories]\n")
+    ):
+        return False
     return bool(texts) and not all(text in host_texts for text in texts)
 
 
@@ -71,6 +89,8 @@ def latest_user_text(messages: list[dict[str, Any]], host_texts: Collection[str]
             continue
         content = message.get("content")
         texts = _text_blocks(content)
+        if isinstance(content, list) and texts and texts[0].startswith("[relevant_memories]\n"):
+            continue
         if texts and all(text in host_texts for text in texts):
             continue
         if texts:
@@ -157,6 +177,37 @@ def compact_history(
     return cleared
 
 
+def microcompact_results(
+    messages: list[dict[str, Any]], *, keep_recent: int = 5, trigger_bytes: int = 100_000
+) -> int:
+    """Clear only old read results before a request, preserving recent and write results.
+
+    Tool-use ids and result blocks stay paired. The host's raw transcript is separate.
+    """
+    if len(json.dumps(messages, ensure_ascii=False).encode("utf-8")) < trigger_bytes:
+        return 0
+    tool_names = {
+        block.get("id"): block.get("name")
+        for message in messages
+        if isinstance(message.get("content"), list)
+        for block in message["content"]
+        if block.get("type") == "tool_use"
+    }
+    results = [
+        block
+        for message in messages
+        if isinstance(message.get("content"), list)
+        for block in message["content"]
+        if block.get("type") == "tool_result"
+        and isinstance(block.get("content"), str)
+        and tool_names.get(block.get("tool_use_id")) not in _WRITE_TOOLS
+        and block["content"] not in {"", CLEARED_RESULT}
+    ]
+    for block in results[:-keep_recent] if keep_recent else results:
+        block["content"] = CLEARED_RESULT
+    return max(0, len(results) - keep_recent)
+
+
 async def fetched(coro: Any) -> Any:
     """Await a prefetch; None when it fails (logged at WARNING with its traceback) or when
     ``coro`` is None (a slot the deployment switches off), so the turn goes ahead without
@@ -175,7 +226,8 @@ class EagerDispatcher:
     """Tool execution started mid-stream. When a ``tool_use`` block's buffered JSON
     parses at ``content_block_stop``, the call's arguments are final — the loop starts
     executing then, while the model writes the rest of the round, so tool time overlaps
-    generation time. ``collect`` is the post-stream join: started calls are awaited,
+    generation time. Completed calls publish their display events immediately.
+    ``collect`` is the post-stream join: started calls are awaited,
     anything the stream path missed (unparseable buffer, dispatch off) executes from the
     final message's canonical args, and every call runs exactly once. ``cancel`` is the
     error and malformed-stream backstop; a started task must not outlive its turn."""
@@ -186,6 +238,15 @@ class EagerDispatcher:
         self._execute = execute
         self._enabled = enabled
         self._tasks: dict[str, asyncio.Future[ToolOutcome]] = {}
+        self._names: dict[str, str] = {}
+        self._published: set[str] = set()
+        self._ready = asyncio.Event()
+
+    def _start(self, name: str, tool_use_id: str, args: dict[str, Any]) -> None:
+        self._names[tool_use_id] = name
+        task = asyncio.ensure_future(self._execute(name, args))
+        self._tasks[tool_use_id] = task
+        task.add_done_callback(lambda _: self._ready.set())
 
     def started(self, tool_use_id: str) -> bool:
         return tool_use_id in self._tasks
@@ -195,7 +256,7 @@ class EagerDispatcher:
         started, or no parsed args) and the join executes it later."""
         if not self._enabled or args is None or tool_use_id in self._tasks:
             return False
-        self._tasks[tool_use_id] = asyncio.ensure_future(self._execute(name, args))
+        self._start(name, tool_use_id, args)
         return True
 
     def settle(self, tool_use_id: str, outcome: ToolOutcome) -> None:
@@ -206,20 +267,56 @@ class EagerDispatcher:
         settled: asyncio.Future[ToolOutcome] = asyncio.get_running_loop().create_future()
         settled.set_result(outcome)
         self._tasks[tool_use_id] = settled
+        self._ready.set()
+
+    async def wait_ready(self) -> None:
+        await self._ready.wait()
+
+    def ready_events(self) -> Iterator[AgentEvent]:
+        """Publish each finished call once; waiting never consumes a completion."""
+        self._ready.clear()
+        for tool_id, task in self._tasks.items():
+            if tool_id in self._published or not task.done() or tool_id not in self._names:
+                continue
+            outcome = task.result()
+            self._published.add(tool_id)
+            yield from outcome_events(self._names[tool_id], tool_id, outcome)
+
+    async def finish(self, tool_uses: list[Any]) -> AsyncIterator[AgentEvent]:
+        """Start remaining calls, then publish in completion order, without a join barrier."""
+        for block in tool_uses:
+            self._names[block.id] = block.name
+            if block.id not in self._tasks:
+                args = tool_arguments(block)
+                if args is None:
+                    self.settle(block.id, ToolOutcome.error(UNREADABLE_INPUT_TEXT))
+                else:
+                    self._start(block.name, block.id, args)
+        while any(block.id not in self._published for block in tool_uses):
+            for event in self.ready_events():
+                yield event
+            if any(block.id not in self._published for block in tool_uses):
+                await self.wait_ready()
 
     async def collect(self, tool_uses: list[Any]) -> list[ToolOutcome]:
-        return await asyncio.gather(
-            *(
-                self._tasks[block.id]
-                if block.id in self._tasks
-                else self._execute(block.name, dict(block.input or {}))
-                for block in tool_uses
-            )
-        )
+        for block in tool_uses:
+            if block.id not in self._tasks:
+                args = tool_arguments(block)
+                if args is None:
+                    self.settle(block.id, ToolOutcome.error(UNREADABLE_INPUT_TEXT))
+                else:
+                    self._start(block.name, block.id, args)
+        return await asyncio.gather(*(self._tasks[block.id] for block in tool_uses))
 
     def cancel(self) -> None:
         for task in self._tasks.values():
             task.cancel()
+            # Retrieve exceptions even when a stream failed before its join.
+            task.add_done_callback(lambda done: None if done.cancelled() else done.exception())
+
+    async def close(self) -> None:
+        self.cancel()
+        await asyncio.gather(*self._tasks.values(), return_exceptions=True)
 
 
 @dataclass
@@ -353,28 +450,43 @@ class StreamedRound:
         Only the SDK's rejection of an open tool's input is caught (the round ends
         ``abandoned``); anything a partial hook raises propagates."""
         events = aiter(stream)
-        while True:
-            try:
-                raw = await anext(events)
-            except StopAsyncIteration:
-                return
-            except ValueError:
-                if not self.tool_open():
-                    raise
-                self.abandoned = True
-                return
-            tool = self.feed(raw)
-            raw_type = getattr(raw, "type", "")
-            if raw_type == "content_block_delta":
-                delta = raw.delta
-                if getattr(delta, "type", "") == "text_delta" and delta.text:
-                    yield AgentEvent.text_delta(delta.text)
-                elif tool is not None and (frame := self.frame(tool)) is not None:
-                    yield frame
-            elif raw_type == "content_block_stop" and tool is not None and not tool.server:
-                args = tool.parsed()
-                if dispatcher.dispatch(tool.name, tool.id, args):
-                    yield announce(tool.name, tool.id, args or {})
+        incoming = asyncio.create_task(anext(events))
+        ready = asyncio.create_task(dispatcher.wait_ready())
+        try:
+            while True:
+                await asyncio.wait((incoming, ready), return_when=asyncio.FIRST_COMPLETED)
+                if ready.done():
+                    for event in dispatcher.ready_events():
+                        yield event
+                    ready = asyncio.create_task(dispatcher.wait_ready())
+                if not incoming.done():
+                    continue
+                try:
+                    raw = incoming.result()
+                except StopAsyncIteration:
+                    return
+                except ValueError:
+                    if not self.tool_open():
+                        raise
+                    self.abandoned = True
+                    return
+                tool = self.feed(raw)
+                raw_type = getattr(raw, "type", "")
+                if raw_type == "content_block_delta":
+                    delta = raw.delta
+                    if getattr(delta, "type", "") == "text_delta" and delta.text:
+                        yield AgentEvent.text_delta(delta.text)
+                    elif tool is not None and (frame := self.frame(tool)) is not None:
+                        yield frame
+                elif raw_type == "content_block_stop" and tool is not None and not tool.server:
+                    args = tool.parsed()
+                    if dispatcher.dispatch(tool.name, tool.id, args):
+                        yield announce(tool.name, tool.id, args or {})
+                incoming = asyncio.create_task(anext(events))
+        finally:
+            incoming.cancel()
+            ready.cancel()
+            await asyncio.gather(incoming, ready, return_exceptions=True)
 
     def salvaged(self) -> tuple[dict[str, Any] | None, list[Any], set[str]]:
         """The round as far as it streamed: the assistant message for the conversation,
@@ -490,11 +602,25 @@ def log_model_call(
         caller.debug("model response %s %s", tags, body, stacklevel=2)
 
 
+def tool_arguments(block: Any) -> dict[str, Any] | None:
+    """Normalize gateways that return a JSON string for non-streaming tool input."""
+    value = getattr(block, "input", None)
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (ValueError, TypeError):
+            return None
+    return value if isinstance(value, dict) else None
+
+
 def assistant_message(final: Any) -> dict[str, Any] | None:
     """The final response as a message dict for the conversation, or None when empty."""
     content = [
         block.model_dump(exclude_none=True, exclude={"citations"}) for block in final.content
     ]
+    for block, entry in zip(final.content, content, strict=True):
+        if entry.get("type") == "tool_use":
+            entry["input"] = tool_arguments(block) or {}
     return {"role": "assistant", "content": content} if content else None
 
 
@@ -534,6 +660,64 @@ def tool_result_block(tool_use_id: str, outcome: ToolOutcome) -> dict[str, Any]:
         "content": outcome.result_text,
         "is_error": outcome.is_error,
     }
+
+
+async def externalize_tool_results(
+    calls: Iterable[tuple[str, str, ToolOutcome]],
+    save: Callable[[str, str], Awaitable[str]],
+    *,
+    result_limit: int = 12_000,
+    message_limit: int = 200_000,
+) -> list[dict[str, Any]]:
+    """Persist fresh oversized results, then the largest results in an oversized batch.
+
+    Read tools keep their own bounds to avoid read/persist/read loops. Writes, refusals
+    and errors retain their confirmations. Returned blocks keep API order; neither raw
+    outcomes nor previously sent messages change. Storage failure leaves readable text.
+    """
+    calls = list(calls)
+    results = [tool_result_block(tool_id, outcome) for _, tool_id, outcome in calls]
+    protected = _WRITE_TOOLS | {"read_session_archive", "memory_read", "load_skill"}
+    eligible = [
+        index
+        for index, (name, _, outcome) in enumerate(calls)
+        if name not in protected
+        and not outcome.is_error
+        and not outcome.refused
+        and not outcome.blocked
+    ]
+    attempted: set[int] = set()
+
+    async def replace(index: int) -> None:
+        attempted.add(index)
+        _, tool_id, outcome = calls[index]
+        try:
+            result_id = await save(tool_id, outcome.result_text)
+        except Exception:
+            # Do not expose tool output or storage paths in logs, or retry business calls.
+            logger.warning("Could not persist tool result %s; retaining original", tool_id)
+            return
+        preview = (
+            outcome.result_text[:2000]
+            + f"\n[Full result saved as {result_id}; use read_session_archive with result_id if needed.]"
+        )
+        if len(preview) < len(outcome.result_text):
+            results[index]["content"] = preview
+
+    for index in eligible:
+        if len(results[index]["content"]) > result_limit:
+            await replace(index)
+
+    remaining = sum(len(results[index]["content"]) for index in eligible)
+    for index in sorted(eligible, key=lambda item: len(results[item]["content"]), reverse=True):
+        if remaining <= message_limit:
+            break
+        if index in attempted or len(results[index]["content"]) <= 2000:
+            continue
+        before = len(results[index]["content"])
+        await replace(index)
+        remaining -= before - len(results[index]["content"])
+    return results
 
 
 INTERRUPTED_RESULT_TEXT = (

@@ -3,12 +3,16 @@
 
 "use client";
 
-import type { ReactNode } from "react";
-import { ActivityLine, type AgentTurn, type AssistantChatItem, Chat as ChatShell } from "web-shared";
+import { useCallback, type ReactNode } from "react";
+import { ActivityLine, type AgentTurn, type AssistantChatItem, type UISegment, Chat as ChatShell } from "web-shared";
 import { addToCart, api } from "@/lib/api";
 import type { CartPayload } from "@/lib/types";
 import GenerativeBlock from "./generative";
 import { ProductTileSkeleton } from "./ProductTile";
+import type { Product } from "@/lib/types";
+
+const WIDE_COMPONENTS = new Set(["products", "comparison", "plan"]);
+const renderPending = (item: AssistantChatItem) => <Pending item={item} />;
 
 /** Shimmers where the carousel will land while a search runs. */
 function Pending({ item }: { item: AssistantChatItem }) {
@@ -27,25 +31,22 @@ function Pending({ item }: { item: AssistantChatItem }) {
 }
 
 export default function Chat({ chat, home, onCartUpdate }: { chat: AgentTurn; home: ReactNode; onCartUpdate: (cart: CartPayload) => void }) {
+  const onAdd = useCallback(async (product: Product) => {
+    const conversationId = api.session;
+    const cart = await addToCart(product.product_id);
+    if (cart && api.session === conversationId) onCartUpdate(cart);
+    return cart !== null;
+  }, [onCartUpdate]);
+  const renderBlock = useCallback((segment: UISegment) => (
+    <GenerativeBlock block={segment.block} status={segment.status} onAdd={onAdd} onSubmitted={onCartUpdate} />
+  ), [onAdd, onCartUpdate]);
   return (
     <ChatShell
       chat={chat}
-      wide={new Set(["products", "comparison", "plan"])}
+      wide={WIDE_COMPONENTS}
       home={home}
-      renderPending={(item) => <Pending item={item} />}
-      renderBlock={(segment) => (
-        <GenerativeBlock
-          block={segment.block}
-          status={segment.status}
-          onAdd={async (product) => {
-            const conversationId = api.session;
-            const cart = await addToCart(product.product_id);
-            if (cart && api.session === conversationId) onCartUpdate(cart);
-            return cart !== null;
-          }}
-          onSubmitted={onCartUpdate}
-        />
-      )}
+      renderPending={renderPending}
+      renderBlock={renderBlock}
     />
   );
 }

@@ -34,6 +34,7 @@ npm-debug.log*
 # Demo runtime state. The memory files hold whatever a local demo
 # remembered — personal data in a real deployment — and are never committed.
 examples/*/data/.memory-*.json
+.shopping-data/
 
 # OS / editor / local tooling
 .DS_Store
